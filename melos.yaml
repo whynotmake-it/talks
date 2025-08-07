@@ -1,6 +1,7 @@
 name: talks_workspace
 
 packages:
+  - apps/*
   - packages/*
 
 command:
