@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:heroine/heroine.dart';
-import 'package:physical_ui/slides/slide_two.dart';
+import 'package:physical_ui/slides/motion_slide.dart';
 import 'package:physical_ui/slides/title_slide.dart';
 import 'package:wnma_talk/wnma_talk.dart';
 
@@ -30,7 +30,7 @@ class PhysicalUiTalk extends StatelessWidget {
           ),
           slides: [
             TitleSlide(),
-            SlideTwo(),
+            MotionSlide(),
           ],
           themeMode: ThemeMode.light,
         ),
