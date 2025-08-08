@@ -1,9 +1,33 @@
 import 'package:flutter/cupertino.dart';
 
-class ValueRecordingNotifier<T> extends ValueNotifier<List<(DateTime, T)>> {
-  ValueRecordingNotifier() : super([]);
+typedef TimedValue<T> = (DateTime, T);
 
-  List<(DateTime, T)> duration(Duration duration) {
+class ValueRecordingNotifier<T> extends ValueNotifier<List<TimedValue<T>>> {
+  ValueRecordingNotifier({
+    this.window,
+  }) : super([]);
+
+  Duration? window;
+
+  void reset() {
+    value = [];
+  }
+
+  void record(T value) {
+    final newValue = [
+      ...this.value,
+      (DateTime.now(), value),
+    ];
+
+    this.value = switch (window) {
+      final window? => newValue.window(window),
+      null => newValue,
+    };
+  }
+}
+
+extension TimedValuesExtension<T> on List<TimedValue<T>> {
+  List<(DateTime, T)> window(Duration duration) {
     final from = DateTime.now().subtract(duration);
     return subset(from: from);
   }
@@ -12,23 +36,10 @@ class ValueRecordingNotifier<T> extends ValueNotifier<List<(DateTime, T)>> {
     DateTime? from,
     DateTime? to,
   }) {
-    return value
-        .where(
-          (v) =>
-              (to == null || v.$1.isBefore(to)) &&
-              (from == null || v.$1.isAfter(from)),
-        )
-        .toList();
-  }
-
-  void reset() {
-    value = [];
-  }
-
-  void record(T value) {
-    this.value = [
-      ...this.value,
-      (DateTime.now(), value),
-    ];
+    return where(
+      (v) =>
+          (to == null || v.$1.isBefore(to)) &&
+          (from == null || v.$1.isAfter(from)),
+    ).toList();
   }
 }

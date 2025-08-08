@@ -20,6 +20,7 @@ class TitleSlide extends FlutterDeckSlideWidget {
 
         useEffect(() {
           animationController.repeat(reverse: true);
+          return null;
         }, [animationController]);
 
         final thickness = useAnimation(
