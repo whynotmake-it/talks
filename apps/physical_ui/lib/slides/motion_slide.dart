@@ -12,6 +12,7 @@ import 'package:wnma_talk/wnma_talk.dart';
 
 typedef MotionSlideStep = ({
   bool showGraph,
+  bool showTarget,
   Motion motion,
   String motionDescription,
 });
@@ -30,26 +31,37 @@ class MotionSlide extends FlutterDeckSlideWidget {
   static const steps = <MotionSlideStep>[
     (
       showGraph: false,
+      showTarget: false,
+      motionDescription: "Linear",
+      motion: CurvedMotion(duration: duration),
+    ),
+    (
+      showGraph: false,
+      showTarget: true,
       motionDescription: "Linear",
       motion: CurvedMotion(duration: duration),
     ),
     (
       showGraph: true,
+      showTarget: true,
       motionDescription: "Curves.linear",
       motion: CurvedMotion(duration: duration),
     ),
     (
       showGraph: true,
+      showTarget: true,
       motionDescription: "Curves.easeInOut",
       motion: CurvedMotion(duration: duration, curve: Curves.easeInOut),
     ),
     (
       showGraph: true,
+      showTarget: true,
       motionDescription: "Curves.ease",
       motion: CurvedMotion(duration: duration, curve: Curves.ease),
     ),
     (
       showGraph: true,
+      showTarget: true,
       motionDescription: "Spring simulation",
       motion: CupertinoMotion.smooth(duration: duration),
     ),
@@ -107,6 +119,7 @@ class MotionSlide extends FlutterDeckSlideWidget {
                                     value: value,
                                     target: target,
                                     diameter: ballDiameter,
+                                    showTarget: step.value.showTarget,
                                   ),
                                   Flexible(
                                     child: AnimatedSizeSwitcher(
