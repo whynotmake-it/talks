@@ -5,6 +5,7 @@ import 'package:physical_ui/flip_flop/flip_flop_notifier.dart';
 import 'package:physical_ui/graphs/value_recording_graph.dart';
 import 'package:physical_ui/graphs/value_recording_notifier.dart';
 import 'package:physical_ui/hooks/hooks.dart';
+import 'package:physical_ui/shared/widgets/motion_description.dart';
 import 'package:physical_ui/slides/motion/motion_ball.dart';
 import 'package:rivership/rivership.dart';
 import 'package:wnma_talk/wnma_talk.dart';
@@ -50,7 +51,7 @@ class MotionSlide extends FlutterDeckSlideWidget {
     (
       showGraph: true,
       motionDescription: "Spring simulation",
-      motion: CupertinoMotion.smooth(),
+      motion: CupertinoMotion.smooth(duration: duration),
     ),
   ];
 
@@ -68,10 +69,8 @@ class MotionSlide extends FlutterDeckSlideWidget {
               steps[stepNumber - 1],
               keys: [stepNumber],
             );
+
             final valueRecorder = useDisposable(
-              () => ValueRecordingNotifier<double>(window: duration * 2),
-            );
-            final velocityRecorder = useDisposable(
               () => ValueRecordingNotifier<double>(window: duration * 2),
             );
 
@@ -81,83 +80,87 @@ class MotionSlide extends FlutterDeckSlideWidget {
             final flipFlop = useValueListenable(flipFlopNotifier);
             final target = flipFlop ? .0 : 1.0;
 
-            return SingleVelocityMotionBuilder(
-              value: target,
-              motion: step.value.motion,
-              builder: (context, value, velocity, child) {
-                valueRecorder.record(value);
-                velocityRecorder.record(velocity);
-                return Stack(
-                  alignment: Alignment.center,
-                  fit: StackFit.expand,
-                  children: [
-                    Padding(
-                      padding: EdgeInsetsGeometry.all(200),
-                      child: Column(
-                        children: [
-                          Center(
-                            child: Text(step.value.motionDescription),
-                          ),
-                          Expanded(
-                            child: Row(
-                              children: [
-                                MotionBall(
-                                  value: value,
-                                  target: target,
-                                  diameter: ballDiameter,
-                                ),
-                                Flexible(
-                                  child: AnimatedSizeSwitcher(
-                                    child: step.value.showGraph
-                                        ? Padding(
-                                            padding: EdgeInsets.symmetric(
-                                              vertical: ballDiameter / 2,
-                                            ),
-                                            child: ValueRecordingGraph(
-                                              notifier: valueRecorder,
-                                              minY: 0,
-                                              maxY: 1,
-                                            ),
-                                          )
-                                        : SizedBox.expand(),
+            return FlutterDeckSlideStepsListener(
+              listener: (context, stepNumber) => valueRecorder.reset(),
+              child: SingleVelocityMotionBuilder(
+                value: target,
+                motion: step.value.motion,
+                builder: (context, value, velocity, child) {
+                  valueRecorder.record(value);
+                  return Stack(
+                    alignment: Alignment.center,
+                    fit: StackFit.expand,
+                    children: [
+                      Padding(
+                        padding: EdgeInsetsGeometry.all(200),
+                        child: Column(
+                          children: [
+                            Center(
+                              child: MotionDescription(
+                                motion: step.value.motion,
+                              ),
+                            ),
+                            Expanded(
+                              child: Row(
+                                children: [
+                                  MotionBall(
+                                    value: value,
+                                    target: target,
+                                    diameter: ballDiameter,
                                   ),
+                                  Flexible(
+                                    child: AnimatedSizeSwitcher(
+                                      child: step.value.showGraph
+                                          ? Padding(
+                                              padding: EdgeInsets.symmetric(
+                                                vertical: ballDiameter / 2,
+                                              ),
+                                              child: ValueRecordingGraph(
+                                                notifier: valueRecorder,
+                                                minY: 0,
+                                                maxY: 1,
+                                              ),
+                                            )
+                                          : SizedBox.expand(),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Row(
+                              spacing: 24,
+                              children: [
+                                CupertinoButton.filled(
+                                  onPressed: flipFlopNotifier.flip,
+                                  child: Text('Flip'),
                                 ),
                               ],
                             ),
-                          ),
-                          Row(
-                            spacing: 24,
-                            children: [
-                              CupertinoButton.filled(
-                                onPressed: flipFlopNotifier.flip,
-                                child: Text('Flip'),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                    Align(
-                      alignment: Alignment.topLeft,
-                      child: Padding(
-                        padding: const EdgeInsets.all(64),
-                        child: Text(
-                          'Physical UI',
-                          textHeightBehavior: TextHeightBehavior(
-                            applyHeightToLastDescent: false,
-                          ),
-                          style:
-                              FlutterDeckTheme.of(
-                                context,
-                              ).textTheme.title.copyWith(
-                                color: theme.colorScheme.error,
-                              ),
+                          ],
                         ),
                       ),
-                    ),
-                  ],
-                );
-              },
+                      Align(
+                        alignment: Alignment.topLeft,
+                        child: Padding(
+                          padding: const EdgeInsets.all(64),
+                          child: Text(
+                            'Physical UI',
+                            textHeightBehavior: TextHeightBehavior(
+                              applyHeightToLastDescent: false,
+                            ),
+                            style:
+                                FlutterDeckTheme.of(
+                                  context,
+                                ).textTheme.title.copyWith(
+                                  color: theme.colorScheme.error,
+                                ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  );
+                },
+              ),
             );
           },
         ),

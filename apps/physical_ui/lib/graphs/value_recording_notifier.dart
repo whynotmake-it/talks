@@ -14,14 +14,11 @@ class ValueRecordingNotifier<T> extends ValueNotifier<List<TimedValue<T>>> {
   }
 
   void record(T value) {
-    final newValue = [
-      ...this.value,
-      (DateTime.now(), value),
-    ];
+    this.value.add((DateTime.now(), value));
 
     this.value = switch (window) {
-      final window? => newValue.window(window),
-      null => newValue,
+      final window? => this.value.window(window),
+      null => this.value,
     };
   }
 }

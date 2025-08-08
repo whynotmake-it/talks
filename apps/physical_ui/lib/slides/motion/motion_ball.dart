@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:heroine/heroine.dart';
 import 'package:motor/motor.dart';
+import 'package:rivership/rivership.dart';
 
 class MotionBall extends HookWidget {
   const MotionBall({
@@ -22,14 +23,17 @@ class MotionBall extends HookWidget {
     final theme = Theme.of(context);
     return Stack(
       children: [
-        Align(
-          alignment: Alignment(0, 1 - target * 2),
-          child: SizedBox.square(
-            dimension: diameter,
-            child: DecoratedBox(
-              decoration: ShapeDecoration(
-                shape: CircleBorder(),
-                color: theme.colorScheme.tertiaryContainer,
+        AnimatedSizeSwitcher(
+          child: Align(
+            key: ValueKey(target),
+            alignment: Alignment(0, 1 - target * 2),
+            child: SizedBox.square(
+              dimension: diameter,
+              child: DecoratedBox(
+                decoration: ShapeDecoration(
+                  shape: CircleBorder(),
+                  color: theme.colorScheme.tertiaryContainer,
+                ),
               ),
             ),
           ),
