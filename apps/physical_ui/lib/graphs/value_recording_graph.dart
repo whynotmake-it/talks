@@ -1,8 +1,9 @@
 import 'package:community_charts_flutter/community_charts_flutter.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Color;
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:physical_ui/graphs/value_recording_notifier.dart';
+import 'package:physical_ui/shared/extensions/color_to_chart_color.dart';
 import 'package:value_notifier_tools/value_notifier_tools.dart';
 
 class ValueRecordingGraph<T extends num> extends HookWidget {
@@ -51,6 +52,7 @@ class ValueRecordingGraph<T extends num> extends HookWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final lineColor = theme.colorScheme.tertiary;
     final values = useValueListenable(selectedNotifier);
     if (values.isEmpty) return SizedBox.shrink();
 
@@ -67,11 +69,24 @@ class ValueRecordingGraph<T extends num> extends HookWidget {
               return DateTime.fromMillisecondsSinceEpoch(date.inMilliseconds);
             },
             measureFn: (datum, index) => datum.$2,
+            colorFn: (datum, index) => lineColor.toChartsColor(),
+            strokeWidthPxFn: (datum, index) => 5,
           ),
         ],
+        primaryMeasureAxis: NumericAxisSpec(
+          viewport: NumericExtents(minY!, maxY!),
+          showAxisLine: false,
+          renderSpec: NoneRenderSpec(),
+        ),
+        layoutConfig: LayoutConfig(
+          leftMarginSpec: MarginSpec.fixedPixel(0),
+          topMarginSpec: MarginSpec.fixedPixel(0),
+          rightMarginSpec: MarginSpec.fixedPixel(0),
+          bottomMarginSpec: MarginSpec.fixedPixel(0),
+        ),
+        domainAxis: DateTimeAxisSpec(renderSpec: NoneRenderSpec()),
         defaultInteractions: false,
         animate: false,
-        flipVerticalAxis: true,
       ),
     );
   }
