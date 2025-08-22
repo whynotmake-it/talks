@@ -8,6 +8,7 @@ environment:
   flutter: ">=3.10.0"
 
 dependencies:
+  device_frame: ^1.4.0
   flex_seed_scheme: ^3.5.1
   flutter:
     sdk: flutter

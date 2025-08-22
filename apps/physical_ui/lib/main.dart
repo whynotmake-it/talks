@@ -4,7 +4,6 @@ import 'package:physical_ui/slides/glass_slide.dart';
 import 'package:physical_ui/slides/how_did_we_get_here_slide.dart';
 import 'package:physical_ui/slides/motion_slide.dart';
 import 'package:physical_ui/slides/title_slide.dart';
-import 'package:wnma_talk/big_quote_template.dart';
 import 'package:wnma_talk/wnma_talk.dart';
 
 void main() {
@@ -30,6 +29,9 @@ class PhysicalUiTalk extends StatelessWidget {
             slideSize: FlutterDeckSlideSize.responsive(),
             showProgress: false,
             transition: FlutterDeckTransition.fade(),
+            controls: FlutterDeckControlsConfiguration(
+              presenterToolbarVisible: false,
+            ),
           ),
           slides: [
             TitleSlide(),
