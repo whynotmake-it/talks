@@ -1,4 +1,5 @@
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:motor/motor.dart';
@@ -69,6 +70,7 @@ class _SheetContent extends StatelessWidget {
     return CupertinoPageScaffold(
       backgroundColor: CupertinoColors.lightBackgroundGray,
       child: CustomScrollView(
+        primary: true,
         slivers: [
           CupertinoSliverNavigationBar(
             largeTitle: Text('Motion Example'),
@@ -110,6 +112,8 @@ class _MySheetRoute extends PopupRoute<void> {
   final Widget child;
 
   final bool unboundedMotion;
+
+  ScrollController? _scrollController = ScrollController();
 
   @override
   bool get barrierDismissible => true;
@@ -177,6 +181,9 @@ class _MySheetRoute extends PopupRoute<void> {
     );
   }
 
+  bool _isDragging = false;
+  DragUpdateDetails? _lastScrollUpdateDetails;
+
   @override
   Widget buildTransitions(
     BuildContext context,
@@ -184,65 +191,116 @@ class _MySheetRoute extends PopupRoute<void> {
     Animation<double> secondaryAnimation,
     Widget child,
   ) {
-    return AnimatedBuilder(
-      animation: animation,
-      builder: (context, _) {
-        final value = animation.value;
-
-        var transformedChild = child;
-
-        if (value > 1.0) {
-          // When dragged beyond normal bounds, scale from bottom
-          final scale = value;
-          transformedChild = Transform.scale(
-            scaleY: scale,
-            alignment: Alignment.bottomCenter,
-            child: child,
-          );
-        } else {
-          // Normal slide up transition
-          transformedChild = FractionalTranslation(
-            translation: Offset(0, 1 - value),
-            child: child,
-          );
-        }
-
-        return GestureDetector(
-          onVerticalDragStart: (details) =>
-              Navigator.of(context).didStartUserGesture(),
-          onVerticalDragEnd: (details) {
-            final velocity = details.velocity.pixelsPerSecond.dy;
-            final currentValue = controller!.value;
-
-            // Determine if we should dismiss based on velocity and position
-            final shouldDismiss = _shouldDismiss(velocity, currentValue);
-
-            dragEndVelocity = -velocity / context.size!.height;
-
-            if (shouldDismiss) {
-              Navigator.of(context).pop();
-            } else {
-              final backSim = motion.createSimulation(
-                start: currentValue,
-                velocity: dragEndVelocity!,
-              );
-              controller!.animateWith(backSim);
+    return NotificationListener<ScrollNotification>(
+      onNotification: (notification) {
+        switch (notification) {
+          case final ScrollStartNotification n:
+            if (n.dragDetails != null) {
+              _handleDragStart(context, n.dragDetails!);
             }
-            Navigator.of(context).didStopUserGesture();
-          },
-          onVerticalDragUpdate: (details) {
-            final delta = details.primaryDelta! / context.size!.height;
-            final newValue = (controller?.value ?? 0) - delta;
-            controller?.value = newValue;
-          },
+          case final ScrollUpdateNotification n:
+            if (n.dragDetails case final DragUpdateDetails details) {
+              _isDragging = true;
+              _lastScrollUpdateDetails = n.dragDetails;
 
-          child: Padding(
-            padding: const EdgeInsets.only(top: 100),
-            child: transformedChild,
-          ),
-        );
+              // When we are overscrolling at the top
+              if (n.metrics.extentBefore == 0) {
+                _handleDragUpdate(context, n.dragDetails!);
+              }
+            } else {
+              if (_isDragging) {
+                _isDragging = false;
+                _handleDragEnd(context, DragEndDetails());
+              }
+            }
+          case final ScrollEndNotification n:
+            if (n.dragDetails case final details?) {
+              _handleDragEnd(context, details!);
+            }
+        }
+        return true;
       },
+      child: AnimatedBuilder(
+        animation: animation,
+        builder: (context, _) {
+          final value = animation.value;
+
+          var transformedChild = child;
+
+          if (value > 1.0) {
+            // When dragged beyond normal bounds, scale from bottom
+            final scale = value;
+            transformedChild = Transform.scale(
+              scaleY: scale,
+              alignment: Alignment.bottomCenter,
+              child: child,
+            );
+          } else {
+            // Normal slide up transition
+            transformedChild = FractionalTranslation(
+              translation: Offset(0, 1 - value),
+              child: child,
+            );
+          }
+
+          return GestureDetector(
+            onVerticalDragStart: (details) =>
+                _handleDragStart(context, details),
+            onVerticalDragEnd: (details) {
+              _handleDragEnd(context, details);
+            },
+            onVerticalDragUpdate: (details) {
+              _handleDragUpdate(context, details);
+            },
+
+            child: Padding(
+              padding: const EdgeInsets.only(top: 100),
+              child: transformedChild,
+            ),
+          );
+        },
+      ),
     );
+  }
+
+  void _handleDragStart(
+    BuildContext context,
+    DragStartDetails startDetails,
+  ) {
+    Navigator.of(context).didStartUserGesture();
+  }
+
+  void _handleDragUpdate(
+    BuildContext context,
+    DragUpdateDetails updateDetails,
+  ) {
+    final delta = updateDetails.primaryDelta! / context.size!.height;
+    final newValue = (controller?.value ?? 0) - delta;
+    controller?.value = newValue;
+  }
+
+  void _handleDragEnd(
+    BuildContext context,
+    DragEndDetails details,
+  ) {
+    final velocity = details.velocity.pixelsPerSecond.dy;
+    final currentValue = controller!.value;
+
+    // Determine if we should dismiss based on velocity and position
+    final shouldDismiss = _shouldDismiss(velocity, currentValue);
+
+    dragEndVelocity = -velocity / context.size!.height;
+
+    if (shouldDismiss) {
+      Navigator.of(context).pop();
+    } else {
+      final backSim = motion.createSimulation(
+        start: currentValue,
+        velocity: dragEndVelocity!,
+      );
+      controller!.animateWith(backSim);
+    }
+    Navigator.of(context).didStopUserGesture();
   }
 
   @override
