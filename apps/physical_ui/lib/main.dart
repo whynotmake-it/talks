@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:heroine/heroine.dart';
-import 'package:motor/motor.dart';
+import 'package:physical_ui/slides/glass_slide.dart';
+import 'package:physical_ui/slides/how_did_we_get_here_slide.dart';
+import 'package:physical_ui/slides/motion_slide.dart';
 import 'package:physical_ui/slides/title_slide.dart';
 import 'package:wnma_talk/wnma_talk.dart';
 
@@ -27,27 +29,15 @@ class PhysicalUiTalk extends StatelessWidget {
             slideSize: FlutterDeckSlideSize.responsive(),
             showProgress: false,
             transition: FlutterDeckTransition.fade(),
+            controls: FlutterDeckControlsConfiguration(
+              presenterToolbarVisible: false,
+            ),
           ),
           slides: [
             TitleSlide(),
-            FlutterDeckSlide.custom(
-              builder: (context) => Align(
-                alignment: Alignment.centerLeft,
-                child: Heroine(
-                  motion: CupertinoMotion.bouncy(),
-                  tag: true,
-                  child: SizedBox.square(
-                    dimension: 300,
-                    child: DecoratedBox(
-                      decoration: ShapeDecoration(
-                        shape: CircleBorder(),
-                        color: Colors.red,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ),
+            GlassSlide(),
+            HowDidWeGetHereSlide(),
+            MotionSlide(),
           ],
           themeMode: ThemeMode.light,
         ),
