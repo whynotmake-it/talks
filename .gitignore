@@ -30,3 +30,4 @@ pubspec_overrides.yaml
 
 # FVM Version Cache
 .fvm/
+.vscode/settings.json
