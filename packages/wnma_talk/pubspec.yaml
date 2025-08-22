@@ -16,6 +16,9 @@ dependencies:
       url: git@github.com:timcreatedit/flutter_deck.git
       ref: feat/navigator-observers
       path: packages/flutter_deck
+  flutter_hooks: ^0.21.3+1
+  rivership: ^0.3.0-dev.7
+  video_player: ^2.10.0
   wnmi_design:
     path: /Users/tim/Developer/talks/packages/wnmi_design
 

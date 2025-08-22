@@ -15,7 +15,7 @@ class TypographyHeadline extends ThemeExtension<TypographyHeadline> {
 
   TypographyHeadline.standard()
       : large = GoogleFonts.getFont(
-          'Darker Grotesque',
+          'Bricolage Grotesque',
           fontSize: 32.0,
           fontWeight: FontWeight.w500,
           fontStyle: FontStyle.normal,
@@ -24,7 +24,7 @@ class TypographyHeadline extends ThemeExtension<TypographyHeadline> {
           decoration: TextDecoration.none,
         ),
         medium = GoogleFonts.getFont(
-          'Darker Grotesque',
+          'Bricolage Grotesque',
           fontSize: 28.0,
           fontWeight: FontWeight.w500,
           fontStyle: FontStyle.normal,
@@ -33,7 +33,7 @@ class TypographyHeadline extends ThemeExtension<TypographyHeadline> {
           decoration: TextDecoration.none,
         ),
         small = GoogleFonts.getFont(
-          'Darker Grotesque',
+          'Bricolage Grotesque',
           fontSize: 24.0,
           fontWeight: FontWeight.w500,
           fontStyle: FontStyle.normal,
@@ -101,7 +101,7 @@ class TypographyDisplay extends ThemeExtension<TypographyDisplay> {
 
   TypographyDisplay.standard()
       : large = GoogleFonts.getFont(
-          'Darker Grotesque',
+          'Bricolage Grotesque',
           fontSize: 51.0,
           fontWeight: FontWeight.w500,
           fontStyle: FontStyle.normal,
@@ -110,7 +110,7 @@ class TypographyDisplay extends ThemeExtension<TypographyDisplay> {
           decoration: TextDecoration.none,
         ),
         medium = GoogleFonts.getFont(
-          'Darker Grotesque',
+          'Bricolage Grotesque',
           fontSize: 45.0,
           fontWeight: FontWeight.w500,
           fontStyle: FontStyle.normal,
@@ -119,7 +119,7 @@ class TypographyDisplay extends ThemeExtension<TypographyDisplay> {
           decoration: TextDecoration.none,
         ),
         small = GoogleFonts.getFont(
-          'Darker Grotesque',
+          'Bricolage Grotesque',
           fontSize: 36.0,
           fontWeight: FontWeight.w500,
           fontStyle: FontStyle.normal,

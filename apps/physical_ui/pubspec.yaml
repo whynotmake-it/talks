@@ -11,7 +11,6 @@ dependencies:
   flutter:
     sdk: flutter
   flutter_hooks: ^0.21.2
-  flutter_liquid_glass: ^1.0.0+1
   heroine: ^0.5.0-dev.7
   liquid_glass_renderer: ^0.1.1-dev.10
   motor: ^1.0.0-dev.4
@@ -27,3 +26,6 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+
+  assets:
+    - assets/
