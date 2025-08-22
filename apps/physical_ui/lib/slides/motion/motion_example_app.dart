@@ -181,8 +181,7 @@ class _MySheetRoute extends PopupRoute<void> {
     );
   }
 
-  bool _isDragging = false;
-  DragUpdateDetails? _lastScrollUpdateDetails;
+  ValueNotifier<bool> _isDragging = ValueNotifier(false);
 
   @override
   Widget buildTransitions(
@@ -193,29 +192,58 @@ class _MySheetRoute extends PopupRoute<void> {
   ) {
     return NotificationListener<ScrollNotification>(
       onNotification: (notification) {
+        print(notification);
         switch (notification) {
           case final ScrollStartNotification n:
-            if (n.dragDetails != null) {
-              _handleDragStart(context, n.dragDetails!);
-            }
-          case final ScrollUpdateNotification n:
-            if (n.dragDetails case final DragUpdateDetails details) {
-              _isDragging = true;
-              _lastScrollUpdateDetails = n.dragDetails;
-
+            break;
+          case ScrollUpdateNotification(
+            :final metrics,
+            :final dragDetails,
+          ):
+            if (dragDetails case final DragUpdateDetails details) {
               // When we are overscrolling at the top
-              if (n.metrics.extentBefore == 0) {
-                _handleDragUpdate(context, n.dragDetails!);
+              if (metrics.extentBefore == 0 &&
+                  details.primaryDelta != null &&
+                  details.primaryDelta! > 0) {
+                if (!_isDragging.value) {
+                  _isDragging.value = true;
+                  _handleDragStart(context);
+                }
+                _handleDragUpdate(context, details);
+              } else {}
+            }
+          case OverscrollNotification(
+            :final dragDetails,
+            :final velocity,
+          ):
+            if (dragDetails != null) {
+              if (!_isDragging.value) {
+                _isDragging.value = true;
+                _handleDragStart(context);
               }
+              _handleDragUpdate(context, dragDetails);
             } else {
-              if (_isDragging) {
-                _isDragging = false;
-                _handleDragEnd(context, DragEndDetails());
+              if (_isDragging.value) {
+                _isDragging.value = false;
+                _handleDragEnd(
+                  context,
+                  DragEndDetails(
+                    primaryVelocity: -velocity,
+                    velocity: Velocity(
+                      pixelsPerSecond: Offset(
+                        0,
+                        -velocity,
+                      ),
+                    ),
+                  ),
+                );
               }
             }
+
           case final ScrollEndNotification n:
-            if (n.dragDetails case final details?) {
-              _handleDragEnd(context, details!);
+            if (_isDragging.value) {
+              _isDragging.value = false;
+              _handleDragEnd(context, n.dragDetails ?? DragEndDetails());
             }
         }
         return true;
@@ -244,8 +272,7 @@ class _MySheetRoute extends PopupRoute<void> {
           }
 
           return GestureDetector(
-            onVerticalDragStart: (details) =>
-                _handleDragStart(context, details),
+            onVerticalDragStart: (details) => _handleDragStart(context),
             onVerticalDragEnd: (details) {
               _handleDragEnd(context, details);
             },
@@ -255,7 +282,18 @@ class _MySheetRoute extends PopupRoute<void> {
 
             child: Padding(
               padding: const EdgeInsets.only(top: 100),
-              child: transformedChild,
+              child: ValueListenableBuilder(
+                valueListenable: _isDragging,
+                builder: (context, value, child) {
+                  return ScrollConfiguration(
+                    behavior: ScrollConfiguration.of(context).copyWith(
+                      physics: value ? const _OverscrollScrollPhysics() : null,
+                    ),
+                    child: child!,
+                  );
+                },
+                child: transformedChild,
+              ),
             ),
           );
         },
@@ -265,8 +303,8 @@ class _MySheetRoute extends PopupRoute<void> {
 
   void _handleDragStart(
     BuildContext context,
-    DragStartDetails startDetails,
   ) {
+    print('Start');
     Navigator.of(context).didStartUserGesture();
   }
 
@@ -274,6 +312,7 @@ class _MySheetRoute extends PopupRoute<void> {
     BuildContext context,
     DragUpdateDetails updateDetails,
   ) {
+    print('UPDATE');
     final delta = updateDetails.primaryDelta! / context.size!.height;
     final newValue = (controller?.value ?? 0) - delta;
     controller?.value = newValue;
@@ -283,6 +322,7 @@ class _MySheetRoute extends PopupRoute<void> {
     BuildContext context,
     DragEndDetails details,
   ) {
+    print('END');
     final velocity = details.velocity.pixelsPerSecond.dy;
     final currentValue = controller!.value;
 
@@ -317,4 +357,23 @@ class _MySheetRoute extends PopupRoute<void> {
 
   @override
   Duration get transitionDuration => Durations.medium4;
+}
+
+/// Scroll physics that don't allow moving from the current position and just
+/// always send an overscroll notification.
+class _OverscrollScrollPhysics extends ClampingScrollPhysics {
+  const _OverscrollScrollPhysics({super.parent});
+
+  @override
+  _OverscrollScrollPhysics applyTo(ScrollPhysics? ancestor) {
+    return _OverscrollScrollPhysics(parent: buildParent(ancestor));
+  }
+
+  @override
+  double applyBoundaryConditions(
+    ScrollMetrics position,
+    double value,
+  ) {
+    return value - position.pixels;
+  }
 }
