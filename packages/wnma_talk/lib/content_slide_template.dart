@@ -44,9 +44,10 @@ class ContentSlideTemplate extends FlutterDeckSlideWidget {
                         style: theme.textTheme.display.copyWith(
                           color: colorScheme.onPrimaryContainer,
                           letterSpacing: -5,
+                          height: 1,
                         ),
                         child: ConstrainedBox(
-                          constraints: const BoxConstraints(maxWidth: 700),
+                          constraints: const BoxConstraints(maxWidth: 800),
                           child: title,
                         ),
                       ),

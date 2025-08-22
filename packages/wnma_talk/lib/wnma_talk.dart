@@ -45,9 +45,9 @@ FlutterDeckTextTheme _buildTextTheme() {
   return FlutterDeckTextTheme(
     bodyLarge: body.large.copyWith(
       fontSize: 36,
-      color: Colors.red,
+      height: 1.2,
     ),
-    bodyMedium: body.medium,
+    bodyMedium: body.medium.copyWith(fontSize: 32),
     bodySmall: body.small,
     display: display.large.copyWith(fontSize: 96),
     title: display.medium.copyWith(

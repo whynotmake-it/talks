@@ -9,9 +9,12 @@ class MotionSlideNoAnimation extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ContentSlideTemplate(
-      title: const Text('No Animation'),
+      title: const Text('Spring Simulation'),
       mainContent: MotionExampleApp(
-        motion: MaterialSpringMotion.expressiveEffectsFast,
+        motion: CupertinoMotion.bouncy(
+          duration: Durations.long1,
+          extraBounce: .1,
+        ),
       ),
       description: const Text(
         'This is a simple slide without any motion effects. It serves as a baseline for comparison with other slides that include motion.',
