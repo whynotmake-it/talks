@@ -2,11 +2,11 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:physical_ui/flip_flop/flip_flop_notifier.dart';
-import 'package:physical_ui/graphs/value_recording_graph.dart';
 import 'package:physical_ui/graphs/value_recording_notifier.dart';
 import 'package:physical_ui/hooks/hooks.dart';
 import 'package:physical_ui/shared/widgets/motion_description.dart';
 import 'package:physical_ui/slides/motion/motion_ball.dart';
+import 'package:physical_ui/slides/motion/motion_graph.dart';
 import 'package:rivership/rivership.dart';
 import 'package:wnma_talk/wnma_talk.dart';
 
@@ -59,18 +59,10 @@ class MotionSlide extends FlutterDeckSlideWidget {
       motionDescription: "Curves.ease",
       motion: CurvedMotion(duration: duration, curve: Curves.ease),
     ),
-    (
-      showGraph: true,
-      showTarget: true,
-      motionDescription: "Spring simulation",
-      motion: CupertinoMotion.smooth(duration: duration),
-    ),
   ];
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
     final ballDiameter = 200.0;
 
     return FlutterDeckSlide.custom(
@@ -128,10 +120,8 @@ class MotionSlide extends FlutterDeckSlideWidget {
                                               padding: EdgeInsets.symmetric(
                                                 vertical: ballDiameter / 2,
                                               ),
-                                              child: ValueRecordingGraph(
+                                              child: MotionGraph(
                                                 notifier: valueRecorder,
-                                                minY: 0,
-                                                maxY: 1,
                                               ),
                                             )
                                           : SizedBox.expand(),
@@ -152,21 +142,19 @@ class MotionSlide extends FlutterDeckSlideWidget {
                           ],
                         ),
                       ),
+
                       Align(
                         alignment: Alignment.topLeft,
                         child: Padding(
                           padding: const EdgeInsets.all(64),
                           child: Text(
-                            'Physical UI',
+                            'Motion',
                             textHeightBehavior: TextHeightBehavior(
                               applyHeightToLastDescent: false,
                             ),
-                            style:
-                                FlutterDeckTheme.of(
-                                  context,
-                                ).textTheme.title.copyWith(
-                                  color: theme.colorScheme.error,
-                                ),
+                            style: FlutterDeckTheme.of(
+                              context,
+                            ).textTheme.title,
                           ),
                         ),
                       ),

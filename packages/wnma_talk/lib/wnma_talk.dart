@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_deck/flutter_deck.dart';
 import 'package:wnmi_design/wnmi_design.dart';
 
+export 'package:device_frame/device_frame.dart';
 export 'package:flutter_deck/flutter_deck.dart';
 export 'package:wnmi_design/wnmi_design.dart';
 
@@ -42,10 +43,13 @@ FlutterDeckTextTheme _buildTextTheme() {
   final display = TypographyDisplay.standard();
   final body = TypographyBody.standard();
   return FlutterDeckTextTheme(
-    bodyLarge: body.large,
+    bodyLarge: body.large.copyWith(
+      fontSize: 36,
+      color: Colors.red,
+    ),
     bodyMedium: body.medium,
     bodySmall: body.small,
-    display: display.large.copyWith(fontSize: 274),
+    display: display.large.copyWith(fontSize: 96),
     title: display.medium.copyWith(
       fontSize: 190,
       fontWeight: FontWeight.w300,
