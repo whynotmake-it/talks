@@ -11,10 +11,8 @@ class MotionSlideNoAnimation extends StatelessWidget {
     return ContentSlideTemplate(
       title: const Text('Spring Simulation'),
       mainContent: MotionExampleApp(
-        motion: CupertinoMotion.bouncy(
-          duration: Durations.long1,
-          extraBounce: .1,
-        ),
+        motion: CupertinoMotion.smooth(),
+        unboundedMotion: false,
       ),
       description: const Text(
         'This is a simple slide without any motion effects. It serves as a baseline for comparison with other slides that include motion.',

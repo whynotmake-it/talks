@@ -62,15 +62,39 @@ class _Scaffold extends HookWidget {
   }
 }
 
-class _SheetContent extends StatelessWidget {
+class _SheetContent extends HookWidget {
   const _SheetContent();
 
   @override
   Widget build(BuildContext context) {
+    final count = useState(4);
     return Material(
-      color: Colors.red,
-      child: SizedBox(
-        height: 100,
+      child: Stack(
+        children: [
+          SingleChildScrollView(
+            child: Column(
+              children: [
+                for (var i = 0; i < count.value; i++)
+                  ListTile(
+                    title: Text('Item $i'),
+                  ),
+              ],
+            ),
+          ),
+          Positioned.fill(
+            top: null,
+            child: Center(
+              child: SafeArea(
+                child: FloatingActionButton(
+                  child: const Icon(Icons.add),
+                  onPressed: () {
+                    count.value++;
+                  },
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -78,7 +102,6 @@ class _SheetContent extends StatelessWidget {
 
 class ScrollAwareGestureDetector extends StatefulWidget {
   const ScrollAwareGestureDetector({
-    super.key,
     required this.child,
     this.onVerticalDragDown,
     this.onVerticalDragStart,
@@ -90,6 +113,7 @@ class ScrollAwareGestureDetector extends StatefulWidget {
     this.onHorizontalDragUpdate,
     this.onHorizontalDragEnd,
     this.onHorizontalDragCancel,
+    super.key,
   });
 
   final Widget child;
@@ -343,13 +367,22 @@ class _MySheetRoute extends PopupRoute<void> {
     Animation<double> animation,
     Animation<double> secondaryAnimation,
   ) {
-    return ClipRSuperellipse(
-      borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      child: MediaQuery.removePadding(
-        removeTop: true,
-        context: context,
-        child: child,
-      ),
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      mainAxisAlignment: MainAxisAlignment.end,
+      children: [
+        Flexible(
+          child: ClipRSuperellipse(
+            borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+            child: MediaQuery.removePadding(
+              removeTop: true,
+              context: context,
+              child: child,
+            ),
+          ),
+        ),
+      ],
     );
   }
 
@@ -405,21 +438,20 @@ class _MySheetRoute extends PopupRoute<void> {
         builder: (context, _) {
           final value = animation.value;
 
-          var transformedChild = child;
-
+          Widget transformedChild = child;
           if (value > 1.0) {
             // When dragged beyond normal bounds, scale from bottom
             final scale = value;
             transformedChild = Transform.scale(
               scaleY: scale,
               alignment: Alignment.bottomCenter,
-              child: child,
+              child: transformedChild,
             );
           } else {
             // Normal slide up transition
             transformedChild = FractionalTranslation(
               translation: Offset(0, 1 - value),
-              child: child,
+              child: transformedChild,
             );
           }
 
@@ -485,7 +517,7 @@ class _MySheetRoute extends PopupRoute<void> {
   bool get maintainState => false;
 
   @override
-  Color? get barrierColor => Colors.transparent;
+  Color? get barrierColor => Colors.black12;
 
   @override
   String? get barrierLabel => null;
