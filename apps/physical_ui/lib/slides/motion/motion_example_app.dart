@@ -67,34 +67,10 @@ class _SheetContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return CupertinoPageScaffold(
-      backgroundColor: CupertinoColors.lightBackgroundGray,
-      child: CustomScrollView(
-        primary: true,
-        slivers: [
-          CupertinoSliverNavigationBar(
-            largeTitle: Text('Motion Example'),
-            automaticallyImplyLeading: false,
-          ),
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Text(
-                'This is a motion example app with a custom sheet transition.',
-                style: CupertinoTheme.of(context).textTheme.textStyle,
-              ),
-            ),
-          ),
-          SliverList(
-            delegate: SliverChildBuilderDelegate(
-              (context, index) => ListTile(
-                title: Text('Item $index'),
-                onTap: () {},
-              ),
-              childCount: 20,
-            ),
-          ),
-        ],
+    return Material(
+      color: Colors.red,
+      child: SizedBox(
+        height: 100,
       ),
     );
   }
@@ -207,7 +183,7 @@ class ScrollAwareGestureDetector extends StatefulWidget {
 
 class _ScrollAwareGestureDetectorState
     extends State<ScrollAwareGestureDetector> {
-  ValueNotifier<bool> _isDragging = ValueNotifier(false);
+  final _isDragging = ValueNotifier(false);
 
   DragStartDetails? _dragStartDetails;
 
@@ -254,17 +230,18 @@ class _ScrollAwareGestureDetectorState
         :final metrics,
         :final dragDetails,
       ):
-        if (dragDetails case final DragUpdateDetails details) {
+        if (dragDetails != null) {
           // When we are overscrolling at the top
-          if (metrics.extentBefore == 0 &&
-              details.primaryDelta != null &&
-              details.primaryDelta! > 0) {
+          if (metrics.extentBefore <= 0 &&
+              dragDetails.primaryDelta != null &&
+              dragDetails.primaryDelta! > 0) {
             if (!_isDragging.value) {
               _isDragging.value = true;
               _handleDragStart(metrics.axis);
+            } else {
+              _handleDragUpdate(metrics.axis, dragDetails);
             }
-            _handleDragUpdate(metrics.axis, details);
-          } else {}
+          }
         }
       case OverscrollNotification(
         :final metrics,
@@ -272,11 +249,15 @@ class _ScrollAwareGestureDetectorState
         :final velocity,
       ):
         if (dragDetails != null) {
-          if (!_isDragging.value) {
-            _isDragging.value = true;
-            _handleDragStart(metrics.axis);
+          // When we are overscrolling at the top
+          if (metrics.extentBefore <= 0) {
+            if (!_isDragging.value) {
+              _isDragging.value = true;
+              _handleDragStart(metrics.axis);
+            } else {
+              _handleDragUpdate(metrics.axis, dragDetails);
+            }
           }
-          _handleDragUpdate(metrics.axis, dragDetails);
         } else {
           if (_isDragging.value) {
             _isDragging.value = false;
@@ -417,44 +398,44 @@ class _MySheetRoute extends PopupRoute<void> {
     Animation<double> secondaryAnimation,
     Widget child,
   ) {
-    return AnimatedBuilder(
-      animation: animation,
-      builder: (context, _) {
-        final value = animation.value;
+    return Padding(
+      padding: const EdgeInsets.only(top: 100),
+      child: AnimatedBuilder(
+        animation: animation,
+        builder: (context, _) {
+          final value = animation.value;
 
-        var transformedChild = child;
+          var transformedChild = child;
 
-        if (value > 1.0) {
-          // When dragged beyond normal bounds, scale from bottom
-          final scale = value;
-          transformedChild = Transform.scale(
-            scaleY: scale,
-            alignment: Alignment.bottomCenter,
-            child: child,
-          );
-        } else {
-          // Normal slide up transition
-          transformedChild = FractionalTranslation(
-            translation: Offset(0, 1 - value),
-            child: child,
-          );
-        }
+          if (value > 1.0) {
+            // When dragged beyond normal bounds, scale from bottom
+            final scale = value;
+            transformedChild = Transform.scale(
+              scaleY: scale,
+              alignment: Alignment.bottomCenter,
+              child: child,
+            );
+          } else {
+            // Normal slide up transition
+            transformedChild = FractionalTranslation(
+              translation: Offset(0, 1 - value),
+              child: child,
+            );
+          }
 
-        return ScrollAwareGestureDetector(
-          onVerticalDragStart: (details) => _handleDragStart(context),
-          onVerticalDragEnd: (details) {
-            _handleDragEnd(context, details);
-          },
-          onVerticalDragUpdate: (details) {
-            _handleDragUpdate(context, details);
-          },
+          return ScrollAwareGestureDetector(
+            onVerticalDragStart: (details) => _handleDragStart(context),
+            onVerticalDragEnd: (details) {
+              _handleDragEnd(context, details);
+            },
+            onVerticalDragUpdate: (details) {
+              _handleDragUpdate(context, details);
+            },
 
-          child: Padding(
-            padding: const EdgeInsets.only(top: 100),
             child: transformedChild,
-          ),
-        );
-      },
+          );
+        },
+      ),
     );
   }
 
