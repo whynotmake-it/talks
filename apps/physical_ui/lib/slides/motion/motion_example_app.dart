@@ -100,6 +100,237 @@ class _SheetContent extends StatelessWidget {
   }
 }
 
+class ScrollAwareGestureDetector extends StatefulWidget {
+  const ScrollAwareGestureDetector({
+    super.key,
+    required this.child,
+    this.onVerticalDragDown,
+    this.onVerticalDragStart,
+    this.onVerticalDragUpdate,
+    this.onVerticalDragEnd,
+    this.onVerticalDragCancel,
+    this.onHorizontalDragDown,
+    this.onHorizontalDragStart,
+    this.onHorizontalDragUpdate,
+    this.onHorizontalDragEnd,
+    this.onHorizontalDragCancel,
+  });
+
+  final Widget child;
+
+  /// A pointer has contacted the screen with a primary button and might begin
+  /// to move vertically.
+  ///
+  /// See also:
+  ///
+  ///  * [kPrimaryButton], the button this callback responds to.
+  final GestureDragDownCallback? onVerticalDragDown;
+
+  /// A pointer has contacted the screen with a primary button and has begun to
+  /// move vertically.
+  ///
+  /// See also:
+  ///
+  ///  * [kPrimaryButton], the button this callback responds to.
+  final GestureDragStartCallback? onVerticalDragStart;
+
+  /// A pointer that is in contact with the screen with a primary button and
+  /// moving vertically has moved in the vertical direction.
+  ///
+  /// See also:
+  ///
+  ///  * [kPrimaryButton], the button this callback responds to.
+  final GestureDragUpdateCallback? onVerticalDragUpdate;
+
+  /// A pointer that was previously in contact with the screen with a primary
+  /// button and moving vertically is no longer in contact with the screen and
+  /// was moving at a specific velocity when it stopped contacting the screen.
+  ///
+  /// See also:
+  ///
+  ///  * [kPrimaryButton], the button this callback responds to.
+  final GestureDragEndCallback? onVerticalDragEnd;
+
+  /// The pointer that previously triggered [onVerticalDragDown] did not
+  /// complete.
+  ///
+  /// See also:
+  ///
+  ///  * [kPrimaryButton], the button this callback responds to.
+  final GestureDragCancelCallback? onVerticalDragCancel;
+
+  /// A pointer has contacted the screen with a primary button and might begin
+  /// to move horizontally.
+  ///
+  /// See also:
+  ///
+  ///  * [kPrimaryButton], the button this callback responds to.
+  final GestureDragDownCallback? onHorizontalDragDown;
+
+  /// A pointer has contacted the screen with a primary button and has begun to
+  /// move horizontally.
+  ///
+  /// See also:
+  ///
+  ///  * [kPrimaryButton], the button this callback responds to.
+  final GestureDragStartCallback? onHorizontalDragStart;
+
+  /// A pointer that is in contact with the screen with a primary button and
+  /// moving horizontally has moved in the horizontal direction.
+  ///
+  /// See also:
+  ///
+  ///  * [kPrimaryButton], the button this callback responds to.
+  final GestureDragUpdateCallback? onHorizontalDragUpdate;
+
+  /// A pointer that was previously in contact with the screen with a primary
+  /// button and moving horizontally is no longer in contact with the screen and
+  /// was moving at a specific velocity when it stopped contacting the screen.
+  ///
+  /// See also:
+  ///
+  ///  * [kPrimaryButton], the button this callback responds to.
+  final GestureDragEndCallback? onHorizontalDragEnd;
+
+  /// The pointer that previously triggered [onHorizontalDragDown] did not
+  /// complete.
+  ///
+  /// See also:
+  ///
+  ///  * [kPrimaryButton], the button this callback responds to.
+  final GestureDragCancelCallback? onHorizontalDragCancel;
+
+  @override
+  State<ScrollAwareGestureDetector> createState() =>
+      _ScrollAwareGestureDetectorState();
+}
+
+class _ScrollAwareGestureDetectorState
+    extends State<ScrollAwareGestureDetector> {
+  ValueNotifier<bool> _isDragging = ValueNotifier(false);
+
+  DragStartDetails? _dragStartDetails;
+
+  @override
+  void dispose() {
+    _isDragging.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return NotificationListener<ScrollNotification>(
+      onNotification: _onScrollNotification,
+      child: GestureDetector(
+        onVerticalDragStart: widget.onVerticalDragStart,
+        onVerticalDragUpdate: widget.onVerticalDragUpdate,
+        onVerticalDragEnd: widget.onVerticalDragEnd,
+        onVerticalDragCancel: widget.onVerticalDragCancel,
+        onHorizontalDragStart: widget.onHorizontalDragStart,
+        onHorizontalDragUpdate: widget.onHorizontalDragUpdate,
+        onHorizontalDragEnd: widget.onHorizontalDragEnd,
+        onHorizontalDragCancel: widget.onHorizontalDragCancel,
+        child: ValueListenableBuilder(
+          valueListenable: _isDragging,
+          builder: (context, value, child) {
+            return ScrollConfiguration(
+              behavior: ScrollConfiguration.of(context).copyWith(
+                physics: value ? const _OverscrollScrollPhysics() : null,
+              ),
+              child: child!,
+            );
+          },
+          child: widget.child,
+        ),
+      ),
+    );
+  }
+
+  bool _onScrollNotification(ScrollNotification notification) {
+    switch (notification) {
+      case ScrollStartNotification(:final dragDetails):
+        _dragStartDetails = dragDetails;
+      case ScrollUpdateNotification(
+        :final metrics,
+        :final dragDetails,
+      ):
+        if (dragDetails case final DragUpdateDetails details) {
+          // When we are overscrolling at the top
+          if (metrics.extentBefore == 0 &&
+              details.primaryDelta != null &&
+              details.primaryDelta! > 0) {
+            if (!_isDragging.value) {
+              _isDragging.value = true;
+              _handleDragStart(metrics.axis);
+            }
+            _handleDragUpdate(metrics.axis, details);
+          } else {}
+        }
+      case OverscrollNotification(
+        :final metrics,
+        :final dragDetails,
+        :final velocity,
+      ):
+        if (dragDetails != null) {
+          if (!_isDragging.value) {
+            _isDragging.value = true;
+            _handleDragStart(metrics.axis);
+          }
+          _handleDragUpdate(metrics.axis, dragDetails);
+        } else {
+          if (_isDragging.value) {
+            _isDragging.value = false;
+            _handleDragEnd(
+              metrics.axis,
+              DragEndDetails(
+                primaryVelocity: -velocity,
+                velocity: Velocity(
+                  pixelsPerSecond: switch (metrics.axis) {
+                    Axis.vertical => Offset(0, -velocity),
+                    Axis.horizontal => Offset(-velocity, 0),
+                  },
+                ),
+              ),
+            );
+          }
+        }
+
+      case final ScrollEndNotification n:
+        if (_isDragging.value) {
+          _isDragging.value = false;
+          _handleDragEnd(n.metrics.axis, n.dragDetails ?? DragEndDetails());
+        }
+    }
+    return true;
+  }
+
+  void _handleDragStart(Axis axis) {
+    if (_dragStartDetails case final details?) {
+      if (axis == Axis.vertical) {
+        widget.onVerticalDragStart?.call(details);
+      } else {
+        widget.onHorizontalDragStart?.call(details);
+      }
+    }
+  }
+
+  void _handleDragUpdate(Axis axis, DragUpdateDetails details) {
+    if (axis == Axis.vertical) {
+      widget.onVerticalDragUpdate?.call(details);
+    } else {
+      widget.onHorizontalDragUpdate?.call(details);
+    }
+  }
+
+  void _handleDragEnd(Axis axis, DragEndDetails details) {
+    if (axis == Axis.vertical) {
+      widget.onVerticalDragEnd?.call(details);
+    } else {
+      widget.onHorizontalDragEnd?.call(details);
+    }
+  }
+}
+
 class _MySheetRoute extends PopupRoute<void> {
   _MySheetRoute({
     required this.motion,
@@ -112,8 +343,6 @@ class _MySheetRoute extends PopupRoute<void> {
   final Widget child;
 
   final bool unboundedMotion;
-
-  ScrollController? _scrollController = ScrollController();
 
   @override
   bool get barrierDismissible => true;
@@ -181,8 +410,6 @@ class _MySheetRoute extends PopupRoute<void> {
     );
   }
 
-  ValueNotifier<bool> _isDragging = ValueNotifier(false);
-
   @override
   Widget buildTransitions(
     BuildContext context,
@@ -190,121 +417,50 @@ class _MySheetRoute extends PopupRoute<void> {
     Animation<double> secondaryAnimation,
     Widget child,
   ) {
-    return NotificationListener<ScrollNotification>(
-      onNotification: (notification) {
-        print(notification);
-        switch (notification) {
-          case final ScrollStartNotification n:
-            break;
-          case ScrollUpdateNotification(
-            :final metrics,
-            :final dragDetails,
-          ):
-            if (dragDetails case final DragUpdateDetails details) {
-              // When we are overscrolling at the top
-              if (metrics.extentBefore == 0 &&
-                  details.primaryDelta != null &&
-                  details.primaryDelta! > 0) {
-                if (!_isDragging.value) {
-                  _isDragging.value = true;
-                  _handleDragStart(context);
-                }
-                _handleDragUpdate(context, details);
-              } else {}
-            }
-          case OverscrollNotification(
-            :final dragDetails,
-            :final velocity,
-          ):
-            if (dragDetails != null) {
-              if (!_isDragging.value) {
-                _isDragging.value = true;
-                _handleDragStart(context);
-              }
-              _handleDragUpdate(context, dragDetails);
-            } else {
-              if (_isDragging.value) {
-                _isDragging.value = false;
-                _handleDragEnd(
-                  context,
-                  DragEndDetails(
-                    primaryVelocity: -velocity,
-                    velocity: Velocity(
-                      pixelsPerSecond: Offset(
-                        0,
-                        -velocity,
-                      ),
-                    ),
-                  ),
-                );
-              }
-            }
+    return AnimatedBuilder(
+      animation: animation,
+      builder: (context, _) {
+        final value = animation.value;
 
-          case final ScrollEndNotification n:
-            if (_isDragging.value) {
-              _isDragging.value = false;
-              _handleDragEnd(context, n.dragDetails ?? DragEndDetails());
-            }
-        }
-        return true;
-      },
-      child: AnimatedBuilder(
-        animation: animation,
-        builder: (context, _) {
-          final value = animation.value;
+        var transformedChild = child;
 
-          var transformedChild = child;
-
-          if (value > 1.0) {
-            // When dragged beyond normal bounds, scale from bottom
-            final scale = value;
-            transformedChild = Transform.scale(
-              scaleY: scale,
-              alignment: Alignment.bottomCenter,
-              child: child,
-            );
-          } else {
-            // Normal slide up transition
-            transformedChild = FractionalTranslation(
-              translation: Offset(0, 1 - value),
-              child: child,
-            );
-          }
-
-          return GestureDetector(
-            onVerticalDragStart: (details) => _handleDragStart(context),
-            onVerticalDragEnd: (details) {
-              _handleDragEnd(context, details);
-            },
-            onVerticalDragUpdate: (details) {
-              _handleDragUpdate(context, details);
-            },
-
-            child: Padding(
-              padding: const EdgeInsets.only(top: 100),
-              child: ValueListenableBuilder(
-                valueListenable: _isDragging,
-                builder: (context, value, child) {
-                  return ScrollConfiguration(
-                    behavior: ScrollConfiguration.of(context).copyWith(
-                      physics: value ? const _OverscrollScrollPhysics() : null,
-                    ),
-                    child: child!,
-                  );
-                },
-                child: transformedChild,
-              ),
-            ),
+        if (value > 1.0) {
+          // When dragged beyond normal bounds, scale from bottom
+          final scale = value;
+          transformedChild = Transform.scale(
+            scaleY: scale,
+            alignment: Alignment.bottomCenter,
+            child: child,
           );
-        },
-      ),
+        } else {
+          // Normal slide up transition
+          transformedChild = FractionalTranslation(
+            translation: Offset(0, 1 - value),
+            child: child,
+          );
+        }
+
+        return ScrollAwareGestureDetector(
+          onVerticalDragStart: (details) => _handleDragStart(context),
+          onVerticalDragEnd: (details) {
+            _handleDragEnd(context, details);
+          },
+          onVerticalDragUpdate: (details) {
+            _handleDragUpdate(context, details);
+          },
+
+          child: Padding(
+            padding: const EdgeInsets.only(top: 100),
+            child: transformedChild,
+          ),
+        );
+      },
     );
   }
 
   void _handleDragStart(
     BuildContext context,
   ) {
-    print('Start');
     Navigator.of(context).didStartUserGesture();
   }
 
@@ -312,7 +468,6 @@ class _MySheetRoute extends PopupRoute<void> {
     BuildContext context,
     DragUpdateDetails updateDetails,
   ) {
-    print('UPDATE');
     final delta = updateDetails.primaryDelta! / context.size!.height;
     final newValue = (controller?.value ?? 0) - delta;
     controller?.value = newValue;
@@ -322,7 +477,6 @@ class _MySheetRoute extends PopupRoute<void> {
     BuildContext context,
     DragEndDetails details,
   ) {
-    print('END');
     final velocity = details.velocity.pixelsPerSecond.dy;
     final currentValue = controller!.value;
 
