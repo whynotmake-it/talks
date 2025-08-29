@@ -3,6 +3,7 @@ import 'package:heroine/heroine.dart';
 import 'package:physical_ui/slides/glass_slide.dart';
 import 'package:physical_ui/slides/history/slides/command_line_slide.dart';
 import 'package:physical_ui/slides/history/slides/gui_system1_slide.dart';
+import 'package:physical_ui/slides/history/slides/iphone_notes_physics_slide.dart';
 import 'package:physical_ui/slides/history/slides/osx_aqua_slide.dart';
 import 'package:physical_ui/slides/how_did_we_get_here_slide.dart';
 import 'package:physical_ui/slides/motion_slides.dart';
@@ -37,6 +38,7 @@ class PhysicalUiTalk extends StatelessWidget {
             ),
           ),
           slides: [
+      
             AquaStickiesSlide(),
             TitleSlide(),
             GlassSlide(),
@@ -44,6 +46,7 @@ class PhysicalUiTalk extends StatelessWidget {
             ...motionSlides,
             CommandLineSlide(),
             GuiSystem1Slide(),
+                  IphoneNotesPhysicsSlide(),
           ],
           themeMode: ThemeMode.light,
         ),
