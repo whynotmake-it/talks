@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:physical_ui/graphs/value_recording_notifier.dart';
+import 'package:rivership/rivership.dart';
 import 'package:stupid_simple_sheet/stupid_simple_sheet.dart';
 import 'package:wnma_talk/wnma_talk.dart';
 
@@ -43,23 +44,29 @@ class _Scaffold extends HookWidget {
 
   @override
   Widget build(BuildContext context) {
-    final test = true;
-
+    final buttonEnabled = useState(true);
     return CupertinoPageScaffold(
       child: Center(
-        child: CupertinoButton.filled(
-          onPressed: test
-              ? () {
-                  Navigator.of(context).push(
-                    SheetTransitionRoute(
-                      motion: motion,
-                      builder: (context) => _SheetContent(),
-                      recorder: recorder,
-                    ),
-                  );
-                }
-              : null,
-          child: const Text('Press Me'),
+        child: AnimatedSizeSwitcher(
+          child: CupertinoButton.filled(
+            key: ValueKey(buttonEnabled.value),
+            onPressed: buttonEnabled.value
+                ? () {
+                    buttonEnabled.value = false;
+                    Navigator.of(context).push(
+                      SheetTransitionRoute(
+                        motion: motion,
+                        builder: (context) => _SheetContent(),
+                        recorder: recorder,
+                        onDisposed: () {
+                          if (context.mounted) buttonEnabled.value = true;
+                        },
+                      ),
+                    );
+                  }
+                : null,
+            child: const Text('Press Me'),
+          ),
         ),
       ),
     );
@@ -88,6 +95,7 @@ class SheetTransitionRoute extends PopupRoute<void>
     required this.motion,
     required this.builder,
     this.recorder,
+    this.onDisposed,
   });
 
   final ValueRecordingNotifier<double>? recorder;
@@ -96,6 +104,8 @@ class SheetTransitionRoute extends PopupRoute<void>
   final Motion motion;
 
   final WidgetBuilder builder;
+
+  final VoidCallback? onDisposed;
 
   @override
   Color? get barrierColor => Colors.black26;
@@ -127,6 +137,7 @@ class SheetTransitionRoute extends PopupRoute<void>
   @override
   void dispose() {
     recorder?.removeListener(_recordAnimationValue);
+    onDisposed?.call();
     super.dispose();
   }
 }
