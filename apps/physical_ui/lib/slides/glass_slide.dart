@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:rivership/rivership.dart';
 import 'package:wnma_talk/video.dart';
@@ -20,9 +22,21 @@ class GlassSlide extends FlutterDeckSlideWidget {
           return Stack(
             children: [
               Positioned.fill(
-                child: Video(
-                  assetKey: 'assets/glass.mp4',
-                  play: step == 1,
+                child: SingleMotionBuilder(
+                  motion: CupertinoMotion.smooth(),
+                  value: step == 1 ? 0.0 : 20.0,
+                  child: Video(
+                    assetKey: 'assets/glass.mp4',
+                    play: step == 1,
+                  ),
+                  builder: (context, value, child) => ImageFiltered(
+                    imageFilter: ImageFilter.blur(
+                      tileMode: TileMode.mirror,
+                      sigmaX: value,
+                      sigmaY: value,
+                    ),
+                    child: child,
+                  ),
                 ),
               ),
               Padding(

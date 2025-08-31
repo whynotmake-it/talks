@@ -1,9 +1,36 @@
+import 'dart:math';
+
 import 'package:flutter/cupertino.dart';
 
 typedef TimedValue<T> = (DateTime, T);
 
-class ValueRecordingNotifier<T> extends ValueNotifier<List<TimedValue<T>>> {
+class ValueRecordingNotifier<T> extends ValueNotifier<List<T>> {
   ValueRecordingNotifier({
+    this.window,
+  }) : super([]);
+
+  int? window;
+
+  void reset() {
+    value = [];
+  }
+
+  void record(T value) {
+    this.value.add(value);
+
+    this.value = switch (window) {
+      final window? => this.value.sublist(
+        max(this.value.length - window, 0),
+        this.value.length,
+      ),
+      null => this.value,
+    };
+  }
+}
+
+class TimedValueRecordingNotifier<T>
+    extends ValueNotifier<List<TimedValue<T>>> {
+  TimedValueRecordingNotifier({
     this.window,
   }) : super([]);
 
