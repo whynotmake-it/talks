@@ -1,18 +1,17 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 
 class LinePainter extends CustomPainter {
-  final List<Offset> points;
-  final Gradient? gradient;
-  final double thickness;
-  final Color? color;
-
   LinePainter({
     required this.points,
     this.gradient,
     this.thickness = 2.0,
     this.color,
   });
+
+  final List<Offset> points;
+  final Gradient? gradient;
+  final double thickness;
+  final Color? color;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -63,25 +62,24 @@ class LinePainter extends CustomPainter {
 }
 
 class LinePathWidget extends StatelessWidget {
+  const LinePathWidget({
+    required this.points,
+    super.key,
+    this.gradient,
+    this.thickness = 2.0,
+    this.color,
+    this.size,
+  });
+
   final List<Offset> points;
   final Gradient? gradient;
   final double thickness;
   final Color? color;
   final Size? size;
 
-  const LinePathWidget({
-    Key? key,
-    required this.points,
-    this.gradient,
-    this.thickness = 2.0,
-    this.color,
-    this.size,
-  }) : super(key: key);
-
   @override
   Widget build(BuildContext context) {
     return CustomPaint(
-      size: size ?? Size.infinite,
       painter: LinePainter(
         points: points,
         gradient: gradient,
