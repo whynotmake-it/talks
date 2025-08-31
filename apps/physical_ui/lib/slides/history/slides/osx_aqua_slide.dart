@@ -5,7 +5,7 @@ import 'package:wnma_talk/wnma_talk.dart';
 /// 1990s–2000s: Aqua-era “Stickies” demo.
 /// Flow: start with a few open notes -> click "Stickies" (top bar)
 /// -> a new note appears and auto-types "Buy milk"
-/// -> drag that note onto the Dock trash area (bottom-right) -> note disappears,
+/// -> drag that note onto the Dock trash area (bottom-right) -> note disappears
 /// and a trash-full overlay appears. "Empty Trash" clears the overlay.
 class AquaStickiesSlide extends FlutterDeckSlideWidget {
   const AquaStickiesSlide({super.key})
@@ -17,19 +17,22 @@ class AquaStickiesSlide extends FlutterDeckSlideWidget {
 
   @override
   Widget build(BuildContext context) {
-      final theme = FlutterDeckTheme.of(context);
+    final theme = FlutterDeckTheme.of(context);
     final colorScheme = theme.materialTheme.colorScheme;
     return FlutterDeckSlide.custom(
       builder: (_) => SizedBox.expand(
-        child: ColoredBox(color: colorScheme.surfaceContainer,
-        child: Center(
-          child: Padding(
-            padding: EdgeInsetsGeometry.all(32),
-            child: AspectRatio(
-                       aspectRatio: 1280/1024,
-              child: const _AquaDesktop()),
+        child: ColoredBox(
+          color: colorScheme.surfaceContainer,
+          child: Center(
+            child: Padding(
+              padding: EdgeInsetsGeometry.all(32),
+              child: AspectRatio(
+                aspectRatio: 1280 / 1024,
+                child: const _AquaDesktop(),
+              ),
+            ),
           ),
-        )),
+        ),
       ),
     );
   }
@@ -129,8 +132,8 @@ class _AquaDesktopState extends State<_AquaDesktop>
       _fingerOffsetInNote =
           d.localPosition; // where on the note the finger grabbed
       // bring to front
-      _notes.removeWhere((x) => x.id == n.id);
-      _notes.add(n);
+      _notes..removeWhere((x) => x.id == n.id)
+      ..add(n);
     });
   }
 
@@ -170,7 +173,7 @@ class _AquaDesktopState extends State<_AquaDesktop>
   @override
   Widget build(BuildContext context) {
     return AspectRatio(
-      aspectRatio: 1280/1024,
+      aspectRatio: 1280 / 1024,
       child: GestureDetector(
         child: Stack(
           key: _desktopKey,
@@ -210,7 +213,10 @@ class _AquaDesktopState extends State<_AquaDesktop>
                 opacity: _trashFull ? 1 : 0,
                 duration: const Duration(milliseconds: 180),
                 child: ScaleTransition(
-                  scale: Tween<double>(begin: 0.9, end: 1.0).animate(_trashScale),
+                  scale: Tween<double>(
+                    begin: 0.9,
+                    end: 1,
+                  ).animate(_trashScale),
                   child: Image.asset(
                     'assets/history/trash.png',
                     width: 96,
@@ -292,11 +298,11 @@ const _hintStyle = TextStyle(
 
 class _StickyNote extends StatelessWidget {
   const _StickyNote({
-    super.key,
     required this.note,
     required this.onPanStart,
     required this.onPanUpdate,
     required this.onPanEnd,
+    super.key,
   });
 
   final _Note note;
@@ -404,7 +410,7 @@ class _Note {
 
   void startAutoType(void Function(void Function()) setState) {
     if (autoType == null || autoType!.isEmpty) return;
-    int idx = 0;
+    var idx = 0;
     Timer.periodic(const Duration(milliseconds: 80), (t) {
       if (idx >= autoType!.length) {
         t.cancel();

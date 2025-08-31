@@ -1,6 +1,7 @@
 import 'dart:async';
-import 'package:flutter/material.dart';
+
 import 'package:device_frame/device_frame.dart';
+import 'package:flutter/material.dart';
 import 'package:wnma_talk/wnma_talk.dart';
 
 /// Late 2000s: Touch + Physics (iPhone-style Notes)
@@ -11,9 +12,11 @@ import 'package:wnma_talk/wnma_talk.dart';
 /// - Swipe to delete a note (Dismissible row)
 class IphoneNotesPhysicsSlide extends FlutterDeckSlideWidget {
   const IphoneNotesPhysicsSlide({super.key})
-      : super(configuration: const FlutterDeckSlideConfiguration(
+    : super(
+        configuration: const FlutterDeckSlideConfiguration(
           route: '/history/iphone-notes',
-        ));
+        ),
+      );
 
   @override
   Widget build(BuildContext context) {
@@ -22,7 +25,6 @@ class IphoneNotesPhysicsSlide extends FlutterDeckSlideWidget {
     );
   }
 }
-
 
 class _DeviceFramedDemo extends StatelessWidget {
   const _DeviceFramedDemo();
@@ -33,9 +35,9 @@ class _DeviceFramedDemo extends StatelessWidget {
     name: 'iPhone (2007)',
     id: 'iphone2007',
     screenSize: const Size(320, 480),
-    pixelRatio: 1.0,
-    safeAreas: const EdgeInsets.only(top: 20.0), // status bar
-    rotatedSafeAreas: const EdgeInsets.only(left: 20.0),
+    pixelRatio: 1,
+    safeAreas: const EdgeInsets.only(top: 20), // status bar
+    rotatedSafeAreas: const EdgeInsets.only(left: 20),
     // Use the GenericPhoneFramePainter you provided
     framePainter: const GenericPhoneFramePainter(
       // Slightly softer outer body and rounded corners
@@ -43,14 +45,10 @@ class _DeviceFramedDemo extends StatelessWidget {
       innerBodyColor: Color(0xFF0E0E0E),
       outerBodyRadius: Radius.circular(44),
       innerBodyRadius: Radius.circular(40),
-      screenRadius: Radius.circular(10),
 
       // Bezels for the first iPhone (big forehead/chin)
       innerBodyInsets: EdgeInsets.only(left: 8, top: 8, right: 8, bottom: 8),
       screenInsets: EdgeInsets.only(left: 16, top: 64, right: 16, bottom: 64),
-
-      // Slim buttons, classic placement
-      buttonWidth: 4,
       buttonColor: Color(0xFF111315),
       rightSideButtonsGapsAndSizes: [92, 78, 16, 78],
       topSideButtonsGapsAndSizes: [48, 76],
@@ -69,37 +67,8 @@ class _DeviceFramedDemo extends StatelessWidget {
     return Center(
       child: DeviceFrame(
         device: _iphoneClassic,
-        isFrameVisible: true,
-        orientation: Orientation.portrait,
         screen: const _SpringboardToNotes(),
       ),
-    );
-  }
-}
-
-
-/// Minimal custom frame painter (black slab + rounded corners).
-class _ClassicThinBezel extends StatelessWidget implements PreferredSizeWidget {
-  const _ClassicThinBezel();
-
-  @override
-  Size get preferredSize => const Size(380, 760); // ignored by DeviceFrame
-
-  @override
-  Widget build(BuildContext context) {
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: Colors.black,
-        borderRadius: BorderRadius.circular(36),
-        boxShadow: const [
-          BoxShadow(
-            blurRadius: 32,
-            spreadRadius: 2,
-            color: Colors.black54,
-          ),
-        ],
-      ),
-      child: const SizedBox.expand(),
     );
   }
 }
@@ -125,14 +94,14 @@ class _SpringboardToNotesState extends State<_SpringboardToNotes> {
     'Todo: call mom',
     'Book quotes',
     'Workshop outline',
-       'FlutterCon ticket',
-          'Get one of these flutter birds',
-             'Have a good time',
+    'FlutterCon ticket',
+    'Get one of these flutter birds',
+    'Have a good time',
   ];
 
   void _openList() => setState(() => _stage = _Stage.list);
 
-  void _addNoteAuto() async {
+  Future<void> _addNoteAuto() async {
     setState(() => _stage = _Stage.editor);
     // Let the editor run; it will pop back with a result.
     final text = await Navigator.of(context).push<String>(
@@ -140,7 +109,8 @@ class _SpringboardToNotesState extends State<_SpringboardToNotes> {
         opaque: false,
         barrierColor: Colors.black26,
         transitionDuration: const Duration(milliseconds: 200),
-        pageBuilder: (_, __, ___) => const _NoteEditorAuto(textToType: 'Buy milk'),
+        pageBuilder: (_, __, ___) =>
+            const _NoteEditorAuto(textToType: 'Buy milk'),
       ),
     );
     if (text != null && text.trim().isNotEmpty) {
@@ -161,14 +131,12 @@ class _SpringboardToNotesState extends State<_SpringboardToNotes> {
     switch (_stage) {
       case _Stage.home:
         body = _HomeScreen(onTapNotes: _openList);
-        break;
       case _Stage.list:
         body = _NotesList(
           notes: _notes,
           onNew: _addNoteAuto,
           onDelete: _deleteAt,
         );
-        break;
       case _Stage.editor:
         // (Editor is pushed as a route; keep list behind it.)
         body = _NotesList(
@@ -176,7 +144,6 @@ class _SpringboardToNotesState extends State<_SpringboardToNotes> {
           onNew: () {},
           onDelete: _deleteAt,
         );
-        break;
     }
     return AnimatedSwitcher(
       duration: const Duration(milliseconds: 220),
@@ -202,8 +169,7 @@ class _HomeScreen extends StatelessWidget {
         ),
         // Transparent tap target roughly where the Notes icon is
         Positioned(
-          left: 168
-          , // tweak to match your screenshot
+          left: 168, // tweak to match your screenshot
           top: 224,
           width: 64,
           height: 64,
@@ -242,13 +208,18 @@ class _NotesList extends StatelessWidget {
               gradient: LinearGradient(
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
-                colors: [Color(0xFFFFF6D0), Color(0xFFFFF3A0)], // More authentic yellow tones
+                colors: [
+                  Color(0xFFFFF6D0),
+                  Color(0xFFFFF3A0),
+                ], // More authentic yellow tones
               ),
             ),
             child: CustomPaint(
               painter: _RuledPaperPainter(),
               child: ListView.builder(
-                physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
+                physics: const BouncingScrollPhysics(
+                  parent: AlwaysScrollableScrollPhysics(),
+                ),
                 itemCount: notes.length,
                 padding: EdgeInsets.zero,
                 itemBuilder: (context, i) => Dismissible(
@@ -284,7 +255,12 @@ class _NoteRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.fromLTRB(24, 14, 0, 14), // No right padding for full-width line
+      padding: const EdgeInsets.fromLTRB(
+        24,
+        14,
+        0,
+        14,
+      ), // No right padding for full-width line
       decoration: const BoxDecoration(
         // Transparent background to let yellow paper show through
         border: Border(
@@ -295,7 +271,9 @@ class _NoteRow extends StatelessWidget {
         ),
       ),
       child: Padding(
-        padding: const EdgeInsets.only(right: 16), // Add right padding to text only
+        padding: const EdgeInsets.only(
+          right: 16,
+        ), // Add right padding to text only
         child: Text(
           title,
           style: const TextStyle(
@@ -365,23 +343,30 @@ class _NoteEditorAutoState extends State<_NoteEditorAuto> {
               Expanded(
                 child: Stack(
                   children: [
-                    Positioned.fill(child: CustomPaint(painter: _RuledPaperPainter())),
                     Positioned.fill(
-                        child: Padding(
-                          padding: const EdgeInsets.fromLTRB(26, 20, 14, 16), // Avoid margin line
-                          child: Align(
-                            alignment: Alignment.topLeft,
-                            child: Text(
-                              _text,
-                              style: const TextStyle(
-                                fontSize: 20,
-                                height: 1.4, // Match the line spacing
-                                fontFamily: 'Georgia',
-                                color: Color(0xFF2C2C2C),
-                              ),
+                      child: CustomPaint(painter: _RuledPaperPainter()),
+                    ),
+                    Positioned.fill(
+                      child: Padding(
+                        padding: const EdgeInsets.fromLTRB(
+                          26,
+                          20,
+                          14,
+                          16,
+                        ), // Avoid margin line
+                        child: Align(
+                          alignment: Alignment.topLeft,
+                          child: Text(
+                            _text,
+                            style: const TextStyle(
+                              fontSize: 20,
+                              height: 1.4, // Match the line spacing
+                              fontFamily: 'Georgia',
+                              color: Color(0xFF2C2C2C),
                             ),
                           ),
                         ),
+                      ),
                     ),
                   ],
                 ),
@@ -392,12 +377,14 @@ class _NoteEditorAutoState extends State<_NoteEditorAuto> {
                   children: [
                     const SizedBox(width: 8),
                     TextButton(
-                      onPressed: () => Navigator.of(context).pop<String>(null),
+                      onPressed: () => Navigator.of(context).pop<String>(),
                       child: const Text('Cancel'),
                     ),
                     const Spacer(),
                     TextButton(
-                      onPressed: () => Navigator.of(context).pop<String>(_text.isEmpty ? widget.textToType : _text),
+                      onPressed: () => Navigator.of(
+                        context,
+                      ).pop<String>(_text.isEmpty ? widget.textToType : _text),
                       child: const Text('Save'),
                     ),
                     const SizedBox(width: 8),
@@ -428,7 +415,9 @@ class _LeatherNavBar extends StatelessWidget {
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
         ),
-        boxShadow: [BoxShadow(color: Colors.black38, blurRadius: 4, offset: Offset(0, 1))],
+        boxShadow: [
+          BoxShadow(color: Colors.black38, blurRadius: 4, offset: Offset(0, 1)),
+        ],
       ),
       child: Stack(
         children: [
@@ -451,7 +440,9 @@ class _LeatherNavBar extends StatelessWidget {
                 foregroundColor: const Color(0xFFFFF3A0),
                 backgroundColor: const Color(0x22FFFFFF),
                 padding: const EdgeInsets.symmetric(horizontal: 10),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(6),
+                ),
               ),
               onPressed: onAdd,
               child: const Text('+'),
@@ -467,37 +458,33 @@ class _LeatherNavBar extends StatelessWidget {
 class _RuledPaperPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
-    final linePaint = Paint()
-      ..color = const Color(0x40CCCCCC) // Lighter, more subtle lines
-      ..strokeWidth = 0.8;
-
     // Subtle top shadow gradient
-    canvas.drawRect(
-      Rect.fromLTWH(0, 0, size.width, 20),
-      Paint()
-        ..shader = const LinearGradient(
-          colors: [Color(0x20FFFFFF), Color(0x00FFFFFF)],
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-        ).createShader(Rect.fromLTWH(0, 0, size.width, 20)),
-    );
-
-    // No horizontal lines in background - they'll be added in foreground
-
-    // Left margin line (classic red margin)
-    canvas.drawLine(
-      const Offset(20, 0),
-      Offset(20, size.height + 100),
-      Paint()
-        ..color = const Color(0x60FF6B6B) // Softer red margin line
-        ..strokeWidth = 0.8,
-    );
+    canvas
+      ..drawRect(
+        Rect.fromLTWH(0, 0, size.width, 20),
+        Paint()
+          ..shader = const LinearGradient(
+            colors: [Color(0x20FFFFFF), Color(0x00FFFFFF)],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+          ).createShader(Rect.fromLTWH(0, 0, size.width, 20)),
+      )
+      // No horizontal lines in background - they'll be added in foreground
+      // Left margin line (classic red margin)
+      ..drawLine(
+        const Offset(20, 0),
+        Offset(20, size.height + 100),
+        Paint()
+          ..color =
+              const Color(0x60FF6B6B) // Softer red margin line
+          ..strokeWidth = 0.8,
+      );
 
     // Subtle paper texture (very light noise)
     final texturePaint = Paint()
       ..color = const Color(0x08000000)
       ..style = PaintingStyle.fill;
-    
+
     // Add tiny dots for paper texture
     for (double x = 0; x < size.width; x += 8) {
       for (double y = 0; y < size.height + 100; y += 8) {

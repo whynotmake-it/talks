@@ -21,7 +21,7 @@ dependencies:
   rivership: ^0.3.0-dev.7
   video_player: ^2.10.0
   wnmi_design:
-    path: /Users/tim/Developer/talks/packages/wnmi_design
+    path: ../wnmi_design
 
 dev_dependencies:
   flutter_test:
