@@ -47,7 +47,7 @@ class ContentSlideTemplate extends FlutterDeckSlideWidget {
                           height: 1,
                         ),
                         child: ConstrainedBox(
-                          constraints: const BoxConstraints(maxWidth: 800),
+                          constraints: const BoxConstraints(maxWidth: 1000),
                           child: title,
                         ),
                       ),
@@ -58,19 +58,20 @@ class ContentSlideTemplate extends FlutterDeckSlideWidget {
                     ],
                   ),
                 ),
-                Flexible(
-                  flex: 2,
-                  child: Column(
-                    spacing: 64,
-                    children: [
-                      ?description,
-                      if (secondaryContent case final c?)
-                        Expanded(
-                          child: c,
-                        ),
-                    ],
+                if (description != null || secondaryContent != null)
+                  Flexible(
+                    flex: 2,
+                    child: Column(
+                      spacing: 64,
+                      children: [
+                        ?description,
+                        if (secondaryContent case final c?)
+                          Expanded(
+                            child: c,
+                          ),
+                      ],
+                    ),
                   ),
-                ),
               ],
             ),
           ),

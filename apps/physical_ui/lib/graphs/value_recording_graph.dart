@@ -43,8 +43,10 @@ class ValueRecordingGraph<T extends num> extends HookWidget {
     final valueRange = maxValue - minValue;
 
     final points = <Offset>[];
+    final xWidth = notifier.window ?? (values.length - 1);
+    final maxX = values.length / xWidth;
     for (var i = 0; i < values.length; i++) {
-      final x = 1.0 - (i / (values.length - 1).clamp(1, double.infinity));
+      final x = maxX - (i / xWidth.clamp(1, double.infinity));
       final y = valueRange == 0
           ? 0.5
           : 1.0 - (values[i] - minValue) / valueRange;
