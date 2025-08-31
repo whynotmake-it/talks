@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:gaussian_splatting/slides/title_slide.dart';
 import 'package:heroine/heroine.dart';
 import 'package:wnma_talk/wnma_talk.dart';
 
@@ -29,9 +30,7 @@ class GaussianSplattingTalk extends StatelessWidget {
               presenterToolbarVisible: false,
             ),
           ),
-          slides: [
-   
-          ],
+          slides: const [TitleSlide()],
           themeMode: ThemeMode.light,
         ),
       ),

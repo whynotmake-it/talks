@@ -9,7 +9,7 @@ class TitleSlide extends FlutterDeckSlideWidget {
   Widget build(BuildContext context) {
     return TitleSlideTemplate(
       title: Text(
-        'Physics-Driven Flutter Apps',
+        'Gaussian Splatting – An Early Field Report',
       ),
     );
   }
