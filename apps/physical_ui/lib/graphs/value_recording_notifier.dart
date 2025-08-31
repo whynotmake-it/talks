@@ -25,6 +25,7 @@ class ValueRecordingNotifier<T> extends ValueNotifier<List<T>> {
       ),
       null => this.value,
     };
+    notifyListeners();
   }
 }
 

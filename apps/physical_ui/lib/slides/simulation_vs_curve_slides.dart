@@ -1,8 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:wnma_talk/animated_visibility.dart';
+import 'package:wnma_talk/big_quote_template.dart';
 import 'package:wnma_talk/bullet_point.dart';
 import 'package:wnma_talk/content_slide_template.dart';
 import 'package:wnma_talk/wnma_talk.dart';
+
+class WhatChangesForYouSlide extends FlutterDeckSlideWidget {
+  WhatChangesForYouSlide({super.key})
+    : super(
+        configuration: FlutterDeckSlideConfiguration(
+          route: '/simulation_vs_curve_title',
+        ),
+      );
+
+  @override
+  Widget build(BuildContext context) {
+    return BigQuoteTemplate(title: Text('What changes for you?'));
+  }
+}
 
 class SimulationVsCurveSlide extends FlutterDeckSlideWidget {
   SimulationVsCurveSlide({super.key})

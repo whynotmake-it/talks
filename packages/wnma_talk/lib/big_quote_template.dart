@@ -32,6 +32,7 @@ class BigQuoteTemplate extends FlutterDeckSlideWidget {
                   style: theme.textTheme.title.copyWith(
                     color: colorScheme.onPrimaryContainer,
                     letterSpacing: -5,
+                    fontSize: 160,
                   ),
                   child: ConstrainedBox(
                     constraints: const BoxConstraints(maxWidth: 1100),
