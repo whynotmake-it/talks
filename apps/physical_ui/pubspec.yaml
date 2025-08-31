@@ -16,6 +16,11 @@ dependencies:
   hooks_riverpod: ^2.6.1
   liquid_glass_renderer: ^0.1.1-dev.10
   motor: ^1.0.0-dev.4
+  motor_example:
+    git:
+      url: https://github.com/whynotmake-it/rivership
+      ref: vibe-phases
+      path: packages/motor/example
   rivership: ^0.3.0-dev.7
   stupid_simple_sheet: ^0.0.2
   value_notifier_tools: ^0.1.2
@@ -45,3 +50,8 @@ flutter:
   assets:
     - assets/
     - assets/history/
+
+  fonts:
+    - family: Archivo
+      fonts:
+        - asset: assets/Archivo-VariableFont_wdth,wght.ttf
