@@ -88,10 +88,10 @@ natural movement.
 
 class MotionSlideTemplate extends FlutterDeckSlideWidget {
   MotionSlideTemplate({
-    super.key,
     required this.title,
     required this.description,
     required this.motion,
+    super.key,
     this.filterIdentical = true,
   }) : super(
          configuration: FlutterDeckSlideConfiguration(

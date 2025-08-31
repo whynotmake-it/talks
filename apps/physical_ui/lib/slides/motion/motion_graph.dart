@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:physical_ui/graphs/value_recording_graph.dart';
 import 'package:physical_ui/graphs/value_recording_notifier.dart';
-import 'package:wnma_talk/wnma_talk.dart';
 
 class MotionGraph extends HookWidget {
   const MotionGraph({
@@ -22,10 +21,6 @@ class MotionGraph extends HookWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color =
-        this.color ??
-        FlutterDeckTheme.of(context).materialTheme.colorScheme.tertiary;
-
     return ValueRecordingGraph(
       filterIdentical: filterIdentical,
       notifier: notifier,
