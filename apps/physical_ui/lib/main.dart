@@ -36,6 +36,7 @@ class PhysicalUiTalk extends StatelessWidget {
             slideSize: FlutterDeckSlideSize.responsive(),
             showProgress: false,
             transition: FlutterDeckTransition.fade(),
+
             controls: FlutterDeckControlsConfiguration(
               presenterToolbarVisible: false,
             ),
@@ -51,7 +52,7 @@ class PhysicalUiTalk extends StatelessWidget {
             MaterialNotesFlatSlide(),
             ...motionSlides,
             WhatChangesForYouSlide(),
-            DimensionalitySlide(),
+            ...dimensionalitySlides,
             SimulationVsCurveSlide(),
           ],
           themeMode: ThemeMode.light,

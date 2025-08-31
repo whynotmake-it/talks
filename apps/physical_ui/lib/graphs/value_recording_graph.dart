@@ -56,12 +56,8 @@ class ValueRecordingGraph<T extends num> extends HookWidget {
     return SizedBox.expand(
       child: LinePathWidget(
         points: points,
-        gradient: LinearGradient(
-          colors: [
-            lineColor,
-            lineColor.withValues(alpha: 0),
-          ],
-        ),
+        color: lineColor,
+        fadeOutCurve: Curves.linear,
         thickness: 5,
       ),
     );

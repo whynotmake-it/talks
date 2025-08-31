@@ -3,59 +3,54 @@ import 'package:flutter/material.dart';
 class LinePainter extends CustomPainter {
   LinePainter({
     required this.points,
-    this.gradient,
     this.thickness = 2.0,
+    this.fadeOutCurve,
     this.color,
   });
 
   final List<Offset> points;
-  final Gradient? gradient;
   final double thickness;
   final Color? color;
+
+  final Curve? fadeOutCurve;
 
   @override
   void paint(Canvas canvas, Size size) {
     if (points.isEmpty) return;
 
-    final paint = Paint()
-      ..strokeWidth = thickness
-      ..style = PaintingStyle.stroke
-      ..strokeCap = StrokeCap.round
-      ..strokeJoin = StrokeJoin.round;
-
-    final path = Path();
     final scaledPoints = <Offset>[];
-
     for (final point in points) {
       final scaledX = point.dx * size.width;
       final scaledY = point.dy * size.height;
       scaledPoints.add(Offset(scaledX, scaledY));
     }
 
-    if (scaledPoints.isNotEmpty) {
-      path.moveTo(scaledPoints.first.dx, scaledPoints.first.dy);
+    if (scaledPoints.length < 2) return;
 
-      for (var i = 1; i < scaledPoints.length; i++) {
-        path.lineTo(scaledPoints[i].dx, scaledPoints[i].dy);
-      }
+    final baseColor = color ?? Colors.black;
+
+    for (var i = 0; i < scaledPoints.length - 1; i++) {
+      final progress = i / (scaledPoints.length - 1);
+      final opacity = fadeOutCurve?.transform(progress) ?? 1.0;
+
+      final paint = Paint()
+        ..strokeWidth = thickness
+        ..style = PaintingStyle.stroke
+        ..strokeJoin = StrokeJoin.round
+        ..color = baseColor.withValues(alpha: opacity);
+
+      final segmentPath = Path()
+        ..moveTo(scaledPoints[i].dx, scaledPoints[i].dy)
+        ..lineTo(scaledPoints[i + 1].dx, scaledPoints[i + 1].dy);
+
+      canvas.drawPath(segmentPath, paint);
     }
-
-    if (gradient != null) {
-      final bounds = path.getBounds();
-      paint.shader = gradient!.createShader(bounds);
-    } else if (color != null) {
-      paint.color = color!;
-    } else {
-      paint.color = Colors.black;
-    }
-
-    canvas.drawPath(path, paint);
   }
 
   @override
   bool shouldRepaint(covariant LinePainter oldDelegate) {
     return points != oldDelegate.points ||
-        gradient != oldDelegate.gradient ||
+        fadeOutCurve != oldDelegate.fadeOutCurve ||
         thickness != oldDelegate.thickness ||
         color != oldDelegate.color;
   }
@@ -65,24 +60,22 @@ class LinePathWidget extends StatelessWidget {
   const LinePathWidget({
     required this.points,
     super.key,
-    this.gradient,
     this.thickness = 2.0,
     this.color,
-    this.size,
+    this.fadeOutCurve,
   });
 
   final List<Offset> points;
-  final Gradient? gradient;
   final double thickness;
   final Color? color;
-  final Size? size;
+  final Curve? fadeOutCurve;
 
   @override
   Widget build(BuildContext context) {
     return CustomPaint(
       painter: LinePainter(
         points: points,
-        gradient: gradient,
+        fadeOutCurve: fadeOutCurve,
         thickness: thickness,
         color: color,
       ),

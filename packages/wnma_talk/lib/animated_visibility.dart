@@ -8,6 +8,8 @@ class AnimatedVisibility extends StatelessWidget {
     this.visible = true,
     this.animateIn = true,
     this.from = const Offset(0, 20),
+    this.scaleFrom = 1.0,
+    this.opacityFrom = 0.0,
   });
 
   final bool visible;
@@ -16,24 +18,43 @@ class AnimatedVisibility extends StatelessWidget {
 
   final Offset from;
 
+  final double scaleFrom;
+
+  final double opacityFrom;
+
   final Widget child;
 
   @override
   Widget build(BuildContext context) {
     final target = visible ? 1.0 : 0.0;
     final from = animateIn ? 0.0 : target;
+
+    final scaleTarget = visible ? 1.0 : this.scaleFrom;
+    final scaleFrom = animateIn ? this.scaleFrom : scaleTarget;
+
+    const motion = CupertinoMotion.smooth();
+
     return SingleMotionBuilder(
       value: target,
       from: from,
-      motion: const CupertinoMotion.smooth(),
+      motion: motion,
       builder: (context, value, child) => Transform.translate(
-        offset: Offset(0, (1 - value) * 20),
+        offset: this.from * (1 - value),
         child: Opacity(
-          opacity: value.clamp(0.0, 1.0),
+          opacity: (opacityFrom + (1 - opacityFrom) * value).clamp(0.0, 1.0),
           child: child,
         ),
       ),
-      child: child,
+      child: SingleMotionBuilder(
+        value: scaleTarget,
+        motion: motion,
+        from: scaleFrom,
+        builder: (context, value, child) => Transform.scale(
+          scale: value,
+          child: child,
+        ),
+        child: child,
+      ),
     );
   }
 }
