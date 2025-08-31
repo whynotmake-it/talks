@@ -72,7 +72,8 @@ class SimulationVsCurveSlide extends FlutterDeckSlideWidget {
                                 BulletPoint(
                                   icon: Icon(Icons.check_rounded),
                                   text: Text(
-                                    'Perfect for animations driven by user input',
+                                    'Perfect for animations driven by user '
+                                    'input',
                                   ),
                                 ),
                                 BulletPoint(
