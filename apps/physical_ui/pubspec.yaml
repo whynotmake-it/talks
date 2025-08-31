@@ -7,7 +7,6 @@ environment:
   sdk: ^3.8.1
 
 dependencies:
-  community_charts_flutter: ^1.0.4
   device_frame: ^1.4.0
   flutter:
     sdk: flutter
