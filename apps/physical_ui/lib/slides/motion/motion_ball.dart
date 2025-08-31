@@ -26,6 +26,7 @@ class MotionBall extends HookWidget {
       children: [
         AnimatedSizeSwitcher(
           child: Align(
+            widthFactor: 1,
             key: ValueKey(Object.hash(showTarget, target)),
             alignment: Alignment(0, 1 - target * 2),
             child: showTarget
@@ -42,6 +43,7 @@ class MotionBall extends HookWidget {
           ),
         ),
         Align(
+          widthFactor: 1,
           alignment: Alignment(0, 1 - value * 2),
           child: Heroine(
             tag: true,
