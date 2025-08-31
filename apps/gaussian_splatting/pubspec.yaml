@@ -1,0 +1,47 @@
+name: gaussian_splatting
+description: "A new Flutter project."
+publish_to: 'none'
+version: 0.1.0
+
+environment:
+  sdk: ^3.8.1
+
+dependencies:
+  community_charts_flutter: ^1.0.4
+  device_frame: ^1.4.0
+  flutter:
+    sdk: flutter
+  flutter_animate: ^4.5.2
+  flutter_hooks: ^0.21.2
+  heroine: ^0.5.0-dev.7
+  hooks_riverpod: ^2.6.1
+  liquid_glass_renderer: ^0.1.1-dev.10
+  motor: ^1.0.0-dev.4
+  rivership: ^0.3.0-dev.7
+  stupid_simple_sheet: ^0.0.2
+  value_notifier_tools: ^0.1.2
+  wnma_talk:
+    path: ../../packages/wnma_talk
+
+dependency_overrides:
+  motor:
+    git:
+      url: https://github.com/whynotmake-it/rivership
+      ref: vibe-phases
+      path: packages/motor
+  stupid_simple_sheet:  
+    git:
+      url: https://github.com/whynotmake-it/rivership
+      ref: vibe-phases
+      path: packages/stupid_simple_sheet
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  lintervention: ^0.3.1
+
+flutter:
+  uses-material-design: true
+
+  assets:
+    - assets/

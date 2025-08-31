@@ -1,0 +1,8 @@
+include: package:lintervention/analysis_options.yaml
+
+linter: 
+  rules:
+   public_member_api_docs: false
+   constant_identifier_names: false
+   prefer_const_declarations: false
+   prefer_const_constructors: false
