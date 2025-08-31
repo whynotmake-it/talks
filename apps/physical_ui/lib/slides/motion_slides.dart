@@ -170,7 +170,6 @@ class _MotionDemonstration extends HookWidget {
       clipBehavior: Clip.none,
       children: [
         Positioned.fill(
-          right: -100 - diameter,
           child: Padding(
             padding: const EdgeInsets.only(
               top: diameter / 2,

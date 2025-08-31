@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:device_frame/device_frame.dart';
 import 'package:flutter/material.dart';
 import 'package:wnma_talk/wnma_talk.dart';
 

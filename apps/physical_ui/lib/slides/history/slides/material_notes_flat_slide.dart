@@ -1,7 +1,7 @@
 // drop-in replacement for MaterialNotesFlatSlide.dart (single file)
 
 import 'dart:async';
-import 'package:device_frame/device_frame.dart';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -374,8 +374,9 @@ class _EditorSheet extends HookWidget {
         if (curr.length >= initial.length) {
           k.cancel();
         } else {
-          c.text = curr + initial[curr.length];
-          c.selection = TextSelection.collapsed(offset: c.text.length);
+          c
+            ..text = curr + initial[curr.length]
+            ..selection = TextSelection.collapsed(offset: c.text.length);
         }
       });
       return () => t.value?.cancel();
