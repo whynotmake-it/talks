@@ -43,19 +43,23 @@ class _Scaffold extends HookWidget {
 
   @override
   Widget build(BuildContext context) {
+    final test = true;
+
     return CupertinoPageScaffold(
       child: Center(
         child: CupertinoButton.filled(
+          onPressed: test
+              ? () {
+                  Navigator.of(context).push(
+                    SheetTransitionRoute(
+                      motion: motion,
+                      builder: (context) => _SheetContent(),
+                      recorder: recorder,
+                    ),
+                  );
+                }
+              : null,
           child: const Text('Press Me'),
-          onPressed: () {
-            Navigator.of(context).push(
-              SheetTransitionRoute(
-                motion: motion,
-                builder: (context) => _SheetContent(),
-                recorder: recorder,
-              ),
-            );
-          },
         ),
       ),
     );
@@ -105,15 +109,17 @@ class SheetTransitionRoute extends PopupRoute<void>
   @override
   void install() {
     super.install();
-    animation?.addListener(_recordAnimationValue);
+    controller?.addListener(_recordAnimationValue);
   }
 
   @override
-  Widget buildContent(BuildContext context) => builder(context);
+  Widget buildContent(BuildContext context) => SafeArea(
+    bottom: false,
+    child: builder(context),
+  );
 
   void _recordAnimationValue() {
-    print(animation);
-    if (animation?.value case final v?) {
+    if (controller?.value case final v?) {
       recorder?.record(v);
     }
   }

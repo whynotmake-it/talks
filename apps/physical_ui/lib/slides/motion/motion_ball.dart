@@ -45,16 +45,12 @@ class MotionBall extends HookWidget {
         Align(
           widthFactor: 1,
           alignment: Alignment(0, 1 - value * 2),
-          child: Heroine(
-            tag: true,
-            motion: CupertinoMotion.bouncy(),
-            child: SizedBox.square(
-              dimension: diameter,
-              child: DecoratedBox(
-                decoration: ShapeDecoration(
-                  shape: CircleBorder(),
-                  color: theme.colorScheme.tertiary,
-                ),
+          child: SizedBox.square(
+            dimension: diameter,
+            child: DecoratedBox(
+              decoration: ShapeDecoration(
+                shape: CircleBorder(),
+                color: theme.colorScheme.tertiary,
               ),
             ),
           ),
