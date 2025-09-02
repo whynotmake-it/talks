@@ -12,6 +12,7 @@ dependencies:
   flutter:
     sdk: flutter
   flutter_animate: ^4.5.2
+  flutter_gaussian_splatter: ^0.2.2
   flutter_hooks: ^0.21.2
   heroine: ^0.5.0-dev.7
   hooks_riverpod: ^2.6.1
