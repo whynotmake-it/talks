@@ -20,6 +20,7 @@ dependencies:
   motor: ^1.0.0-dev.4
   rivership: ^0.3.0-dev.7
   stupid_simple_sheet: ^0.0.2
+  three_js: ^0.2.4
   value_notifier_tools: ^0.1.2
   wnma_talk:
     path: ../../packages/wnma_talk
