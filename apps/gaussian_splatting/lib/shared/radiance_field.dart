@@ -33,7 +33,7 @@ class _RadianceFieldScreenState extends State<RadianceFieldScreen> {
   // ---- Scene params
   static const int nx = 16, ny = 16, nz = 16;
   static const int camW = 16, camH = 16; // fake sensor rays
-  static const double voxelSize = 1.0;
+  static const double voxelSize = 1;
   static const double fieldHalf = (nx * voxelSize) / 2.0; // half-extent
   static const double rayStep = 0.5; // march step in world units
   static const double densityScale = 1.2; // scales sigma
@@ -43,7 +43,7 @@ class _RadianceFieldScreenState extends State<RadianceFieldScreen> {
   // fake camera spherical params
   double yaw = 35 * math.pi / 180.0;
   double pitch = 20 * math.pi / 180.0;
-  double camRadius = 26.0;
+  double camRadius = 26;
 
   // volume data (density/color grid)
   late final List<double> sigmaGrid; // length nx*ny*nz
@@ -66,7 +66,6 @@ class _RadianceFieldScreenState extends State<RadianceFieldScreen> {
   final List<Color> sensorImage = List<Color>.filled(
     camW * camH,
     Colors.black,
-    growable: false,
   );
 
   // Selected pixel details
@@ -84,10 +83,10 @@ class _RadianceFieldScreenState extends State<RadianceFieldScreen> {
     super.initState();
 
     // Build a procedural 3D grid as our radiance field (sigma + rgb per voxel)
-    sigmaGrid = List<double>.filled(nx * ny * nz, 0.0, growable: false);
-    colorR = List<double>.filled(nx * ny * nz, 0.0, growable: false);
-    colorG = List<double>.filled(nx * ny * nz, 0.0, growable: false);
-    colorB = List<double>.filled(nx * ny * nz, 0.0, growable: false);
+    sigmaGrid = List<double>.filled(nx * ny * nz, 0);
+    colorR = List<double>.filled(nx * ny * nz, 0);
+    colorG = List<double>.filled(nx * ny * nz, 0);
+    colorB = List<double>.filled(nx * ny * nz, 0);
     _populateField();
 
     threeJs = three.ThreeJS(
@@ -154,7 +153,6 @@ class _RadianceFieldScreenState extends State<RadianceFieldScreen> {
 
     // Fake camera that "casts rays" through the field
     fakeCam = three.PerspectiveCamera(60, 1, 0.1, 200);
-    _updateFakeCamTransform();
     threeJs.scene.add(fakeCam);
 
  
@@ -166,12 +164,12 @@ class _RadianceFieldScreenState extends State<RadianceFieldScreen> {
     _buildRaysLines();
 
     // Do first render/march immediately
-    _marchAllRays();
+    _updateVisualization();
 
-    // Animation/update loop - only update when needed
+    // Animation/update loop - minimal updates only
     threeJs.addAnimationEvent((dt) {
-      // Only update rays visualization, camera transform is updated via sliders
-      _updateRaysLinesGeom();
+      // Animation loop - keep minimal or empty since updates are triggered by user actions
+      print('DEBUG: Animation frame rendered');
     });
   }
 
@@ -183,17 +181,17 @@ class _RadianceFieldScreenState extends State<RadianceFieldScreen> {
       _Blob(
         center: three.Vector3(-3, -1.5, 0),
         sigma: 1.1,
-        density: 2.0,
+        density: 2,
         color: const [0.9, 0.2, 0.2],
       ),
       _Blob(
-        center: three.Vector3(3.5, 1.5, 2.0),
+        center: three.Vector3(3.5, 1.5, 2),
         sigma: 1.6,
         density: 1.8,
         color: const [0.2, 0.8, 0.3],
       ),
       _Blob(
-        center: three.Vector3(0.0, 0.0, -3.5),
+        center: three.Vector3(0, 0, -3.5),
         sigma: 1.2,
         density: 2.4,
         color: const [0.2, 0.5, 1.0],
@@ -204,7 +202,7 @@ class _RadianceFieldScreenState extends State<RadianceFieldScreen> {
       for (int j = 0; j < ny; j++) {
         for (int i = 0; i < nx; i++) {
           final world = _voxelCenterToWorld(i, j, k);
-          double sig = 0.0;
+          double sig = 0;
           double r = 0, g = 0, b = 0;
 
           for (final blob in blobs) {
@@ -381,7 +379,7 @@ class _RadianceFieldScreenState extends State<RadianceFieldScreen> {
     double t1, {
     required bool collect,
   }) {
-    double T = 1.0;
+    double T = 1;
     double rAcc = 0, gAcc = 0, bAcc = 0;
 
     final samples = <_SampleRecord>[];
@@ -475,7 +473,7 @@ class _RadianceFieldScreenState extends State<RadianceFieldScreen> {
     if (tzmax < tmax) tmax = tzmax;
 
     if (tmax < 0) return _RayBoxHit(false, 0, 0);
-    return _RayBoxHit(true, math.max(0.0, tmin), tmax);
+    return _RayBoxHit(true, math.max(0, tmin), tmax);
   }
 
   // ========================= Instanced voxels & rays lines =========================
@@ -485,7 +483,7 @@ class _RadianceFieldScreenState extends State<RadianceFieldScreen> {
     final cameraGroup = three.Group();
     
     // Camera body (small cube)
-    final bodyGeom = three.BoxGeometry(1.5, 1.0, 2.0);
+    final bodyGeom = three.BoxGeometry(1.5, 1, 2);
     final bodyMat = three.MeshStandardMaterial.fromMap({
       "color": 0xff4444,
       "roughness": 0.3,
@@ -495,7 +493,7 @@ class _RadianceFieldScreenState extends State<RadianceFieldScreen> {
     cameraGroup.add(body);
     
     // Camera lens (cylinder pointing forward)
-    final lensGeom = three.CylinderGeometry(0.3, 0.3, 1.0);
+    final lensGeom = three.CylinderGeometry(0.3, 0.3);
     final lensMat = three.MeshStandardMaterial.fromMap({
       "color": 0x333333,
       "roughness": 0.1,
@@ -507,7 +505,7 @@ class _RadianceFieldScreenState extends State<RadianceFieldScreen> {
     cameraGroup.add(lens);
     
     // Direction indicator (small arrow/cone)
-    final arrowGeom = three.ConeGeometry(0.2, 1.0);
+    final arrowGeom = three.ConeGeometry(0.2);
     final arrowMat = three.MeshStandardMaterial.fromMap({
       "color": 0xffff00,
       "roughness": 0.3,
@@ -560,7 +558,7 @@ class _RadianceFieldScreenState extends State<RadianceFieldScreen> {
     final positions = three.Float32Array(nSegments * 2 * 3);
 
     raysGeom = three.BufferGeometry();
-    final posAttr = three.Float32BufferAttribute(positions, 3, false);
+    final posAttr = three.Float32BufferAttribute(positions, 3);
     raysGeom.setAttribute(three.Attribute.position, posAttr);
 
     raysMat = three.LineBasicMaterial.fromMap({
@@ -587,7 +585,7 @@ class _RadianceFieldScreenState extends State<RadianceFieldScreen> {
     final posAttr =
         raysGeom.getAttribute(three.Attribute.position)
             as three.Float32BufferAttribute;
-    final positions = posAttr.array as Float32List;
+    final positions = posAttr.array;
 
     final o = fakeCam.position.clone();
     final bboxMin = three.Vector3(-fieldHalf, -fieldHalf, -fieldHalf);
@@ -614,6 +612,16 @@ class _RadianceFieldScreenState extends State<RadianceFieldScreen> {
     }
     posAttr.needsUpdate = true;
     print('DEBUG: Ray lines geometry updated, posAttr.needsUpdate set to true');
+  }
+
+  // ========================= Centralized update function =========================
+  
+  void _updateVisualization() {
+    print('DEBUG: _updateVisualization called');
+    _updateFakeCamTransform();
+    _marchAllRays();
+    _updateRaysLinesGeom();
+    print('DEBUG: _updateVisualization complete');
   }
 
   // ========================= Helpers & transforms =========================
@@ -670,8 +678,7 @@ class _RadianceFieldScreenState extends State<RadianceFieldScreen> {
         } else {
           selectedRaySamples = [];
         }
-    print('DEBUG: _marchAllRays completed, calling setState');
-    setState(() {});
+        setState(() {});
       },
       selectedU: selectedU,
       selectedV: selectedV,
@@ -708,11 +715,7 @@ class _RadianceFieldScreenState extends State<RadianceFieldScreen> {
                       (v) => setState(() {
                         print('DEBUG: Yaw slider changed to $v');
                         yaw = v;
-                        print('DEBUG: About to call _updateFakeCamTransform');
-                        _updateFakeCamTransform();
-                        print('DEBUG: About to call _marchAllRays');
-                        _marchAllRays();
-                        print('DEBUG: Slider update complete');
+                        _updateVisualization();
                       }),
                     ),
                     _sliderRow(
@@ -722,25 +725,26 @@ class _RadianceFieldScreenState extends State<RadianceFieldScreen> {
                       math.pi / 2 - 0.05,
                       (v) => setState(() {
                         pitch = v;
-                        _updateFakeCamTransform();
-                        _marchAllRays();
+                        _updateVisualization();
                       }),
                     ),
                     _sliderRow(
                       'Radius',
                       camRadius,
-                      10.0,
-                      40.0,
+                      10,
+                      40,
                       (v) => setState(() {
                         camRadius = v;
-                        _updateFakeCamTransform();
-                        _marchAllRays();
+                        _updateVisualization();
                       }),
                     ),
                     const Divider(),
                     CheckboxListTile(
                       value: showAllRays,
-                      onChanged: (v) => setState(() => showAllRays = v ?? true),
+                      onChanged: (v) => setState(() {
+                        showAllRays = v ?? true;
+                        _updateVisualization();
+                      }),
                       title: const Text('Show 16×16 rays'),
                       controlAffinity: ListTileControlAffinity.leading,
                       dense: true,
@@ -1098,7 +1102,7 @@ class _ControlCard extends StatelessWidget {
       color: const Color(0xFF1E2430),
       margin: const EdgeInsets.only(top: 12),
       child: Padding(
-        padding: const EdgeInsets.all(12.0),
+        padding: const EdgeInsets.all(12),
         child: SizedBox(
           width: 400,
           height: 308,
