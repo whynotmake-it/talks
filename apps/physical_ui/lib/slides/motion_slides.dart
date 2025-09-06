@@ -8,6 +8,7 @@ import 'package:physical_ui/slides/motion/motion_ball.dart';
 import 'package:physical_ui/slides/motion/motion_example_app.dart';
 import 'package:physical_ui/slides/motion/motion_graph.dart';
 import 'package:rivership/rivership.dart';
+import 'package:wnma_talk/code_highlight.dart';
 import 'package:wnma_talk/content_slide_template.dart';
 import 'package:wnma_talk/wnma_talk.dart';
 
@@ -84,6 +85,7 @@ natural movement.
     ),
     motion: CupertinoMotion.smooth(duration: 0.8.seconds),
   ),
+  CodeSlide(),
 ];
 
 class MotionSlideTemplate extends FlutterDeckSlideWidget {
@@ -115,7 +117,7 @@ class MotionSlideTemplate extends FlutterDeckSlideWidget {
         return HookBuilder(
           builder: (context) {
             final recorder = useDisposable(
-              () => ValueRecordingNotifier<double>(window: 100),
+              () => ValueRecordingNotifier<double>(window: 200),
             );
 
             // The graph is invisible on step 1 and becomes visible on step 2
@@ -198,3 +200,49 @@ class _MotionDemonstration extends HookWidget {
     );
   }
 }
+
+class CodeSlide extends FlutterDeckSlideWidget {
+  CodeSlide({
+    super.key,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return ContentSlideTemplate(
+      title: Text('Flutter supports this quite easily!'),
+      mainContent: Align(
+        alignment: Alignment.centerLeft,
+        child: CodeHighlight(code: springDemoCode),
+      ),
+    );
+  }
+}
+
+const springDemoCode = '''
+// Semi-pseudo code for a spring simulation
+
+final spring = SpringDescription.withDurationAndBounce(
+  duration: Duration(milliseconds: 400),
+  bounce: 0.0,
+);
+
+final animationController = AnimationController(vsync: this);
+
+/// Could be called when the user lets go of the sheet
+void onDragEnd(DragEndDetails details) {
+  final velocity = details.velocity.pixelsPerSecond;
+
+  // animationController.animateTo(0, duration: Duration(milliseconds: 400));
+
+  animationController.animateWith(
+    SpringSimulation(
+      spring,                      // Our SpringDescription
+      animationController.value,   // Starting value
+      0,                           // Target value
+      velocity,                    // Initial velocity
+    ),
+  );
+}
+
+
+''';

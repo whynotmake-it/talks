@@ -24,7 +24,7 @@ class CodeHighlight extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          if (filename case final filename?)
+          if (filename case final filename?) ...[
             Container(
               padding: const EdgeInsets.all(16),
               alignment: Alignment.center,
@@ -38,10 +38,11 @@ class CodeHighlight extends StatelessWidget {
                     ),
               ),
             ),
-          const Divider(
-            height: 1,
-            color: Colors.white24,
-          ),
+            const Divider(
+              height: 1,
+              color: Colors.white24,
+            ),
+          ],
           Expanded(
             child: SingleChildScrollView(
               child: HighlightView(

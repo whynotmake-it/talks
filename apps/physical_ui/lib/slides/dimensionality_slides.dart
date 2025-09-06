@@ -12,10 +12,17 @@ import 'package:wnma_talk/wnma_talk.dart';
 
 final dimensionalitySlides = [
   DimensionalitySlideTemplate(
+    showTitle: false,
+    motion: CurvedMotion(duration: .5.seconds, curve: Curves.ease),
+    showTrajectoryInStep2: false,
+  ),
+  DimensionalitySlideTemplate(
+    showTitle: false,
     motion: CurvedMotion(duration: .5.seconds, curve: Curves.ease),
     code: _standardAnimationPseudocode,
   ),
   DimensionalitySlideTemplate(
+    showTitle: false,
     motion: SpringMotion(
       SpringDescription.withDurationAndBounce(
         duration: Duration(milliseconds: 500),
@@ -37,12 +44,14 @@ final dimensionalitySlides = [
     motion: MaterialSpringMotion.expressiveSpatialSlow,
     filename: 'flutter_physics_simulation_example.dart',
     code: _flutterSpringCodeExample,
+    showTrajectoryInStep2: false,
   ),
 ];
 
 class DimensionalitySlideTemplate extends FlutterDeckSlideWidget {
   DimensionalitySlideTemplate({
     super.key,
+    this.showTitle = true,
     this.motion = const CupertinoMotion.smooth(),
     this.filename,
     this.code,
@@ -54,6 +63,7 @@ class DimensionalitySlideTemplate extends FlutterDeckSlideWidget {
          ),
        );
 
+  final bool showTitle;
   final Motion motion;
   final String? filename;
   final String? code;
@@ -70,7 +80,10 @@ class DimensionalitySlideTemplate extends FlutterDeckSlideWidget {
 
         return FlutterDeckSlideStepsBuilder(
           builder: (context, step) => ContentSlideTemplate(
-            title: Text('We need more than one dimension.'),
+            title: Visibility.maintain(
+              visible: showTitle,
+              child: Text('We need more than one dimension.'),
+            ),
             mainContent: Stack(
               children: [
                 Positioned.fill(
@@ -306,6 +319,8 @@ final y = animationControllerX.animateWith(
     currentDragVelocity.pixelsPerSecond.dy,
   ),
 );
+
+final targetOffset = Offset(x.value, y.value);
 
 // Build widget...
 
