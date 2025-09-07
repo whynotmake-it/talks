@@ -1,59 +1,82 @@
 import 'dart:async';
 import 'dart:math' as math;
-import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
+import 'package:gaussian_splatting/shared/radiance_field_data.dart';
+import 'package:gaussian_splatting/shared/radiance_field_ui.dart';
 import 'package:three_js/three_js.dart' as three;
-
-void main() {
-  runApp(const RadianceFieldDemoApp());
-}
-
-class RadianceFieldDemoApp extends StatelessWidget {
-  const RadianceFieldDemoApp({super.key});
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Radiance Fields Demo (Flutter + three_js)',
-      debugShowCheckedModeBanner: false,
-      home: const RadianceFieldScreen(),
-    );
-  }
-}
+import 'package:three_js_transform_controls/three_js_transform_controls.dart';
+import 'package:wnma_talk/wnma_talk.dart';
 
 class RadianceFieldScreen extends StatefulWidget {
-  const RadianceFieldScreen({super.key});
+  const RadianceFieldScreen({
+    required this.showVoxels,
+    required this.showSensor,
+    required this.showRaySamples,
+    required this.showSamplePoints,
+    required this.showUI,
+    this.yaw = 35 * math.pi / 180.0,
+    this.pitch = 20 * math.pi / 180.0,
+    this.camRadius = 26,
+    this.showAllRays = true,
+    this.showInstancedVoxels = true,
+    this.viewDependentColor = false,
+    this.onYawChanged,
+    this.onPitchChanged,
+    this.onCamRadiusChanged,
+    this.onShowAllRaysChanged,
+    this.onShowInstancedVoxelsChanged,
+    this.onViewDependentColorChanged,
+    super.key,
+  });
+
+  final bool showVoxels;
+  final bool showSensor;
+  final bool showRaySamples;
+  final bool showSamplePoints;
+  final bool showUI;
+  final double yaw;
+  final double pitch;
+  final double camRadius;
+  final bool showAllRays;
+  final bool showInstancedVoxels;
+  final bool viewDependentColor;
+  final ValueChanged<double>? onYawChanged;
+  final ValueChanged<double>? onPitchChanged;
+  final ValueChanged<double>? onCamRadiusChanged;
+  final ValueChanged<bool>? onShowAllRaysChanged;
+  final ValueChanged<bool>? onShowInstancedVoxelsChanged;
+  final ValueChanged<bool>? onViewDependentColorChanged;
+
   @override
   State<RadianceFieldScreen> createState() => _RadianceFieldScreenState();
 }
 
 class _RadianceFieldScreenState extends State<RadianceFieldScreen> {
   late three.ThreeJS threeJs;
+  late ArcballControls orbit;
 
   // ---- Scene params
-  static const int nx = 16, ny = 16, nz = 16;
-  static const int camW = 16, camH = 16; // fake sensor rays
+  static const int nx = 32;
+  static const int ny = 32;
+  static const int nz = 32;
+  static const int camW = 32;
+  static const int camH = 32; // fake sensor rays
   static const double voxelSize = 1;
   static const double fieldHalf = (nx * voxelSize) / 2.0; // half-extent
-  static const double rayStep = 0.5; // march step in world units
+  static const double rayStep = 1; // march step in world units
   static const double densityScale = 1.2; // scales sigma
-  static const double earlyStopT = 0.01; // early termination if T < this
-  bool showAllRays = true;
-
-  // fake camera spherical params
-  double yaw = 35 * math.pi / 180.0;
-  double pitch = 20 * math.pi / 180.0;
-  double camRadius = 26;
+  static const double earlyStopT = 0; // early termination if T < this
 
   // volume data (density/color grid)
   late final List<double> sigmaGrid; // length nx*ny*nz
   late final List<double> colorR, colorG, colorB;
 
   // Instanced voxels
-  late three.InstancedMesh voxelsMesh;
-  final three.Object3D _dummy = three.Object3D();
+  late three.Mesh voxelsMesh;
 
-  // Fake camera that casts the rays (renders not from this, but from observer camera)
+  // Fake camera that casts the rays (renders not from this, but
+  // from observer camera)
   late three.PerspectiveCamera fakeCam;
   late three.Object3D? fakeCamVisual;
 
@@ -62,21 +85,32 @@ class _RadianceFieldScreenState extends State<RadianceFieldScreen> {
   late three.BufferGeometry raysGeom;
   late three.LineBasicMaterial raysMat;
 
+  // Selected ray highlighting
+  late three.LineSegments selectedRayLine;
+  late three.BufferGeometry selectedRayGeom;
+  late three.LineBasicMaterial selectedRayMat;
+
+  // Sample points visualization
+  late three.Points samplePoints;
+  late three.BufferGeometry samplePointsGeom;
+  late three.PointsMaterial samplePointsMat;
+
   // 2D sensor result (16x16 pixels)
-  final List<Color> sensorImage = List<Color>.filled(
+  List<Color> sensorImage = List<Color>.filled(
     camW * camH,
     Colors.black,
   );
 
   // Selected pixel details
   int selectedU = 8, selectedV = 8;
-  List<_SampleRecord> selectedRaySamples = [];
+  List<SampleRecord> selectedRaySamples = [];
+  
+  // All ray samples (2D array: [pixel][sample])
+  List<List<SampleRecord>> allRaySamples = [];
 
   // Flags/UI
-  bool showInstancedVoxels = true;
   bool showRayDetail = true;
   bool showTransmittanceCurve = true;
-  bool viewDependentColor = false;
 
   @override
   void initState() {
@@ -88,6 +122,9 @@ class _RadianceFieldScreenState extends State<RadianceFieldScreen> {
     colorG = List<double>.filled(nx * ny * nz, 0);
     colorB = List<double>.filled(nx * ny * nz, 0);
     _populateField();
+    
+    // Initialize allRaySamples array
+    allRaySamples = List.generate(camW * camH, (_) => <SampleRecord>[]);
 
     threeJs = three.ThreeJS(
       onSetupComplete: () => setState(() {}),
@@ -102,7 +139,32 @@ class _RadianceFieldScreenState extends State<RadianceFieldScreen> {
   }
 
   @override
+  void didUpdateWidget(RadianceFieldScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    // Only update if ThreeJS is ready
+    if (threeJs.renderer != null) {
+      if (oldWidget.yaw != widget.yaw ||
+          oldWidget.pitch != widget.pitch ||
+          oldWidget.camRadius != widget.camRadius ||
+          oldWidget.showAllRays != widget.showAllRays ||
+          oldWidget.viewDependentColor != widget.viewDependentColor) {
+        _updateVisualization();
+      }
+
+      if (oldWidget.showInstancedVoxels != widget.showInstancedVoxels) {
+        voxelsMesh.visible = widget.showInstancedVoxels;
+      }
+
+      if (oldWidget.showSamplePoints != widget.showSamplePoints) {
+        _updateSamplePoints();
+      }
+    }
+  }
+
+  @override
   void dispose() {
+    orbit.clearListeners();
     threeJs.dispose();
     three.loading.clear();
     super.dispose();
@@ -115,13 +177,45 @@ class _RadianceFieldScreenState extends State<RadianceFieldScreen> {
       body: Stack(
         children: [
           Positioned.fill(child: threeJs.build()),
-          Positioned.fill(child: ui),
+          // Position UI to leave center area free for orbit controls
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Positioned.fill(
+              child: ui,
+            ),
+          ),
         ],
       ),
     );
   }
 
   // ========================= Setup three_js scene =========================
+
+  // Helper method to get theme-aware colors
+  int _getThemeColor(
+    BuildContext context, {
+    Color? lightColor,
+    Color? darkColor,
+    Color? fallback,
+  }) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    Color color;
+    if (isDark && darkColor != null) {
+      color = darkColor;
+    } else if (!isDark && lightColor != null) {
+      color = lightColor;
+    } else if (fallback != null) {
+      color = fallback;
+    } else {
+      // Use theme colors as intelligent defaults
+      color = isDark
+          ? theme.colorScheme.onSurface.withOpacity(0.8)
+          : theme.colorScheme.onSurface.withOpacity(0.6);
+    }
+    return color.value;
+  }
 
   Future<void> _setup() async {
     // Observer camera (the one we use to render the 3D scene)
@@ -134,28 +228,36 @@ class _RadianceFieldScreenState extends State<RadianceFieldScreen> {
     threeJs.camera.position.setValues(40, 30, 40);
     threeJs.camera.lookAt(three.Vector3(0, 0, 0));
 
+    // Setup orbit controls for viewport navigation
+    orbit = ArcballControls(threeJs.camera, threeJs.globalKey);
+    orbit.update();
+    orbit.addEventListener('change', (event) {
+      threeJs.render();
+    });
+
     // Scene & lights
     threeJs.scene = three.Scene();
-    threeJs.scene.background = three.Color.fromHex32(0x101418);
-    final amb = three.AmbientLight(0xffffff, 0.75);
-    final dir = three.DirectionalLight(0xffffff, 0.75);
-    dir.position.setValues(30, 50, 20);
+    // ignore: lines_longer_than_80_chars
+    final bgColor =
+        FlutterDeckTheme.of(context).slideTheme.color ?? Colors.black;
+    threeJs.scene.background = three.Color.fromHex32(bgColor.toARGB32());
+    final amb = three.AmbientLight(
+      _getThemeColor(
+        context,
+        lightColor: Colors.white,
+        darkColor: Colors.white,
+      ),
+      0.75,
+    );
+
     threeJs.scene.add(amb);
-    threeJs.scene.add(dir);
 
-    // A ground grid to help orientation
-    // final grid = three.GridHelper(60, 30, three.Color(0x444444), three.Color(0x222222));
-    // grid.position.y = -fieldHalf - 0.6;
-    // threeJs.scene.add(grid);
-
-       // Visual representation of fake camera
+    // Visual representation of fake camera
     _buildFakeCameraVisual();
 
     // Fake camera that "casts rays" through the field
     fakeCam = three.PerspectiveCamera(60, 1, 0.1, 200);
     threeJs.scene.add(fakeCam);
-
- 
 
     // Voxel field visualization with instancing
     _buildVoxelInstancing();
@@ -163,46 +265,61 @@ class _RadianceFieldScreenState extends State<RadianceFieldScreen> {
     // Rays visualization (thin semi-transparent lines)
     _buildRaysLines();
 
+    // Selected ray and sample points visualization
+    _buildSelectedRayVisualization();
+
+    // Update cam pos
+    _updateFakeCamTransform();
+
     // Do first render/march immediately
     _updateVisualization();
 
-    // Animation/update loop - minimal updates only
-    threeJs.addAnimationEvent((dt) {
-      // Animation loop - keep minimal or empty since updates are triggered by user actions
-      print('DEBUG: Animation frame rendered');
-    });
+    // Initialize the selected ray visualization with default selection
+    final origin = fakeCam.position.clone();
+    final direction = _rayDirForPixel(selectedU, selectedV);
+    final bboxMin = three.Vector3(-fieldHalf, -fieldHalf, -fieldHalf);
+    final bboxMax = three.Vector3(fieldHalf, fieldHalf, fieldHalf);
+    final hit = _rayAABB(origin, direction, bboxMin, bboxMax);
+    if (hit.hit) {
+      final res = _marchOneRay(
+        origin,
+        direction,
+        hit.t0,
+        hit.t1,
+        collect: true,
+      );
+      selectedRaySamples = res.samples;
+      
+      // Also store in allRaySamples
+      final pixelIndex = selectedV * camW + selectedU;
+      allRaySamples[pixelIndex] = res.samples;
+    }
   }
 
   // ========================= Field generation & sampling =========================
 
   void _populateField() {
     // A couple of soft 3D blobs + a slanted "wall" to make occlusion obvious.
-    final blobs = <_Blob>[
-      _Blob(
-        center: three.Vector3(-3, -1.5, 0),
+    final blobs = <Blob>[
+      Blob(
+        center: three.Vector3(-3.5, -1.5, -2),
         sigma: 1.1,
-        density: 2,
-        color: const [0.9, 0.2, 0.2],
+        density: 2.0,
+        color: const [1, 0, 0],
       ),
-      _Blob(
-        center: three.Vector3(3.5, 1.5, 2),
+      Blob(
+        center: three.Vector3(3.5, 1.5, 2.0),
         sigma: 1.6,
         density: 1.8,
-        color: const [0.2, 0.8, 0.3],
-      ),
-      _Blob(
-        center: three.Vector3(0, 0, -3.5),
-        sigma: 1.2,
-        density: 2.4,
-        color: const [0.2, 0.5, 1.0],
+        color: const [0, 1, 0],
       ),
     ];
 
-    for (int k = 0; k < nz; k++) {
-      for (int j = 0; j < ny; j++) {
-        for (int i = 0; i < nx; i++) {
+    for (var k = 0; k < nz; k++) {
+      for (var j = 0; j < ny; j++) {
+        for (var i = 0; i < nx; i++) {
           final world = _voxelCenterToWorld(i, j, k);
-          double sig = 0;
+          var sig = 0.0;
           double r = 0, g = 0, b = 0;
 
           for (final blob in blobs) {
@@ -233,22 +350,24 @@ class _RadianceFieldScreenState extends State<RadianceFieldScreen> {
   }
 
   // Trilinear sampling of density and color at a world position p (within the field bbox).
-  _FieldSample _sampleField(three.Vector3 p, three.Vector3 rayDir) {
+  FieldSample _sampleField(three.Vector3 p, three.Vector3 rayDir) {
     // Map world coords [-fieldHalf, fieldHalf] to grid coords [0, nx), etc.
     final gx = ((p.x + fieldHalf) / voxelSize).clamp(0.0, nx - 1.0001);
     final gy = ((p.y + fieldHalf) / voxelSize).clamp(0.0, ny - 1.0001);
     final gz = ((p.z + fieldHalf) / voxelSize).clamp(0.0, nz - 1.0001);
 
-    final i0 = gx.floor().toInt();
-    final j0 = gy.floor().toInt();
-    final k0 = gz.floor().toInt();
+    final i0 = gx.floor();
+    final j0 = gy.floor();
+    final k0 = gz.floor();
 
     final tx = gx - i0;
     final ty = gy - j0;
     final tz = gz - k0;
 
     double sigma = 0;
-    double r = 0, g = 0, b = 0;
+    double r = 0;
+    double g = 0;
+    double b = 0;
 
     double accum(
       double v000,
@@ -321,7 +440,7 @@ class _RadianceFieldScreenState extends State<RadianceFieldScreen> {
     );
 
     // Optional view-dependent tint (very simple spec-like lobe)
-    if (viewDependentColor) {
+    if (widget.viewDependentColor) {
       final n = three.Vector3(0, 1, 0); // fake "up" normal to hint the idea
       final ndotv = n.dot(rayDir.clone().negate()).clamp(0, 1);
       final lobe = math.pow(ndotv, 8).toDouble();
@@ -330,31 +449,32 @@ class _RadianceFieldScreenState extends State<RadianceFieldScreen> {
       b = (b + 0.7 * lobe).clamp(0.0, 1.0);
     }
 
-    return _FieldSample(sigma * densityScale, r, g, b);
+    return FieldSample(sigma * densityScale, r, g, b);
   }
 
-  // ========================= Ray marching & sensor image =========================
+  // ========================= Ray marching & sensor image =================
 
   void _marchAllRays() {
-    print('DEBUG: _marchAllRays called');
     final origin = fakeCam.position.clone();
-    print('DEBUG: Ray marching from origin: (${origin.x}, ${origin.y}, ${origin.z})');
     final bboxMin = three.Vector3(-fieldHalf, -fieldHalf, -fieldHalf);
     final bboxMax = three.Vector3(fieldHalf, fieldHalf, fieldHalf);
 
+    // Create a new sensor image list to force SensorView to repaint
+    final newSensorImage = List<Color>.filled(camW * camH, Colors.black);
+
     // Update entire 16x16
-    for (int v = 0; v < camH; v++) {
-      for (int u = 0; u < camW; u++) {
+    for (var v = 0; v < camH; v++) {
+      for (var u = 0; u < camW; u++) {
         final dir = _rayDirForPixel(u, v);
-        final _RayBoxHit hit = _rayAABB(origin, dir, bboxMin, bboxMax);
-        Color c = Colors.black;
+        final RayBoxHit hit = _rayAABB(origin, dir, bboxMin, bboxMax);
+        var c = Colors.black;
         if (hit.hit) {
           final res = _marchOneRay(
             origin,
             dir,
             hit.t0,
             hit.t1,
-            collect: (u == selectedU && v == selectedV),
+            collect: true,
           );
           c = Color.fromARGB(
             0xFF,
@@ -362,17 +482,29 @@ class _RadianceFieldScreenState extends State<RadianceFieldScreen> {
             (res.g.clamp(0.0, 1.0) * 255).toInt(),
             (res.b.clamp(0.0, 1.0) * 255).toInt(),
           );
+          
+          // Store samples for all rays
+          final pixelIndex = v * camW + u;
+          allRaySamples[pixelIndex] = res.samples;
+          
           if (u == selectedU && v == selectedV) {
             selectedRaySamples = res.samples; // for the detail panel
           }
+        } else {
+          // Clear samples for rays that don't hit
+          final pixelIndex = v * camW + u;
+          allRaySamples[pixelIndex] = [];
         }
-        sensorImage[v * camW + u] = c;
+        newSensorImage[v * camW + u] = c;
       }
     }
+
+    // Replace the sensor image with the new one
+    sensorImage = newSensorImage;
     setState(() {});
   }
 
-  _MarchResult _marchOneRay(
+  MarchResult _marchOneRay(
     three.Vector3 origin,
     three.Vector3 dir,
     double t0,
@@ -380,11 +512,13 @@ class _RadianceFieldScreenState extends State<RadianceFieldScreen> {
     required bool collect,
   }) {
     double T = 1;
-    double rAcc = 0, gAcc = 0, bAcc = 0;
+    double rAcc = 0;
+    double gAcc = 0;
+    double bAcc = 0;
 
-    final samples = <_SampleRecord>[];
+    final samples = <SampleRecord>[];
 
-    double t = t0;
+    var t = t0;
     while (t < t1 && T > earlyStopT) {
       final p = origin.clone().add(dir.clone().scale(t));
       final fs = _sampleField(p, dir);
@@ -398,11 +532,11 @@ class _RadianceFieldScreenState extends State<RadianceFieldScreen> {
 
       if (collect) {
         samples.add(
-          _SampleRecord(
+          SampleRecord(
             t: t,
             sigma: sigma,
             alpha: alpha,
-            Tbefore: T,
+            tBefore: T,
             w: w,
             color: Color.fromARGB(
               255,
@@ -419,7 +553,7 @@ class _RadianceFieldScreenState extends State<RadianceFieldScreen> {
       t += rayStep;
     }
 
-    return _MarchResult(rAcc, gAcc, bAcc, samples);
+    return MarchResult(rAcc, gAcc, bAcc, samples);
   }
 
   three.Vector3 _rayDirForPixel(int u, int v) {
@@ -434,46 +568,46 @@ class _RadianceFieldScreenState extends State<RadianceFieldScreen> {
     return dir;
   }
 
-  _RayBoxHit _rayAABB(
+  RayBoxHit _rayAABB(
     three.Vector3 o,
     three.Vector3 d,
     three.Vector3 bmin,
     three.Vector3 bmax,
   ) {
-    double tmin = (bmin.x - o.x) / d.x;
-    double tmax = (bmax.x - o.x) / d.x;
+    var tmin = (bmin.x - o.x) / d.x;
+    var tmax = (bmax.x - o.x) / d.x;
     if (tmin > tmax) {
       final tmp = tmin;
       tmin = tmax;
       tmax = tmp;
     }
 
-    double tymin = (bmin.y - o.y) / d.y;
-    double tymax = (bmax.y - o.y) / d.y;
+    var tymin = (bmin.y - o.y) / d.y;
+    var tymax = (bmax.y - o.y) / d.y;
     if (tymin > tymax) {
       final tmp = tymin;
       tymin = tymax;
       tymax = tmp;
     }
-    if ((tmin > tymax) || (tymin > tmax)) return _RayBoxHit(false, 0, 0);
+    if ((tmin > tymax) || (tymin > tmax)) return RayBoxHit(false, 0, 0);
 
     if (tymin > tmin) tmin = tymin;
     if (tymax < tmax) tmax = tymax;
 
-    double tzmin = (bmin.z - o.z) / d.z;
-    double tzmax = (bmax.z - o.z) / d.z;
+    var tzmin = (bmin.z - o.z) / d.z;
+    var tzmax = (bmax.z - o.z) / d.z;
     if (tzmin > tzmax) {
       final tmp = tzmin;
       tzmin = tzmax;
       tzmax = tmp;
     }
-    if ((tmin > tzmax) || (tzmin > tmax)) return _RayBoxHit(false, 0, 0);
+    if ((tmin > tzmax) || (tzmin > tmax)) return RayBoxHit(false, 0, 0);
 
     if (tzmin > tmin) tmin = tzmin;
     if (tzmax < tmax) tmax = tzmax;
 
-    if (tmax < 0) return _RayBoxHit(false, 0, 0);
-    return _RayBoxHit(true, math.max(0, tmin), tmax);
+    if (tmax < 0) return RayBoxHit(false, 0, 0);
+    return RayBoxHit(true, math.max(0, tmin), tmax);
   }
 
   // ========================= Instanced voxels & rays lines =========================
@@ -481,76 +615,73 @@ class _RadianceFieldScreenState extends State<RadianceFieldScreen> {
   void _buildFakeCameraVisual() {
     // Create a visual representation of the fake camera
     final cameraGroup = three.Group();
-    
+
     // Camera body (small cube)
     final bodyGeom = three.BoxGeometry(1.5, 1, 2);
     final bodyMat = three.MeshStandardMaterial.fromMap({
-      "color": 0xff4444,
+      "color": _getThemeColor(
+        context,
+        lightColor: Colors.red.shade400,
+        darkColor: Colors.red.shade300,
+      ),
       "roughness": 0.3,
       "metalness": 0.1,
     });
     final body = three.Mesh(bodyGeom, bodyMat);
     cameraGroup.add(body);
-    
+
     // Camera lens (cylinder pointing forward)
     final lensGeom = three.CylinderGeometry(0.3, 0.3);
     final lensMat = three.MeshStandardMaterial.fromMap({
-      "color": 0x333333,
+      "color": _getThemeColor(
+        context,
+        lightColor: Colors.grey.shade700,
+        darkColor: Colors.grey.shade300,
+      ),
       "roughness": 0.1,
       "metalness": 0.8,
     });
     final lens = three.Mesh(lensGeom, lensMat);
     lens.rotation.x = math.pi / 2; // Point forward
-    lens.position.z = -1.5; // In front of body
+    lens.position.z = 1.5; // In front of body
     cameraGroup.add(lens);
-    
-    // Direction indicator (small arrow/cone)
-    final arrowGeom = three.ConeGeometry(0.2);
-    final arrowMat = three.MeshStandardMaterial.fromMap({
-      "color": 0xffff00,
-      "roughness": 0.3,
-    });
-    final arrow = three.Mesh(arrowGeom, arrowMat);
-    arrow.rotation.x = math.pi / 2; // Point forward
-    arrow.position.z = -2.5; // In front of lens
-    cameraGroup.add(arrow);
-    
+
     fakeCamVisual = cameraGroup;
     threeJs.scene.add(fakeCamVisual);
-    print('DEBUG: Fake camera visual added to scene');
   }
 
-  void _buildVoxelInstancing() {
-    // Create an instanced grid of semi-transparent cubes just for intuition
-    final geom = three.BoxGeometry(
-      voxelSize * 0.95,
-      voxelSize * 0.95,
-      voxelSize * 0.95,
-    );
-    final mat = three.MeshStandardMaterial.fromMap({
-      "color": 0x4fc3f7,
-      "transparent": true,
-      "opacity": 0.12,
-      "roughness": 0.9,
-      "metalness": 0.0,
-    });
 
-    voxelsMesh = three.InstancedMesh(geom, mat, nx * ny * nz);
-    int i = 0;
-    for (int z = 0; z < nz; z++) {
-      for (int y = 0; y < ny; y++) {
-        for (int x = 0; x < nx; x++) {
-          final p = _voxelCenterToWorld(x, y, z);
-          _dummy.position.setFrom(p);
-          _dummy.rotation.set(0, 0, 0);
-          _dummy.updateMatrix();
-          voxelsMesh.setMatrixAt(i++, _dummy.matrix);
-        }
-      }
-    }
-    voxelsMesh.instanceMatrix?.needsUpdate = true;
-    threeJs.scene.add(voxelsMesh);
-  }
+
+void _buildVoxelInstancing() {
+  final geom = three.BoxGeometry(
+    nx * voxelSize, ny * voxelSize, nz * voxelSize,
+  );
+
+  // Convert Flutter Color → 0xRRGGBB
+  final themeColor = _getThemeColor(
+    context,
+    lightColor: Colors.blue.shade600,
+    darkColor: Colors.blue.shade400,
+  );
+  final colorHex = (themeColor & 0xFFFFFF);
+
+  final mat = three.MeshBasicMaterial.fromMap({
+    "color": colorHex,
+    "wireframe": true,     // draw edges only
+    "transparent": true,
+    "opacity": 0.7,        // tweak to taste
+    "depthWrite": false,   // avoids dark “stacking”
+  });
+
+  voxelsMesh = three.Mesh(geom, mat);
+
+  voxelsMesh.position.setValues(0, 0, 0);
+  voxelsMesh.visible = widget.showInstancedVoxels;
+  threeJs.scene.add(voxelsMesh);
+}
+
+
+
 
   void _buildRaysLines() {
     // We’ll draw line segments from the fake camera to the AABB exit point, one per pixel.
@@ -562,9 +693,13 @@ class _RadianceFieldScreenState extends State<RadianceFieldScreen> {
     raysGeom.setAttribute(three.Attribute.position, posAttr);
 
     raysMat = three.LineBasicMaterial.fromMap({
-      "color": 0xffffff,
+      "color": _getThemeColor(
+        context,
+        lightColor: Colors.grey.shade600,
+        darkColor: Colors.grey.shade400,
+      ),
       "transparent": true,
-      "opacity": 0.12,
+      "opacity": 0.15,
       "linewidth": 1, // platform dependent
     });
 
@@ -572,14 +707,62 @@ class _RadianceFieldScreenState extends State<RadianceFieldScreen> {
     threeJs.scene.add(raysLines);
   }
 
+  void _buildSelectedRayVisualization() {
+    // Selected ray line (highlighted)
+    final selectedRayPositions = three.Float32Array(
+      2 * 3,
+    ); // Start and end point
+    selectedRayGeom = three.BufferGeometry();
+    final selectedRayPosAttr = three.Float32BufferAttribute(
+      selectedRayPositions,
+      3,
+    );
+    selectedRayGeom.setAttribute(three.Attribute.position, selectedRayPosAttr);
+
+    selectedRayMat = three.LineBasicMaterial.fromMap({
+      "color": _getThemeColor(
+        context,
+        lightColor: Colors.orange.shade600,
+        darkColor: Colors.orange.shade400,
+      ),
+      "transparent": false,
+      "linewidth": 3, // Thicker line
+    });
+
+    selectedRayLine = three.LineSegments(selectedRayGeom, selectedRayMat);
+    threeJs.scene.add(selectedRayLine);
+
+    // Sample points (dots along all rays)
+    final maxSamplePointsPerRay = 50; // Estimate max samples per ray
+    final maxTotalSamplePoints = camW * camH * maxSamplePointsPerRay; // Total for all rays
+    final samplePositions = three.Float32Array(maxTotalSamplePoints * 3);
+    final sampleColors = three.Float32Array(maxTotalSamplePoints * 4); // RGBA colors
+
+    samplePointsGeom = three.BufferGeometry();
+    final samplePosAttr = three.Float32BufferAttribute(samplePositions, 3);
+    final sampleColorAttr = three.Float32BufferAttribute(sampleColors, 4);
+
+    samplePointsGeom.setAttribute(three.Attribute.position, samplePosAttr);
+    samplePointsGeom.setAttribute(three.Attribute.color, sampleColorAttr);
+
+    samplePointsMat = three.PointsMaterial.fromMap({
+      "vertexColors": true, // Use per-vertex colors
+      "sizeAttenuation": false, // Keep consistent size regardless of distance
+      "size": 8.0, // Smaller point size for many points
+      "transparent": true, // Enable transparency
+      "vertexAlphas": true, // Use per-vertex alpha values
+    });
+
+    samplePoints = three.Points(samplePointsGeom, samplePointsMat);
+    samplePoints.visible = widget.showSamplePoints;
+    threeJs.scene.add(samplePoints);
+  }
+
   void _updateRaysLinesGeom() {
-    print('DEBUG: _updateRaysLinesGeom called, showAllRays=$showAllRays');
-    if (!showAllRays) {
-      print('DEBUG: Hiding rays lines');
+    if (!widget.showAllRays) {
       raysLines.visible = false;
       return;
     }
-    print('DEBUG: Showing rays lines');
     raysLines.visible = true;
 
     final posAttr =
@@ -588,40 +771,135 @@ class _RadianceFieldScreenState extends State<RadianceFieldScreen> {
     final positions = posAttr.array;
 
     final o = fakeCam.position.clone();
-    final bboxMin = three.Vector3(-fieldHalf, -fieldHalf, -fieldHalf);
-    final bboxMax = three.Vector3(fieldHalf, fieldHalf, fieldHalf);
+    const double rayLength = 100.0; // Extend all rays far beyond viewport
 
-    int ptr = 0;
-    for (int v = 0; v < camH; v++) {
-      for (int u = 0; u < camW; u++) {
+    var ptr = 0;
+    for (var v = 0; v < camH; v++) {
+      for (var u = 0; u < camW; u++) {
         final dir = _rayDirForPixel(u, v);
-        final hit = _rayAABB(o, dir, bboxMin, bboxMax);
 
-        three.Vector3 a = o;
-        three.Vector3 b = hit.hit
-            ? o.clone().add(dir.clone().scale(hit.t1))
-            : o.clone().add(dir.clone().scale(10.0)); // short stub if miss
+        // All rays are "infinite" - extend far in their direction
+        final start = o;
+        final end = o.clone().add(dir.clone().scale(rayLength));
 
-        positions[ptr++] = a.x;
-        positions[ptr++] = a.y;
-        positions[ptr++] = a.z;
-        positions[ptr++] = b.x;
-        positions[ptr++] = b.y;
-        positions[ptr++] = b.z;
+        positions[ptr++] = start.x;
+        positions[ptr++] = start.y;
+        positions[ptr++] = start.z;
+        positions[ptr++] = end.x;
+        positions[ptr++] = end.y;
+        positions[ptr++] = end.z;
       }
     }
     posAttr.needsUpdate = true;
-    print('DEBUG: Ray lines geometry updated, posAttr.needsUpdate set to true');
+  }
+
+  void _updateSelectedRayVisualization() {
+    // Update the selected ray line
+    final selectedRayPosAttr =
+        selectedRayGeom.getAttribute(three.Attribute.position)
+            as three.Float32BufferAttribute;
+    final selectedRayPositions = selectedRayPosAttr.array;
+
+    final origin = fakeCam.position.clone();
+    final dir = _rayDirForPixel(selectedU, selectedV);
+    const double rayLength = 100.0; // Same infinite length as regular rays
+
+    // Selected ray is also "infinite" - extends far in its direction
+    final endPoint = origin.clone().add(dir.clone().scale(rayLength));
+
+    // Set ray line positions
+    selectedRayPositions[0] = origin.x;
+    selectedRayPositions[1] = origin.y;
+    selectedRayPositions[2] = origin.z;
+    selectedRayPositions[3] = endPoint.x;
+    selectedRayPositions[4] = endPoint.y;
+    selectedRayPositions[5] = endPoint.z;
+
+    selectedRayPosAttr.needsUpdate = true;
+    selectedRayLine.visible = true;
+
+    // Update the sample points
+    _updateSamplePoints();
+  }
+
+  void _updateSamplePoints() {
+    // CLEAN EARLY QUIT - Check widget flag first
+    if (!widget.showSamplePoints) {
+      samplePoints.visible = false;
+      return;
+    }
+
+    final samplePosAttr =
+        samplePointsGeom.getAttribute(three.Attribute.position)
+            as three.Float32BufferAttribute;
+    final sampleColorAttr =
+        samplePointsGeom.getAttribute(three.Attribute.color)
+            as three.Float32BufferAttribute;
+
+    final positions = samplePosAttr.array;
+    final colors = sampleColorAttr.array;
+
+    // Check if we have any samples at all
+    final hasAnySamples = allRaySamples.any((raySamples) => raySamples.isNotEmpty);
+    
+    if (!hasAnySamples) {
+      samplePoints.visible = false;
+      return;
+    }
+
+    samplePoints.visible = true;
+
+    var pointIndex = 0;
+    
+    // Iterate through all rays and their samples
+    for (var rayIndex = 0; rayIndex < allRaySamples.length; rayIndex++) {
+      final raySamples = allRaySamples[rayIndex];
+      
+      for (var sampleIndex = 0; sampleIndex < raySamples.length; sampleIndex++) {
+        if (pointIndex >= positions.length ~/ 3) break; // Safety check
+        
+        final sample = raySamples[sampleIndex];
+        final pos = sample.p;
+
+        // Position
+        positions[pointIndex * 3 + 0] = pos.x;
+        positions[pointIndex * 3 + 1] = pos.y;
+        positions[pointIndex * 3 + 2] = pos.z;
+
+        // Color with proper alpha transparency
+        final color = sample.color;
+        final alpha = sample.alpha * 0.6; // Reduce alpha since we have many more points
+        colors[pointIndex * 4 + 0] = color.red / 255.0; // R
+        colors[pointIndex * 4 + 1] = color.green / 255.0; // G
+        colors[pointIndex * 4 + 2] = color.blue / 255.0; // B
+        colors[pointIndex * 4 + 3] = alpha; // A
+        
+        pointIndex++;
+      }
+    }
+
+    // Hide unused points by setting them at origin with zero alpha
+    for (var i = pointIndex; i < positions.length ~/ 3; i++) {
+      positions[i * 3 + 0] = 0;
+      positions[i * 3 + 1] = 0;
+      positions[i * 3 + 2] = 0;
+      colors[i * 4 + 0] = 0;
+      colors[i * 4 + 1] = 0;
+      colors[i * 4 + 2] = 0;
+      colors[i * 4 + 3] = 0; // Fully transparent
+    }
+
+    samplePosAttr.needsUpdate = true;
+    sampleColorAttr.needsUpdate = true;
   }
 
   // ========================= Centralized update function =========================
-  
+
   void _updateVisualization() {
-    print('DEBUG: _updateVisualization called');
     _updateFakeCamTransform();
     _marchAllRays();
     _updateRaysLinesGeom();
-    print('DEBUG: _updateVisualization complete');
+    _updateSelectedRayVisualization();
   }
 
   // ========================= Helpers & transforms =========================
@@ -636,492 +914,103 @@ class _RadianceFieldScreenState extends State<RadianceFieldScreen> {
   }
 
   void _updateFakeCamTransform() {
-    print('DEBUG: _updateFakeCamTransform called with yaw=$yaw, pitch=$pitch, radius=$camRadius');
-    final x = camRadius * math.cos(pitch) * math.cos(yaw);
-    final y = camRadius * math.sin(pitch);
-    final z = camRadius * math.cos(pitch) * math.sin(yaw);
-    print('DEBUG: Computed camera position: ($x, $y, $z)');
+    final x = widget.camRadius * math.cos(widget.pitch) * math.cos(widget.yaw);
+    final y = widget.camRadius * math.sin(widget.pitch);
+    final z = widget.camRadius * math.cos(widget.pitch) * math.sin(widget.yaw);
     fakeCam.position.setValues(x, y, z);
     fakeCam.lookAt(three.Vector3(0, 0, 0));
-    print('DEBUG: Updated fakeCam position');
-    
+    fakeCam.updateMatrixWorld(true);
+
     // Update visual representation
     if (fakeCamVisual != null) {
-      print('DEBUG: Updating fakeCamVisual position');
       fakeCamVisual?.position.setFrom(fakeCam.position);
       fakeCamVisual?.lookAt(three.Vector3(0, 0, 0));
-      print('DEBUG: Updated fakeCamVisual position');
-    } else {
-      print('DEBUG: WARNING - fakeCamVisual is null!');
     }
   }
 
   // ========================= Overlay UI =========================
 
   Widget _buildOverlayUI(BuildContext context) {
-    final sensor = _SensorView(
-      image: sensorImage,
-      w: camW,
-      h: camH,
-      onTapPixel: (u, v) {
-        selectedU = u;
-        selectedV = v;
-        // recompute that ray’s detailed samples now
-        final origin = fakeCam.position.clone();
-        final dir = _rayDirForPixel(u, v);
-        final bboxMin = three.Vector3(-fieldHalf, -fieldHalf, -fieldHalf);
-        final bboxMax = three.Vector3(fieldHalf, fieldHalf, fieldHalf);
-        final hit = _rayAABB(origin, dir, bboxMin, bboxMax);
-        if (hit.hit) {
-          final res = _marchOneRay(origin, dir, hit.t0, hit.t1, collect: true);
-          selectedRaySamples = res.samples;
-        } else {
-          selectedRaySamples = [];
-        }
-        setState(() {});
-      },
-      selectedU: selectedU,
-      selectedV: selectedV,
-    );
-
     final detail = showRayDetail
-        ? _RayDetail(
+        ? RayDetail(
             samples: selectedRaySamples,
             rayStep: rayStep,
             showTransmittance: showTransmittanceCurve,
           )
         : const SizedBox.shrink();
 
-    return IgnorePointer(
-      ignoring: false,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const SafeArea(child: SizedBox()),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
+    return Stack(
+      children: [
+        Align(
+          alignment: Alignment.bottomCenter,
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            spacing: 16,
             children: [
-              const SizedBox(width: 12),
-              // Left: controls
-              _ControlCard(
-                title: 'Fake Camera',
-                child: Column(
-                  children: [
-                    _sliderRow(
-                      'Yaw',
-                      yaw,
-                      -math.pi,
-                      math.pi,
-                      (v) => setState(() {
-                        print('DEBUG: Yaw slider changed to $v');
-                        yaw = v;
-                        _updateVisualization();
-                      }),
-                    ),
-                    _sliderRow(
-                      'Pitch',
-                      pitch,
-                      -math.pi / 2 + 0.05,
-                      math.pi / 2 - 0.05,
-                      (v) => setState(() {
-                        pitch = v;
-                        _updateVisualization();
-                      }),
-                    ),
-                    _sliderRow(
-                      'Radius',
-                      camRadius,
-                      10,
-                      40,
-                      (v) => setState(() {
-                        camRadius = v;
-                        _updateVisualization();
-                      }),
-                    ),
-                    const Divider(),
-                    CheckboxListTile(
-                      value: showAllRays,
-                      onChanged: (v) => setState(() {
-                        showAllRays = v ?? true;
-                        _updateVisualization();
-                      }),
-                      title: const Text('Show 16×16 rays'),
-                      controlAffinity: ListTileControlAffinity.leading,
-                      dense: true,
-                    ),
-                    CheckboxListTile(
-                      value: showInstancedVoxels,
-                      onChanged: (v) {
-                        setState(() {
-                          showInstancedVoxels = v ?? true;
-                          voxelsMesh.visible = showInstancedVoxels;
-                        });
-                      },
-                      title: const Text('Show voxel cubes'),
-                      controlAffinity: ListTileControlAffinity.leading,
-                      dense: true,
-                    ),
-                    CheckboxListTile(
-                      value: viewDependentColor,
-                      onChanged: (v) =>
-                          setState(() => viewDependentColor = v ?? false),
-                      title: const Text('View-dependent color (toy)'),
-                      controlAffinity: ListTileControlAffinity.leading,
-                      dense: true,
-                    ),
-                  ],
+              AnimatedOpacity(
+                duration: kThemeAnimationDuration,
+                opacity: widget.showSensor ? 1.0 : 0.0,
+                child: ControlCard(
+                  title: 'Sensor (16×16)',
+                  child: SensorView(
+                    image: sensorImage,
+                    w: camW,
+                    h: camH,
+                    onTapPixel: (u, v) {
+                      selectedU = u;
+                      selectedV = v;
+                      // recompute that ray's detailed samples now
+                      final origin = fakeCam.position.clone();
+                      final dir = _rayDirForPixel(u, v);
+                      final bboxMin = three.Vector3(
+                        -fieldHalf,
+                        -fieldHalf,
+                        -fieldHalf,
+                      );
+                      final bboxMax = three.Vector3(
+                        fieldHalf,
+                        fieldHalf,
+                        fieldHalf,
+                      );
+                      final hit = _rayAABB(origin, dir, bboxMin, bboxMax);
+                      if (hit.hit) {
+                        final res = _marchOneRay(
+                          origin,
+                          dir,
+                          hit.t0,
+                          hit.t1,
+                          collect: true,
+                        );
+                        selectedRaySamples = res.samples;
+                      } else {
+                        selectedRaySamples = [];
+                      }
+
+                      // Update the 3D visualization of the selected ray
+                      _updateSelectedRayVisualization();
+
+                      setState(() {});
+                    },
+                    selectedU: selectedU,
+                    selectedV: selectedV,
+                  ),
                 ),
               ),
-              const SizedBox(width: 12),
-              // Middle: sensor view
-              _ControlCard(
-                title: 'Sensor (16×16)',
-                child: sensor,
-              ),
-              const SizedBox(width: 12),
-              // Right: per-ray breakdown
               Expanded(
-                child: _ControlCard(
-                  title: 'Selected Ray Breakdown',
-                  child: detail,
+                child: AnimatedOpacity(
+                  duration: kThemeAnimationDuration,
+                  opacity: widget.showRaySamples ? 1.0 : 0.0,
+                  child: ControlCard(
+                    title: 'Selected Ray Breakdown',
+                    width: double.infinity,
+                    child: detail,
+                  ),
                 ),
               ),
-              const SizedBox(width: 12),
             ],
           ),
-          const Spacer(),
-        ],
-      ),
-    );
-  }
-
-  Widget _sliderRow(
-    String label,
-    double value,
-    double min,
-    double max,
-    ValueChanged<double> onChanged,
-  ) {
-    return Row(
-      children: [
-        SizedBox(width: 120, child: Text(label)),
-        Expanded(
-          child: Slider(
-            value: value,
-            min: min,
-            max: max,
-            onChanged: onChanged,
-          ),
-        ),
-        SizedBox(
-          width: 64,
-          child: Text(value.toStringAsFixed(2), textAlign: TextAlign.right),
         ),
       ],
-    );
-  }
-}
-
-// ========================= Widgets: sensor view & ray detail =========================
-
-class _SensorView extends StatelessWidget {
-  final List<Color> image;
-  final int w, h;
-  final void Function(int u, int v) onTapPixel;
-  final int selectedU, selectedV;
-
-  const _SensorView({
-    required this.image,
-    required this.w,
-    required this.h,
-    required this.onTapPixel,
-    required this.selectedU,
-    required this.selectedV,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final double cell = 16; // px per cell in UI
-    return GestureDetector(
-      onTapDown: (d) {
-        final box = (context.findRenderObject() as RenderBox);
-        final local = box.globalToLocal(d.globalPosition);
-        final u = (local.dx / cell).floor().clamp(0, w - 1);
-        final v = (local.dy / cell).floor().clamp(0, h - 1);
-        onTapPixel(u, v);
-      },
-      child: CustomPaint(
-        size: Size(w * cell, h * cell),
-        painter: _SensorPainter(
-          image: image,
-          w: w,
-          h: h,
-          selectedU: selectedU,
-          selectedV: selectedV,
-        ),
-      ),
-    );
-  }
-}
-
-class _SensorPainter extends CustomPainter {
-  final List<Color> image;
-  final int w, h;
-  final int selectedU, selectedV;
-
-  _SensorPainter({
-    required this.image,
-    required this.w,
-    required this.h,
-    required this.selectedU,
-    required this.selectedV,
-  });
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final cell = size.width / w;
-    final p = Paint()..style = PaintingStyle.fill;
-
-    for (int v = 0; v < h; v++) {
-      for (int u = 0; u < w; u++) {
-        p.color = image[v * w + u];
-        canvas.drawRect(Rect.fromLTWH(u * cell, v * cell, cell, cell), p);
-      }
-    }
-
-    // Grid lines
-    final grid = Paint()
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 0.5
-      ..color = Colors.white.withOpacity(0.08);
-    for (int u = 0; u <= w; u++) {
-      canvas.drawLine(Offset(u * cell, 0), Offset(u * cell, size.height), grid);
-    }
-    for (int v = 0; v <= h; v++) {
-      canvas.drawLine(Offset(0, v * cell), Offset(size.width, v * cell), grid);
-    }
-
-    // Selected pixel outline
-    final sel = Paint()
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 2.0
-      ..color = Colors.white.withOpacity(0.9);
-    canvas.drawRect(
-      Rect.fromLTWH(selectedU * cell, selectedV * cell, cell, cell),
-      sel,
-    );
-  }
-
-  @override
-  bool shouldRepaint(covariant _SensorPainter oldDelegate) {
-    return oldDelegate.image != image ||
-        oldDelegate.selectedU != selectedU ||
-        oldDelegate.selectedV != selectedV;
-    // repaint on changes
-  }
-}
-
-class _RayDetail extends StatelessWidget {
-  final List<_SampleRecord> samples;
-  final double rayStep;
-  final bool showTransmittance;
-
-  const _RayDetail({
-    required this.samples,
-    required this.rayStep,
-    required this.showTransmittance,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    if (samples.isEmpty) {
-      return const SizedBox(
-        height: 200,
-        child: Center(child: Text('No hit / outside volume')),
-      );
-    }
-
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        return CustomPaint(
-          size: Size(constraints.maxWidth, 260),
-          painter: _RayDetailPainter(
-            samples: samples,
-            showTransmittance: showTransmittance,
-          ),
-        );
-      },
-    );
-  }
-}
-
-class _RayDetailPainter extends CustomPainter {
-  final List<_SampleRecord> samples;
-  final bool showTransmittance;
-
-  _RayDetailPainter({required this.samples, required this.showTransmittance});
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final padding = 10.0;
-    final width = size.width - padding * 2;
-    final height = size.height - padding * 2;
-
-    // Top row: dots for samples along t (x-axis), opacity by alpha, size by Tbefore
-    final rowH = height * 0.45;
-    final tMin = samples.first.t;
-    final tMax = samples.last.t;
-    double xForT(double t) =>
-        padding + (t - tMin) / (tMax - tMin + 1e-6) * width;
-
-    // Guides
-    final guide = Paint()
-      ..style = PaintingStyle.stroke
-      ..color = Colors.white.withOpacity(0.08)
-      ..strokeWidth = 1.0;
-    canvas.drawRect(Rect.fromLTWH(padding, padding, width, rowH), guide);
-
-    for (final s in samples) {
-      final x = xForT(s.t);
-      final y = padding + rowH / 2;
-      final dot = Paint()
-        ..style = PaintingStyle.fill
-        ..color = s.color.withOpacity((s.alpha).clamp(0.05, 1.0));
-      final r = (4.0 + 12.0 * s.Tbefore).clamp(2.0, 10.0);
-      canvas.drawCircle(Offset(x, y), r, dot);
-    }
-
-    // Bottom row: stacked contributions (w * color)
-    final bottomY = padding + rowH + 8;
-    final contribH = height - rowH - 8;
-
-    double x = padding;
-    for (final s in samples) {
-      final w = s.w; // contribution weight
-      final barW = (w * width).clamp(
-        0.5,
-        width,
-      ); // visualize by weight proportionally
-      final p = Paint()..color = s.color.withOpacity(0.85);
-      canvas.drawRect(Rect.fromLTWH(x, bottomY, barW, contribH), p);
-      x += barW;
-      if (x > padding + width - 1) break;
-    }
-
-    if (showTransmittance) {
-      // Overdraw T(t) curve over the top row
-      final path = Path();
-      bool first = true;
-      for (final s in samples) {
-        final xx = xForT(s.t);
-        final yy = padding + rowH * (1 - s.Tbefore);
-        if (first) {
-          path.moveTo(xx, yy);
-          first = false;
-        } else {
-          path.lineTo(xx, yy);
-        }
-      }
-      final pen = Paint()
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 2.0
-        ..color = Colors.orangeAccent.withOpacity(0.9);
-      canvas.drawPath(path, pen);
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant _RayDetailPainter oldDelegate) {
-    return oldDelegate.samples != samples ||
-        oldDelegate.showTransmittance != showTransmittance;
-  }
-}
-
-// ========================= Data classes =========================
-
-class _Blob {
-  final three.Vector3 center;
-  final double sigma; // spatial stddev
-  final double density; // scale
-  final List<double> color; // r,g,b 0..1
-  _Blob({
-    required this.center,
-    required this.sigma,
-    required this.density,
-    required this.color,
-  });
-}
-
-class _FieldSample {
-  final double sigma;
-  final double r, g, b;
-  _FieldSample(this.sigma, this.r, this.g, this.b);
-}
-
-class _RayBoxHit {
-  final bool hit;
-  final double t0, t1;
-  _RayBoxHit(this.hit, this.t0, this.t1);
-}
-
-class _SampleRecord {
-  final double t;
-  final double sigma;
-  final double alpha;
-  final double Tbefore;
-  final double w;
-  final Color color;
-  final three.Vector3 p;
-  _SampleRecord({
-    required this.t,
-    required this.sigma,
-    required this.alpha,
-    required this.Tbefore,
-    required this.w,
-    required this.color,
-    required this.p,
-  });
-}
-
-class _MarchResult {
-  final double r, g, b;
-  final List<_SampleRecord> samples;
-  _MarchResult(this.r, this.g, this.b, this.samples);
-}
-
-// ========================= UI bits =========================
-
-class _ControlCard extends StatelessWidget {
-  final String title;
-  final Widget child;
-  const _ControlCard({required this.title, required this.child});
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      color: const Color(0xFF1E2430),
-      margin: const EdgeInsets.only(top: 12),
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: SizedBox(
-          width: 400,
-          height: 308,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                title,
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Expanded(child: child),
-            ],
-          ),
-        ),
-      ),
     );
   }
 }

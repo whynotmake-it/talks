@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:gaussian_splatting/slides/gs_demo_slide.dart';
 import 'package:gaussian_splatting/slides/history_slide.dart';
 import 'package:gaussian_splatting/slides/novel_view_syn_slide.dart';
+import 'package:gaussian_splatting/slides/radiance_field_slide.dart';
 import 'package:heroine/heroine.dart';
 import 'package:wnma_talk/wnma_talk.dart';
 
@@ -32,7 +33,12 @@ class GaussianSplattingTalk extends StatelessWidget {
               presenterToolbarVisible: false,
             ),
           ),
-          slides: const [HistorySlide(),NovelViewSynSlide(),GaussianSplatterDemoSlide(),],
+          slides: const [
+            RadianceFieldSlide(),
+            NovelViewSynSlide(),
+            HistorySlide(),
+            GaussianSplatterDemoSlide(),
+          ],
           themeMode: ThemeMode.light,
         ),
       ),
