@@ -4,12 +4,12 @@ import 'package:wnma_talk/wnma_talk.dart';
 
 class ClassicRenderingSlide extends FlutterDeckSlideWidget {
   const ClassicRenderingSlide({super.key})
-      : super(
-          configuration: const FlutterDeckSlideConfiguration(
-            route: '/classic-rendering',
-            steps: 4,
-          ),
-        );
+    : super(
+        configuration: const FlutterDeckSlideConfiguration(
+          route: '/classic-rendering',
+          steps: 4,
+        ),
+      );
 
   @override
   Widget build(BuildContext context) {
@@ -74,9 +74,6 @@ class ClassicRenderingSlide extends FlutterDeckSlideWidget {
                       asset: 'assets/top-left-cam.png',
                       position: const Offset(-500, -320),
                     ),
-
-             
-                    
                   ],
                 );
               },
@@ -95,7 +92,6 @@ class _AnimatedRenderingElement extends StatelessWidget {
     this.asset,
     this.icon,
     required this.position,
-
   });
 
   final bool visible;
@@ -104,11 +100,11 @@ class _AnimatedRenderingElement extends StatelessWidget {
   final IconData? icon;
   final Offset position;
 
-
   @override
   Widget build(BuildContext context) {
     final motion = CupertinoMotion.bouncy(
-      duration: const Duration(milliseconds: 600) +
+      duration:
+          const Duration(milliseconds: 600) +
           Duration(milliseconds: 100 * stagger),
     );
 
@@ -133,96 +129,20 @@ class _AnimatedRenderingElement extends StatelessWidget {
           ),
         ),
         child: asset != null
-            ? (asset!.contains('cam') 
-                ? Image.asset(
-                    asset!,
-                    scale: 1.6,
-                  )
-                : Image.asset(
-                    asset!,
-                    width: 300,
-                  ))
+            ? (asset!.contains('cam')
+                  ? Image.asset(
+                      asset!,
+                      scale: 1.6,
+                    )
+                  : Image.asset(
+                      asset!,
+                      width: 300,
+                    ))
             : Icon(
                 icon!,
                 size: 150,
                 color: Colors.amber,
               ),
-      ),
-    );
-  }
-}
-
-class _FadeOutElement extends StatelessWidget {
-  const _FadeOutElement({
-    required this.asset,
-    required this.position,
-  });
-
-  final String asset;
-  final Offset position;
-
-  @override
-  Widget build(BuildContext context) {
-    final motion = CupertinoMotion.smooth(
-      duration: const Duration(milliseconds: 500),
-    );
-
-    return Center(
-      child: Transform.translate(
-        offset: position,
-        child: SingleMotionBuilder(
-          value: 0.0,
-          motion: motion,
-          child: asset.contains('cam') 
-              ? Image.asset(
-                  asset,
-                  scale: 1.6,
-                )
-              : Image.asset(
-                  asset,
-                  width: 300,
-                ),
-          builder: (context, value, child) => Opacity(
-            opacity: value.clamp(0, 1),
-            child: child,
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _FadeOutIcon extends StatelessWidget {
-  const _FadeOutIcon({
-    required this.icon,
-    required this.position,
-  });
-
-  final IconData icon;
-  final Offset position;
-
-  @override
-  Widget build(BuildContext context) {
-    final motion = CupertinoMotion.smooth(
-      duration: const Duration(milliseconds: 500),
-    );
-
-    return Center(
-      child: Transform.translate(
-        offset: position,
-        child: SingleMotionBuilder(
-          value: 0.0,
-          motion: motion,
-          child: Icon(
-            icon,
-            size: 150,
-            color: Colors.amber,
-          ),
-          builder: (context, value, child) => Opacity(
-            opacity: value.clamp(0, 1),
-            child: child,
-          ),
-        ),
       ),
     );
   }

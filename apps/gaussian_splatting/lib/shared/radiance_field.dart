@@ -57,11 +57,11 @@ class _RadianceFieldScreenState extends State<RadianceFieldScreen> {
   late ArcballControls orbit;
 
   // ---- Scene params
-  static const int nx = 32;
-  static const int ny = 32;
-  static const int nz = 32;
-  static const int camW = 32;
-  static const int camH = 32; // fake sensor rays
+  static const int nx = 24;
+  static const int ny = 24;
+  static const int nz = 24;
+  static const int camW = 24;
+  static const int camH = 24; // fake sensor rays
   static const double voxelSize = 1;
   static const double fieldHalf = (nx * voxelSize) / 2.0; // half-extent
   static const double rayStep = 1; // march step in world units
@@ -127,7 +127,11 @@ class _RadianceFieldScreenState extends State<RadianceFieldScreen> {
     allRaySamples = List.generate(camW * camH, (_) => <SampleRecord>[]);
 
     threeJs = three.ThreeJS(
-      onSetupComplete: () => setState(() {}),
+      onSetupComplete: () {
+        if (mounted) {
+          setState(() {});
+        }
+      },
       setup: _setup,
       // Render settings: enable transparency multisample
       settings: three.Settings(
@@ -176,11 +180,31 @@ class _RadianceFieldScreenState extends State<RadianceFieldScreen> {
     return Scaffold(
       body: Stack(
         children: [
-          Positioned.fill(child: threeJs.build()),
+          Positioned.fill(
+            child: Builder(
+              builder: (context) {
+                try {
+                  return threeJs.build();
+                } catch (e) {
+                  // Handle EGL errors gracefully
+                  return Container(
+                    color: Colors.black,
+                    child: const Center(
+                      child: Text(
+                        'Rendering Error\nReloading...',
+                        style: TextStyle(color: Colors.white),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  );
+                }
+              },
+            ),
+          ),
           // Position UI to leave center area free for orbit controls
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Positioned.fill(
+          Positioned.fill(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
               child: ui,
             ),
           ),
@@ -750,7 +774,6 @@ void _buildVoxelInstancing() {
       "sizeAttenuation": false, // Keep consistent size regardless of distance
       "size": 8.0, // Smaller point size for many points
       "transparent": true, // Enable transparency
-      "vertexAlphas": true, // Use per-vertex alpha values
     });
 
     samplePoints = three.Points(samplePointsGeom, samplePointsMat);

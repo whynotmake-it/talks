@@ -1,8 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:gaussian_splatting/slides/classic_rendering_slide.dart';
+import 'package:gaussian_splatting/slides/gaussian_splatting_overview_slide.dart';
+import 'package:gaussian_splatting/slides/gaussian_splatting_slide.dart';
 import 'package:gaussian_splatting/slides/gs_demo_slide.dart';
-import 'package:gaussian_splatting/slides/history_slide.dart';
+import 'package:gaussian_splatting/slides/learning_challenge_slide.dart';
+import 'package:gaussian_splatting/slides/learning_query_slide.dart';
+import 'package:gaussian_splatting/slides/nerf_slide.dart';
 import 'package:gaussian_splatting/slides/novel_view_syn_slide.dart';
 import 'package:gaussian_splatting/slides/radiance_field_slide.dart';
+import 'package:gaussian_splatting/slides/title_slide.dart';
 import 'package:heroine/heroine.dart';
 import 'package:wnma_talk/wnma_talk.dart';
 
@@ -34,9 +40,15 @@ class GaussianSplattingTalk extends StatelessWidget {
             ),
           ),
           slides: const [
-            RadianceFieldSlide(),
+            TitleSlide(),
+            ClassicRenderingSlide(),
             NovelViewSynSlide(),
-            HistorySlide(),
+            LearningQuerySlide(),
+            LearningChallengeSlide(),
+            RadianceFieldSlide(),
+            NerfSlide(),
+            GaussianSplattingSlide(),
+            GaussianSplattingOverviewSlide(),
             GaussianSplatterDemoSlide(),
           ],
           themeMode: ThemeMode.light,
