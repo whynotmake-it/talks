@@ -1,4 +1,3 @@
-import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_gaussian_splatter/widgets/gaussian_splatter_widget.dart';

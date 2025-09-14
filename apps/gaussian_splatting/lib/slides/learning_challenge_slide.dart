@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:rivership/rivership.dart';
+import 'package:gaussian_splatting/shared/animated_element.dart';
 import 'package:wnma_talk/wnma_talk.dart';
 
 class LearningChallengeSlide extends FlutterDeckSlideWidget {
@@ -74,7 +74,7 @@ class _DifferentiableRenderingSection extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           // Title
-          _AnimatedElement(
+          AnimatedElement(
             visible: true,
             stagger: 0,
             child: DefaultTextStyle.merge(
@@ -92,7 +92,7 @@ class _DifferentiableRenderingSection extends StatelessWidget {
           const SizedBox(height: 60),
 
           // Bullet points
-          _AnimatedElement(
+          AnimatedElement(
             visible: true,
             stagger: 1,
             child: Column(
@@ -152,7 +152,7 @@ class _LearningImageSection extends StatelessWidget {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        _AnimatedElement(
+        AnimatedElement(
           visible: true,
           stagger: 2,
           child: Image.asset(
@@ -222,10 +222,10 @@ class _BackpropagationOverlay extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Positioned.fill(
-      child: Container(
+      child: ColoredBox(
         color: Colors.black.withValues(alpha: 0.9),
         child: Center(
-          child: _AnimatedElement(
+          child: AnimatedElement(
             visible: true,
             stagger: 0,
             child: Image.asset(
@@ -239,45 +239,3 @@ class _BackpropagationOverlay extends StatelessWidget {
   }
 }
 
-class _AnimatedElement extends StatelessWidget {
-  const _AnimatedElement({
-    required this.visible,
-    required this.stagger,
-    required this.child,
-  });
-
-  final bool visible;
-  final int stagger;
-  final Widget child;
-
-  @override
-  Widget build(BuildContext context) {
-    final motion = CupertinoMotion.bouncy(
-      duration:
-          const Duration(milliseconds: 600) +
-          Duration(milliseconds: 100 * stagger),
-    );
-
-    return MotionBuilder(
-      value: visible ? Offset.zero : const Offset(0, 50),
-      motion: motion,
-      converter: OffsetMotionConverter(),
-      builder: (context, value, child) => Transform.translate(
-        offset: value,
-        child: SingleMotionBuilder(
-          value: visible ? 1.0 : 0.0,
-          motion: motion,
-          child: child,
-          builder: (context, value, child) => Transform.scale(
-            scale: 0.8 + (0.2 * value),
-            child: Opacity(
-              opacity: value.clamp(0, 1),
-              child: child,
-            ),
-          ),
-        ),
-      ),
-      child: child,
-    );
-  }
-}

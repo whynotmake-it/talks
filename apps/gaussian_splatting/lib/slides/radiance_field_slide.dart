@@ -39,7 +39,6 @@ class RadianceFieldSlide extends FlutterDeckSlideWidget {
               showRaySamples: stepNumber > 2, // OFF steps 0-3, ON step 4+
               showUI: false,
               yaw: yaw,
-              pitch: 20 * math.pi / 180.0, // Default pitch
               camRadius: 20,
               showAllRays: stepNumber > 1,
               showInstancedVoxels: stepNumber <= 3,

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:rivership/rivership.dart';
+import 'package:gaussian_splatting/shared/animated_element.dart';
 import 'package:wnma_talk/wnma_talk.dart';
 
 class GaussianSplattingOverviewSlide extends FlutterDeckSlideWidget {
@@ -7,7 +7,6 @@ class GaussianSplattingOverviewSlide extends FlutterDeckSlideWidget {
       : super(
           configuration: const FlutterDeckSlideConfiguration(
             route: '/gaussian-splatting-overview',
-            steps: 1,
           ),
         );
 
@@ -21,8 +20,9 @@ class GaussianSplattingOverviewSlide extends FlutterDeckSlideWidget {
         builder: (context, stepNumber) => ColoredBox(
           color: colorScheme.surface,
           child: Center(
-            child: _AnimatedElement(
+            child: AnimatedElement(
               visible: stepNumber >= 1,
+              stagger: 0,
               child: Image.asset(
                 'assets/gs-overview.png',
                 fit: BoxFit.contain,
@@ -35,41 +35,3 @@ class GaussianSplattingOverviewSlide extends FlutterDeckSlideWidget {
   }
 }
 
-class _AnimatedElement extends StatelessWidget {
-  const _AnimatedElement({
-    required this.visible,
-    required this.child,
-  });
-
-  final bool visible;
-  final Widget child;
-
-  @override
-  Widget build(BuildContext context) {
-    final motion = CupertinoMotion.bouncy(
-      duration: const Duration(milliseconds: 600),
-    );
-
-    return MotionBuilder(
-      value: visible ? Offset.zero : const Offset(0, 50),
-      motion: motion,
-      converter: OffsetMotionConverter(),
-      builder: (context, value, child) => Transform.translate(
-        offset: value,
-        child: SingleMotionBuilder(
-          value: visible ? 1.0 : 0.0,
-          motion: motion,
-          child: child,
-          builder: (context, value, child) => Transform.scale(
-            scale: 0.8 + (0.2 * value),
-            child: Opacity(
-              opacity: value.clamp(0, 1),
-              child: child,
-            ),
-          ),
-        ),
-      ),
-      child: child,
-    );
-  }
-}

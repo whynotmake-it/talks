@@ -7,7 +7,6 @@ class NerfLimitsSlide extends FlutterDeckSlideWidget {
     : super(
         configuration: const FlutterDeckSlideConfiguration(
           route: '/nerf-limits',
-          steps: 1,
         ),
       );
 

@@ -27,6 +27,7 @@ dependencies:
   wnma_talk:
     path: ../../packages/wnma_talk
 
+  flutter_deck: any
 dependency_overrides:
   motor:
     git:

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:rivership/rivership.dart';
+import 'package:gaussian_splatting/shared/animated_element.dart';
 import 'package:wnma_talk/wnma_talk.dart';
 
 class LearningQuerySlide extends FlutterDeckSlideWidget {
@@ -81,7 +81,7 @@ class _LearningSection extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         // Title
-        _AnimatedElement(
+        AnimatedElement(
           visible: true,
           stagger: 0,
           child: DefaultTextStyle.merge(
@@ -99,7 +99,7 @@ class _LearningSection extends StatelessWidget {
         const SizedBox(height: 40),
 
         // Learning image
-        _AnimatedElement(
+        AnimatedElement(
           visible: true,
           stagger: 1,
           child: Image.asset(
@@ -134,7 +134,7 @@ class _QuerySection extends StatelessWidget {
         children: [
           // Title
           if (stepNumber > 1)
-            _AnimatedElement(
+            AnimatedElement(
               visible: stepNumber > 1,
               stagger: 0,
               child: DefaultTextStyle.merge(
@@ -153,7 +153,7 @@ class _QuerySection extends StatelessWidget {
 
           // Query image
           if (stepNumber > 1)
-            _AnimatedElement(
+            AnimatedElement(
               visible: stepNumber > 1,
               stagger: 1,
               child: Image.asset(
@@ -167,45 +167,3 @@ class _QuerySection extends StatelessWidget {
   }
 }
 
-class _AnimatedElement extends StatelessWidget {
-  const _AnimatedElement({
-    required this.visible,
-    required this.stagger,
-    required this.child,
-  });
-
-  final bool visible;
-  final int stagger;
-  final Widget child;
-
-  @override
-  Widget build(BuildContext context) {
-    final motion = CupertinoMotion.bouncy(
-      duration:
-          const Duration(milliseconds: 600) +
-          Duration(milliseconds: 100 * stagger),
-    );
-
-    return MotionBuilder(
-      value: visible ? Offset.zero : const Offset(0, 50),
-      motion: motion,
-      converter: OffsetMotionConverter(),
-      builder: (context, value, child) => Transform.translate(
-        offset: value,
-        child: SingleMotionBuilder(
-          value: visible ? 1.0 : 0.0,
-          motion: motion,
-          child: child,
-          builder: (context, value, child) => Transform.scale(
-            scale: 0.8 + (0.2 * value),
-            child: Opacity(
-              opacity: value.clamp(0, 1),
-              child: child,
-            ),
-          ),
-        ),
-      ),
-      child: child,
-    );
-  }
-}

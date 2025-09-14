@@ -89,9 +89,8 @@ class _AnimatedRenderingElement extends StatelessWidget {
   const _AnimatedRenderingElement({
     required this.visible,
     required this.stagger,
-    this.asset,
+    required this.position, this.asset,
     this.icon,
-    required this.position,
   });
 
   final bool visible;
@@ -139,7 +138,7 @@ class _AnimatedRenderingElement extends StatelessWidget {
                       width: 300,
                     ))
             : Icon(
-                icon!,
+                icon,
                 size: 150,
                 color: Colors.amber,
               ),

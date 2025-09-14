@@ -104,7 +104,7 @@ class _RadianceFieldScreenState extends State<RadianceFieldScreen> {
   // Selected pixel details
   int selectedU = 8, selectedV = 8;
   List<SampleRecord> selectedRaySamples = [];
-  
+
   // All ray samples (2D array: [pixel][sample])
   List<List<SampleRecord>> allRaySamples = [];
 
@@ -122,7 +122,7 @@ class _RadianceFieldScreenState extends State<RadianceFieldScreen> {
     colorG = List<double>.filled(nx * ny * nz, 0);
     colorB = List<double>.filled(nx * ny * nz, 0);
     _populateField();
-    
+
     // Initialize allRaySamples array
     allRaySamples = List.generate(camW * camH, (_) => <SampleRecord>[]);
 
@@ -187,7 +187,7 @@ class _RadianceFieldScreenState extends State<RadianceFieldScreen> {
                   return threeJs.build();
                 } catch (e) {
                   // Handle EGL errors gracefully
-                  return Container(
+                  return ColoredBox(
                     color: Colors.black,
                     child: const Center(
                       child: Text(
@@ -313,7 +313,7 @@ class _RadianceFieldScreenState extends State<RadianceFieldScreen> {
         collect: true,
       );
       selectedRaySamples = res.samples;
-      
+
       // Also store in allRaySamples
       final pixelIndex = selectedV * camW + selectedU;
       allRaySamples[pixelIndex] = res.samples;
@@ -328,11 +328,11 @@ class _RadianceFieldScreenState extends State<RadianceFieldScreen> {
       Blob(
         center: three.Vector3(-3.5, -1.5, -2),
         sigma: 1.1,
-        density: 2.0,
+        density: 2,
         color: const [1, 0, 0],
       ),
       Blob(
-        center: three.Vector3(3.5, 1.5, 2.0),
+        center: three.Vector3(3.5, 1.5, 2),
         sigma: 1.6,
         density: 1.8,
         color: const [0, 1, 0],
@@ -344,7 +344,9 @@ class _RadianceFieldScreenState extends State<RadianceFieldScreen> {
         for (var i = 0; i < nx; i++) {
           final world = _voxelCenterToWorld(i, j, k);
           var sig = 0.0;
-          double r = 0, g = 0, b = 0;
+          double r = 0;
+          double g = 0;
+          double b = 0;
 
           for (final blob in blobs) {
             final d2 = world.distanceToSquared(blob.center);
@@ -356,7 +358,7 @@ class _RadianceFieldScreenState extends State<RadianceFieldScreen> {
           }
 
           // Slanted "sheet"
-          final s = (world.x + world.y * 0.6 - 1.5);
+          final s = world.x + world.y * 0.6 - 1.5;
           final slab = math.exp(-(s * s) / (2 * 0.7 * 0.7));
           sig += 1.8 * slab;
           r += 0.85 * slab;
@@ -490,7 +492,7 @@ class _RadianceFieldScreenState extends State<RadianceFieldScreen> {
     for (var v = 0; v < camH; v++) {
       for (var u = 0; u < camW; u++) {
         final dir = _rayDirForPixel(u, v);
-        final RayBoxHit hit = _rayAABB(origin, dir, bboxMin, bboxMax);
+        final hit = _rayAABB(origin, dir, bboxMin, bboxMax);
         var c = Colors.black;
         if (hit.hit) {
           final res = _marchOneRay(
@@ -506,11 +508,11 @@ class _RadianceFieldScreenState extends State<RadianceFieldScreen> {
             (res.g.clamp(0.0, 1.0) * 255).toInt(),
             (res.b.clamp(0.0, 1.0) * 255).toInt(),
           );
-          
+
           // Store samples for all rays
           final pixelIndex = v * camW + u;
           allRaySamples[pixelIndex] = res.samples;
-          
+
           if (u == selectedU && v == selectedV) {
             selectedRaySamples = res.samples; // for the detail panel
           }
@@ -573,7 +575,7 @@ class _RadianceFieldScreenState extends State<RadianceFieldScreen> {
         );
       }
 
-      T *= (1.0 - alpha);
+      T *= 1.0 - alpha;
       t += rayStep;
     }
 
@@ -674,38 +676,35 @@ class _RadianceFieldScreenState extends State<RadianceFieldScreen> {
     threeJs.scene.add(fakeCamVisual);
   }
 
+  void _buildVoxelInstancing() {
+    final geom = three.BoxGeometry(
+      nx * voxelSize,
+      ny * voxelSize,
+      nz * voxelSize,
+    );
 
+    // Convert Flutter Color → 0xRRGGBB
+    final themeColor = _getThemeColor(
+      context,
+      lightColor: Colors.blue.shade600,
+      darkColor: Colors.blue.shade400,
+    );
+    final colorHex = themeColor & 0xFFFFFF;
 
-void _buildVoxelInstancing() {
-  final geom = three.BoxGeometry(
-    nx * voxelSize, ny * voxelSize, nz * voxelSize,
-  );
+    final mat = three.MeshBasicMaterial.fromMap({
+      "color": colorHex,
+      "wireframe": true, // draw edges only
+      "transparent": true,
+      "opacity": 0.7, // tweak to taste
+      "depthWrite": false, // avoids dark “stacking”
+    });
 
-  // Convert Flutter Color → 0xRRGGBB
-  final themeColor = _getThemeColor(
-    context,
-    lightColor: Colors.blue.shade600,
-    darkColor: Colors.blue.shade400,
-  );
-  final colorHex = (themeColor & 0xFFFFFF);
+    voxelsMesh = three.Mesh(geom, mat);
 
-  final mat = three.MeshBasicMaterial.fromMap({
-    "color": colorHex,
-    "wireframe": true,     // draw edges only
-    "transparent": true,
-    "opacity": 0.7,        // tweak to taste
-    "depthWrite": false,   // avoids dark “stacking”
-  });
-
-  voxelsMesh = three.Mesh(geom, mat);
-
-  voxelsMesh.position.setValues(0, 0, 0);
-  voxelsMesh.visible = widget.showInstancedVoxels;
-  threeJs.scene.add(voxelsMesh);
-}
-
-
-
+    voxelsMesh.position.setValues(0, 0, 0);
+    voxelsMesh.visible = widget.showInstancedVoxels;
+    threeJs.scene.add(voxelsMesh);
+  }
 
   void _buildRaysLines() {
     // We’ll draw line segments from the fake camera to the AABB exit point, one per pixel.
@@ -758,9 +757,12 @@ void _buildVoxelInstancing() {
 
     // Sample points (dots along all rays)
     final maxSamplePointsPerRay = 50; // Estimate max samples per ray
-    final maxTotalSamplePoints = camW * camH * maxSamplePointsPerRay; // Total for all rays
+    final maxTotalSamplePoints =
+        camW * camH * maxSamplePointsPerRay; // Total for all rays
     final samplePositions = three.Float32Array(maxTotalSamplePoints * 3);
-    final sampleColors = three.Float32Array(maxTotalSamplePoints * 4); // RGBA colors
+    final sampleColors = three.Float32Array(
+      maxTotalSamplePoints * 4,
+    ); // RGBA colors
 
     samplePointsGeom = three.BufferGeometry();
     final samplePosAttr = three.Float32BufferAttribute(samplePositions, 3);
@@ -794,7 +796,7 @@ void _buildVoxelInstancing() {
     final positions = posAttr.array;
 
     final o = fakeCam.position.clone();
-    const double rayLength = 100.0; // Extend all rays far beyond viewport
+    const rayLength = 100; // Extend all rays far beyond viewport
 
     var ptr = 0;
     for (var v = 0; v < camH; v++) {
@@ -825,7 +827,7 @@ void _buildVoxelInstancing() {
 
     final origin = fakeCam.position.clone();
     final dir = _rayDirForPixel(selectedU, selectedV);
-    const double rayLength = 100.0; // Same infinite length as regular rays
+    const rayLength = 100; // Same infinite length as regular rays
 
     // Selected ray is also "infinite" - extends far in its direction
     final endPoint = origin.clone().add(dir.clone().scale(rayLength));
@@ -863,8 +865,10 @@ void _buildVoxelInstancing() {
     final colors = sampleColorAttr.array;
 
     // Check if we have any samples at all
-    final hasAnySamples = allRaySamples.any((raySamples) => raySamples.isNotEmpty);
-    
+    final hasAnySamples = allRaySamples.any(
+      (raySamples) => raySamples.isNotEmpty,
+    );
+
     if (!hasAnySamples) {
       samplePoints.visible = false;
       return;
@@ -873,14 +877,18 @@ void _buildVoxelInstancing() {
     samplePoints.visible = true;
 
     var pointIndex = 0;
-    
+
     // Iterate through all rays and their samples
     for (var rayIndex = 0; rayIndex < allRaySamples.length; rayIndex++) {
       final raySamples = allRaySamples[rayIndex];
-      
-      for (var sampleIndex = 0; sampleIndex < raySamples.length; sampleIndex++) {
+
+      for (
+        var sampleIndex = 0;
+        sampleIndex < raySamples.length;
+        sampleIndex++
+      ) {
         if (pointIndex >= positions.length ~/ 3) break; // Safety check
-        
+
         final sample = raySamples[sampleIndex];
         final pos = sample.p;
 
@@ -891,12 +899,13 @@ void _buildVoxelInstancing() {
 
         // Color with proper alpha transparency
         final color = sample.color;
-        final alpha = sample.alpha * 0.6; // Reduce alpha since we have many more points
+        final alpha =
+            sample.alpha * 0.6; // Reduce alpha since we have many more points
         colors[pointIndex * 4 + 0] = color.red / 255.0; // R
         colors[pointIndex * 4 + 1] = color.green / 255.0; // G
         colors[pointIndex * 4 + 2] = color.blue / 255.0; // B
         colors[pointIndex * 4 + 3] = alpha; // A
-        
+
         pointIndex++;
       }
     }
@@ -941,8 +950,8 @@ void _buildVoxelInstancing() {
     final y = widget.camRadius * math.sin(widget.pitch);
     final z = widget.camRadius * math.cos(widget.pitch) * math.sin(widget.yaw);
     fakeCam.position.setValues(x, y, z);
-    fakeCam.lookAt(three.Vector3(0, 0, 0));
-    fakeCam.updateMatrixWorld(true);
+    fakeCam..lookAt(three.Vector3(0, 0, 0))
+    ..updateMatrixWorld(true);
 
     // Update visual representation
     if (fakeCamVisual != null) {

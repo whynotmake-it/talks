@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:rivership/rivership.dart';
+import 'package:gaussian_splatting/shared/animated_element.dart';
+import 'package:gaussian_splatting/shared/citation_container.dart';
 import 'package:wnma_talk/wnma_talk.dart';
 
 class GaussianSplattingSlide extends FlutterDeckSlideWidget {
@@ -25,7 +26,7 @@ class GaussianSplattingSlide extends FlutterDeckSlideWidget {
             child: Column(
               children: [
                 // Title
-                _AnimatedElement(
+                AnimatedElement(
                   visible: stepNumber >= 1,
                   stagger: 0,
                   child: DefaultTextStyle.merge(
@@ -65,28 +66,12 @@ class GaussianSplattingSlide extends FlutterDeckSlideWidget {
                 const SizedBox(height: 16),
 
                 // Citation
-                _AnimatedElement(
+                AnimatedElement(
                   visible: stepNumber >= 1,
                   stagger: 4,
-                  child: Container(
-                    padding: const EdgeInsets.all(20),
-                    decoration: BoxDecoration(
-                      color: colorScheme.surfaceContainerHighest.withValues(
-                        alpha: 0.3,
-                      ),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: DefaultTextStyle.merge(
-                      style: theme.textTheme.bodyMedium.copyWith(
-                        color: colorScheme.onSurfaceVariant,
-                        fontSize: 16,
-                        fontStyle: FontStyle.italic,
-                      ),
-                      child: const Text(
-                        'Kerbl, B., Kopanas, G., Leimkühler, T., & Drettakis, G. (2023). 3D Gaussian splatting for real-time radiance field rendering. ACM Trans. Graph., 42(4), 139-1.',
-                        textAlign: TextAlign.center,
-                      ),
-                    ),
+                  child: const CitationContainer(
+                    citation: 'Kerbl, B., Kopanas, G., Leimkühler, T., & Drettakis, G. (2023). 3D Gaussian splatting for real-time radiance field rendering. ACM Trans. Graph., 42(4), 139-1.',
+                    fontSize: 16,
                   ),
                 ),
               ],
@@ -116,7 +101,7 @@ class _FirstRow extends StatelessWidget {
       children: [
         // Splat banana (step 1)
         Expanded(
-          child: _AnimatedElement(
+          child: AnimatedElement(
             visible: stepNumber >= 1,
             stagger: 1,
             child: Column(
@@ -134,7 +119,7 @@ class _FirstRow extends StatelessWidget {
 
         // Arrow and rasterizer label (step 3)
         Expanded(
-          child: _AnimatedElement(
+          child: AnimatedElement(
             visible: stepNumber >= 3,
             stagger: 2,
             child: Column(
@@ -178,7 +163,7 @@ class _FirstRow extends StatelessWidget {
 
         // Final banana (step 3)
         Expanded(
-          child: _AnimatedElement(
+          child: AnimatedElement(
             visible: stepNumber >= 3,
             stagger: 3,
             child: Transform.scale(
@@ -213,7 +198,7 @@ class _SecondRow extends StatelessWidget {
         // Ellipsoid image (step 2)
         Expanded(
           flex: 2,
-          child: _AnimatedElement(
+          child: AnimatedElement(
             visible: stepNumber >= 2,
             stagger: 1,
             child: Column(
@@ -232,13 +217,13 @@ class _SecondRow extends StatelessWidget {
         // Bracket and properties (step 2)
         Expanded(
           flex: 3,
-          child: _AnimatedElement(
+          child: AnimatedElement(
             visible: stepNumber >= 2,
             stagger: 2,
             child: Row(
               children: [
                 // Bracket
-                Container(
+                SizedBox(
                   width: 40,
                   height: 200,
                   child: CustomPaint(
@@ -357,13 +342,13 @@ class _BracketPainter extends CustomPainter {
       ..strokeWidth = 3
       ..style = PaintingStyle.stroke;
 
-    final path = Path();
+    final path = Path()
 
     // Left bracket shape
-    path.moveTo(size.width * 0.8, 0);
-    path.lineTo(0, 0);
-    path.lineTo(0, size.height);
-    path.lineTo(size.width * 0.8, size.height);
+    ..moveTo(size.width * 0.8, 0)
+    ..lineTo(0, 0)
+    ..lineTo(0, size.height)
+    ..lineTo(size.width * 0.8, size.height);
 
     canvas.drawPath(path, paint);
   }
@@ -372,45 +357,4 @@ class _BracketPainter extends CustomPainter {
   bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
 
-class _AnimatedElement extends StatelessWidget {
-  const _AnimatedElement({
-    required this.visible,
-    required this.stagger,
-    required this.child,
-  });
 
-  final bool visible;
-  final int stagger;
-  final Widget child;
-
-  @override
-  Widget build(BuildContext context) {
-    final motion = CupertinoMotion.bouncy(
-      duration:
-          const Duration(milliseconds: 600) +
-          Duration(milliseconds: 100 * stagger),
-    );
-
-    return MotionBuilder(
-      value: visible ? Offset.zero : const Offset(0, 50),
-      motion: motion,
-      converter: OffsetMotionConverter(),
-      builder: (context, value, child) => Transform.translate(
-        offset: value,
-        child: SingleMotionBuilder(
-          value: visible ? 1.0 : 0.0,
-          motion: motion,
-          child: child,
-          builder: (context, value, child) => Transform.scale(
-            scale: 0.8 + (0.2 * value),
-            child: Opacity(
-              opacity: value.clamp(0, 1),
-              child: child,
-            ),
-          ),
-        ),
-      ),
-      child: child,
-    );
-  }
-}

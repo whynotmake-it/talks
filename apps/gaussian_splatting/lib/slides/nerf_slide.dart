@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:rivership/rivership.dart';
+import 'package:gaussian_splatting/shared/animated_element.dart';
+import 'package:gaussian_splatting/shared/citation_container.dart';
 import 'package:wnma_talk/wnma_talk.dart';
 
 class NerfSlide extends FlutterDeckSlideWidget {
@@ -7,7 +8,6 @@ class NerfSlide extends FlutterDeckSlideWidget {
     : super(
         configuration: const FlutterDeckSlideConfiguration(
           route: '/nerf',
-          steps: 1,
         ),
       );
 
@@ -25,7 +25,7 @@ class NerfSlide extends FlutterDeckSlideWidget {
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
               // Title
-              _AnimatedElement(
+              AnimatedElement(
                 visible: true,
                 stagger: 0,
                 child: DefaultTextStyle.merge(
@@ -43,7 +43,7 @@ class NerfSlide extends FlutterDeckSlideWidget {
               const SizedBox(height: 32),
 
               // Images in column
-              _AnimatedElement(
+              AnimatedElement(
                 visible: true,
                 stagger: 1,
                 child: Column(
@@ -88,28 +88,12 @@ class NerfSlide extends FlutterDeckSlideWidget {
               const SizedBox(height: 60),
 
               // Citation
-              _AnimatedElement(
+              AnimatedElement(
                 visible: true,
                 stagger: 2,
-                child: Container(
-                  padding: const EdgeInsets.all(20),
-                  decoration: BoxDecoration(
-                    color: colorScheme.surfaceContainerHighest.withValues(
-                      alpha: 0.3,
-                    ),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: DefaultTextStyle.merge(
-                    style: theme.textTheme.bodyMedium.copyWith(
-                      color: colorScheme.onSurfaceVariant,
-                      fontSize: 18,
-                      fontStyle: FontStyle.italic,
-                    ),
-                    child: const Text(
-                      'Mildenhall, B., Srinivasan, P. P., Tancik, M., Barron, J. T., Ramamoorthi, R., & Ng, R. (2021). Nerf: Representing scenes as neural radiance fields for view synthesis. Communications of the ACM, 65(1), 99-106.',
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
+                child: const CitationContainer(
+                  citation: 'Mildenhall, B., Srinivasan, P. P., Tancik, M., Barron, J. T., Ramamoorthi, R., & Ng, R. (2021). Nerf: Representing scenes as neural radiance fields for view synthesis. Communications of the ACM, 65(1), 99-106.',
+                  fontSize: 18,
                 ),
               ),
             ],
@@ -120,45 +104,4 @@ class NerfSlide extends FlutterDeckSlideWidget {
   }
 }
 
-class _AnimatedElement extends StatelessWidget {
-  const _AnimatedElement({
-    required this.visible,
-    required this.stagger,
-    required this.child,
-  });
 
-  final bool visible;
-  final int stagger;
-  final Widget child;
-
-  @override
-  Widget build(BuildContext context) {
-    final motion = CupertinoMotion.bouncy(
-      duration:
-          const Duration(milliseconds: 600) +
-          Duration(milliseconds: 100 * stagger),
-    );
-
-    return MotionBuilder(
-      value: visible ? Offset.zero : const Offset(0, 50),
-      motion: motion,
-      converter: OffsetMotionConverter(),
-      builder: (context, value, child) => Transform.translate(
-        offset: value,
-        child: SingleMotionBuilder(
-          value: visible ? 1.0 : 0.0,
-          motion: motion,
-          child: child,
-          builder: (context, value, child) => Transform.scale(
-            scale: 0.8 + (0.2 * value),
-            child: Opacity(
-              opacity: value.clamp(0, 1),
-              child: child,
-            ),
-          ),
-        ),
-      ),
-      child: child,
-    );
-  }
-}
