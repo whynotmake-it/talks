@@ -3,11 +3,11 @@ import 'package:rivership/rivership.dart';
 import 'package:wnma_talk/content_slide_template.dart';
 import 'package:wnma_talk/wnma_talk.dart';
 
-class RenderingSlide1 extends FlutterDeckSlideWidget {
-  const RenderingSlide1({super.key})
+class RenderingSlide3 extends FlutterDeckSlideWidget {
+  const RenderingSlide3({super.key})
     : super(
         configuration: const FlutterDeckSlideConfiguration(
-          route: '/rendering-1',
+          route: '/rendering-3',
           // steps: 1,
         ),
       );
@@ -24,24 +24,23 @@ class RenderingSlide1 extends FlutterDeckSlideWidget {
       mainContent: FlutterDeckCodeHighlight(
         textStyle: theme.textTheme.bodyMedium,
         code: '''
+# Main thread
+sorter.init(onComplete: (idx) => uploadOrderTexture(idx))
+sorter.run(viewProj, splatBuffer, splatCount)
 
-  // Returns: 
-  // [0..11 pos]
-  // [12..23 scale]
-  // [24..27 color]
-  // [28..31 quat]
-  // [32..79 SH]
-  // [80..127 reserved]
-
-  Uint8List processPlyBuffer(Uint8List inputBuffer) {
-  ...
-  }
+# Sort isolate
+onMessage(viewProj, buffer, n):
+  pos = reinterpretF32(buffer)          # x,y,z per splat
+  idx = counting/radix_sort(d,          # run bucket sort
+        buckets=65536, order=back_to_front,
+        quantize=true, reuse_arrays=true)
+  sendToMain(idx)
   ''',
-        fileName: 'file_processor.dart',
+        fileName: 'depth_sorter.dart',
       ),
 
       secondaryContent: Image.asset(
-        'assets/binary_splats.png',
+        'assets/radix_sort.png',
         fit: BoxFit.fitWidth,
       ),
     );

@@ -3,11 +3,11 @@ import 'package:rivership/rivership.dart';
 import 'package:wnma_talk/content_slide_template.dart';
 import 'package:wnma_talk/wnma_talk.dart';
 
-class RenderingSlide1 extends FlutterDeckSlideWidget {
-  const RenderingSlide1({super.key})
+class RenderingSlide2 extends FlutterDeckSlideWidget {
+  const RenderingSlide2({super.key})
     : super(
         configuration: const FlutterDeckSlideConfiguration(
-          route: '/rendering-1',
+          route: '/rendering-2',
           // steps: 1,
         ),
       );
@@ -24,24 +24,23 @@ class RenderingSlide1 extends FlutterDeckSlideWidget {
       mainContent: FlutterDeckCodeHighlight(
         textStyle: theme.textTheme.bodyMedium,
         code: '''
+// --- P0: pos.xyz + packed quat ---
+writeTexel(0, px, py, pz, quatPackedF32);
 
-  // Returns: 
-  // [0..11 pos]
-  // [12..23 scale]
-  // [24..27 color]
-  // [28..31 quat]
-  // [32..79 SH]
-  // [80..127 reserved]
+// --- P1: scale.xyz + packed color ---
+writeTexel(1, sx, sy, sz, colorPackedF32);
 
-  Uint8List processPlyBuffer(Uint8List inputBuffer) {
-  ...
-  }
+// --- P2..P4: 12 SH floats (R,G,B × 4 coeffs) ---
+writeTexel(2, sh[0], sh[1], sh[2], sh[3]);
+writeTexel(3, sh[4], sh[5], sh[6], sh[7]);
+writeTexel(4, sh[8], sh[9], sh[10], sh[11]);
+
   ''',
-        fileName: 'file_processor.dart',
+        fileName: 'splat_source.dart',
       ),
 
       secondaryContent: Image.asset(
-        'assets/binary_splats.png',
+        'assets/splat_texture.png',
         fit: BoxFit.fitWidth,
       ),
     );

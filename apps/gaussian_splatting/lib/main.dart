@@ -10,6 +10,11 @@ import 'package:gaussian_splatting/slides/nerf_slide.dart';
 import 'package:gaussian_splatting/slides/novel_view_syn_slide.dart';
 import 'package:gaussian_splatting/slides/radiance_field_slide.dart';
 import 'package:gaussian_splatting/slides/rendering_slide_1.dart';
+import 'package:gaussian_splatting/slides/rendering_slide_2.dart';
+import 'package:gaussian_splatting/slides/rendering_slide_3.dart';
+import 'package:gaussian_splatting/slides/rendering_slide_4.dart';
+import 'package:gaussian_splatting/slides/rendering_slide_5.dart';
+import 'package:gaussian_splatting/slides/rendering_slide_6.dart';
 import 'package:gaussian_splatting/slides/title_slide.dart';
 import 'package:heroine/heroine.dart';
 import 'package:wnma_talk/wnma_talk.dart';
@@ -28,6 +33,7 @@ class GaussianSplattingTalk extends StatelessWidget {
         width: 1920,
         height: 1080,
         child: FlutterDeckApp(
+          themeMode: ThemeMode.dark,
           lightTheme: buildTalkTheme(),
           darkTheme: buildTalkTheme(),
           navigatorObservers: [
@@ -53,9 +59,14 @@ class GaussianSplattingTalk extends StatelessWidget {
             GaussianSplattingOverviewSlide(),
             ImplementationSlide(),
             GaussianSplatterDemoSlide(),
-            RenderingSlide1()
+            RenderingSlide1(),
+            RenderingSlide2(),
+            RenderingSlide3(),
+            RenderingSlide4(),
+            RenderingSlide5(),
+            RenderingSlide6(),
           ],
-          themeMode: ThemeMode.light,
+
         ),
       ),
     );

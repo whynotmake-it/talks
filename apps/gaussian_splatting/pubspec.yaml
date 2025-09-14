@@ -26,8 +26,6 @@ dependencies:
   value_notifier_tools: ^0.1.2
   wnma_talk:
     path: ../../packages/wnma_talk
-
-  flutter_deck: any
 dependency_overrides:
   motor:
     git:
