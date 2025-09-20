@@ -1,7 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:heroine/heroine.dart';
+<<<<<<< HEAD
 import 'package:physical_ui/slides/1_surfaces/code_slides.dart';
 import 'package:physical_ui/slides/1_surfaces/surfaces_slides.dart';
+=======
+import 'package:physical_ui/slides/audio/audio_category_slide.dart';
+import 'package:physical_ui/slides/audio/sound_haptics_slide.dart';
+>>>>>>> 00e6219 (feat: sound stuff)
 import 'package:physical_ui/slides/dimensionality_slides.dart';
 import 'package:physical_ui/slides/glass_slide.dart';
 import 'package:physical_ui/slides/history/slides/command_line_slide.dart';
@@ -46,6 +51,9 @@ class PhysicalUiTalk extends StatelessWidget {
             ),
           ),
           slides: [
+            BigQuoteTemplate(title: Text("Part 2: Audio")),
+            AudioCategorySlide(),
+            SoundHapticsSlide(),
             TitleSlide(),
             GlassSlide(),
             HowDidWeGetHereSlide(),
