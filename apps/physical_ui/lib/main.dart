@@ -16,6 +16,7 @@ import 'package:physical_ui/slides/how_did_we_get_here_slide.dart';
 import 'package:physical_ui/slides/motion_slides.dart';
 import 'package:physical_ui/slides/motor_title_slide.dart';
 import 'package:physical_ui/slides/simulation_vs_curve_slides.dart';
+import 'package:physical_ui/slides/surfaces_slides.dart';
 import 'package:physical_ui/slides/title_slide.dart';
 import 'package:wnma_talk/big_quote_template.dart';
 import 'package:wnma_talk/wnma_talk.dart';
@@ -49,16 +50,17 @@ class PhysicalUiTalk extends StatelessWidget {
             ),
           ),
           slides: [
-            MaterialNotesFlatSlide(),
-            AquaStickiesSlide(),
             TitleSlide(),
             GlassSlide(),
             HowDidWeGetHereSlide(),
             CommandLineSlide(),
             GuiSystem1Slide(),
             AquaStickiesSlide(),
-            IphoneNotesPhysicsSlide(),
             MaterialNotesFlatSlide(),
+            IphoneNotesPhysicsSlide(),
+            BigQuoteTemplate(title: Text("Part 1: Surfaces")),
+            ...surfacesSlides,
+
             BigQuoteTemplate(title: Text("Part 2: Motion")),
             ...motionSlides,
             BigQuoteTemplate(title: Text("Well, it's settled then!")),

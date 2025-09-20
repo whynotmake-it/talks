@@ -276,12 +276,17 @@ class _DraggableState extends State<_Draggable>
 }
 
 const _standardAnimationPseudocode = '''
-final animation = CurvedAnimation(
-  parent: animationController,
-  curve: Curves.ease,
+// On drag end
+animationController.animateWith(
+  SpringSimulation(
+    springDescription,
+    1,
+    0,
+    relativeVelocity,
+  ),
 );
 
-final offset = animation.drive(
+final offset = animationController.drive(
   OffsetTween(
     begin: currentDragOffset,
     end: Offset.zero,
