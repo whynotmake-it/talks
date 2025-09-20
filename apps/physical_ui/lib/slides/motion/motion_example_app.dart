@@ -2,6 +2,8 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:physical_ui/graphs/value_recording_notifier.dart';
+import 'package:physical_ui/hooks/hooks.dart';
+import 'package:physical_ui/shared/event_notifier.dart';
 import 'package:rivership/rivership.dart';
 import 'package:stupid_simple_sheet/stupid_simple_sheet.dart';
 import 'package:wnma_talk/wnma_talk.dart';
@@ -45,6 +47,7 @@ class _Scaffold extends HookWidget {
   @override
   Widget build(BuildContext context) {
     final buttonEnabled = useState(true);
+    final earlyDisconnect = useDisposable(EventNotifier.new);
     return CupertinoPageScaffold(
       child: Center(
         child: AnimatedSizeSwitcher(
@@ -52,15 +55,13 @@ class _Scaffold extends HookWidget {
             key: ValueKey(buttonEnabled.value),
             onPressed: buttonEnabled.value
                 ? () {
-                    buttonEnabled.value = false;
+                    earlyDisconnect.notifyListeners();
                     Navigator.of(context).push(
                       SheetTransitionRoute(
                         motion: motion,
                         builder: (context) => _SheetContent(),
+                        earlyDisconnectFromRecorder: earlyDisconnect,
                         recorder: recorder,
-                        onDisposed: () {
-                          if (context.mounted) buttonEnabled.value = true;
-                        },
                       ),
                     );
                   }
@@ -94,11 +95,16 @@ class SheetTransitionRoute extends PopupRoute<void>
   SheetTransitionRoute({
     required this.motion,
     required this.builder,
+    required this.earlyDisconnectFromRecorder,
     this.recorder,
     this.onDisposed,
   });
 
   final ValueRecordingNotifier<double>? recorder;
+
+  /// When this notifies its listeners, this route will stop reporting to
+  /// [recorder].
+  final Listenable earlyDisconnectFromRecorder;
 
   @override
   final Motion motion;
@@ -116,10 +122,13 @@ class SheetTransitionRoute extends PopupRoute<void>
   @override
   String? get barrierLabel => null;
 
+  late bool _report = recorder != null;
+
   @override
   void install() {
     super.install();
     controller?.addListener(_recordAnimationValue);
+    earlyDisconnectFromRecorder.addListener(_disconnectFromRecorder);
   }
 
   @override
@@ -130,13 +139,22 @@ class SheetTransitionRoute extends PopupRoute<void>
 
   void _recordAnimationValue() {
     if (controller?.value case final v?) {
-      recorder?.record(v);
+      if (_report) {
+        recorder?.record(v);
+      }
     }
+  }
+
+  void _disconnectFromRecorder() {
+    if (!_report) return;
+    _report = false;
+    recorder?.removeListener(_recordAnimationValue);
   }
 
   @override
   void dispose() {
-    recorder?.removeListener(_recordAnimationValue);
+    _disconnectFromRecorder();
+    earlyDisconnectFromRecorder.removeListener(_disconnectFromRecorder);
     onDisposed?.call();
     super.dispose();
   }

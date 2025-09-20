@@ -7,75 +7,67 @@ import 'package:physical_ui/shared/reverse_curve_motion.dart';
 import 'package:physical_ui/slides/motion/motion_ball.dart';
 import 'package:physical_ui/slides/motion/motion_example_app.dart';
 import 'package:physical_ui/slides/motion/motion_graph.dart';
+import 'package:physical_ui/slides/motion/spring_code_visualizer.dart';
+import 'package:physical_ui/slides/motion/spring_visualizer.dart';
 import 'package:rivership/rivership.dart';
+import 'package:wnma_talk/code_highlight.dart';
 import 'package:wnma_talk/content_slide_template.dart';
 import 'package:wnma_talk/wnma_talk.dart';
 
 final motionSlides = [
   MotionSlideTemplate(
-    title: const Text('Why motion?'),
+    title: 'Why motion?',
     description: const Text(
       '''
 Transitions without motion feel jarring and unnatural.
 ''',
     ),
-    motion: CurvedMotion(
-      curve: Interval(0, 0.0001),
-      duration: 1.seconds,
-    ),
+    motion: CurvedMotion(.5.seconds, Interval(0, 0.0001)),
     filterIdentical: false,
   ),
   MotionSlideTemplate(
-    title: const Text('Linear Motion'),
+    title: 'Linear Motion',
     description: const Text(
       '''
 Motion gives elements context and meaning.
 ''',
     ),
-    motion: CurvedMotion(
-      duration: 0.5.seconds,
-    ),
+    motion: CurvedMotion(0.5.seconds),
   ),
   MotionSlideTemplate(
-    title: const Text('Curves and Easing'),
+    title: 'Curves and Easing',
     description: const Text(
       '''
 By using curves such as .ease, the animated element feels more physical 
 and responsive...
 ''',
     ),
-    motion: CurvedMotion(
-      duration: 0.8.seconds,
-      curve: Curves.ease,
-    ),
+    motion: CurvedMotion(0.8.seconds, Curves.ease),
   ),
   MotionSlideTemplate(
-    title: const Text('Curves and Easing'),
+    title: 'Curves and Easing',
     description: const Text(
       '''
 ...but they can feel weird when used to respond to user gestures.
 ''',
     ),
-    motion: CurvedMotion(
-      duration: 0.8.seconds,
-      curve: Curves.ease,
-    ),
+    motion: CurvedMotion(0.8.seconds, Curves.ease),
   ),
   MotionSlideTemplate(
-    title: const Text('Curves and Easing'),
+    title: 'Curves and Easing',
     description: const Text(
       '''
 Curves are also often used in reverse where they shouldn't be. 
 ''',
     ),
     motion: ReverseCurveMotion(
-      duration: 0.8.seconds,
-      curve: Curves.ease,
-      reverseCurve: Curves.ease.flipped,
+      0.8.seconds,
+      Curves.ease,
+      Curves.ease.flipped,
     ),
   ),
   MotionSlideTemplate(
-    title: const Text('Spring Simulations'),
+    title: 'Spring Simulations',
     description: const Text(
       '''
 Simulations use the last velocity of a gesture to create a more
@@ -84,6 +76,8 @@ natural movement.
     ),
     motion: CupertinoMotion.smooth(duration: 0.8.seconds),
   ),
+  SpringVisualisationSlide(),
+  CodeSlide(),
 ];
 
 class MotionSlideTemplate extends FlutterDeckSlideWidget {
@@ -95,12 +89,19 @@ class MotionSlideTemplate extends FlutterDeckSlideWidget {
     this.filterIdentical = true,
   }) : super(
          configuration: FlutterDeckSlideConfiguration(
-           route: '/motion-${title.hashCode}',
+           title: title,
+           route:
+               '/motion-${Object.hash(
+                 title,
+                 description,
+                 motion,
+                 filterIdentical,
+               )}',
            steps: 2,
          ),
        );
 
-  final Widget title;
+  final String title;
 
   final Widget description;
 
@@ -115,7 +116,7 @@ class MotionSlideTemplate extends FlutterDeckSlideWidget {
         return HookBuilder(
           builder: (context) {
             final recorder = useDisposable(
-              () => ValueRecordingNotifier<double>(window: 100),
+              () => ValueRecordingNotifier<double>(window: 200),
             );
 
             // The graph is invisible on step 1 and becomes visible on step 2
@@ -125,7 +126,7 @@ class MotionSlideTemplate extends FlutterDeckSlideWidget {
             return FlutterDeckSlideStepsBuilder(
               builder: (context, step) {
                 return ContentSlideTemplate(
-                  title: title,
+                  title: Text(title),
                   mainContent: MotionExampleApp(
                     motion: motion,
                     recorder: recorder,
@@ -198,3 +199,84 @@ class _MotionDemonstration extends HookWidget {
     );
   }
 }
+
+class SpringVisualisationSlide extends FlutterDeckSlideWidget {
+  SpringVisualisationSlide({super.key})
+    : super(
+        configuration: FlutterDeckSlideConfiguration(
+          title: 'What is a Spring Simulation?',
+          route: '/what-is-a-spring-simulation',
+          steps: 2,
+        ),
+      );
+
+  @override
+  Widget build(BuildContext context) {
+    return FlutterDeckSlideStepsBuilder(
+      builder: (context, stepNumber) => HookBuilder(
+        builder: (context) {
+          final duration = useState(400.ms);
+          final bounce = useState<double>(0);
+          return ContentSlideTemplate(
+            title: Text('What is a Spring Simulation?'),
+            mainContent: SpringVisualizer(
+              duration: duration.value,
+              bounce: bounce.value,
+              showSpring: stepNumber == 1,
+            ),
+            secondaryContent: SpringCodeVisualizer(
+              duration: duration,
+              bounce: bounce,
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
+
+class CodeSlide extends FlutterDeckSlideWidget {
+  const CodeSlide({
+    super.key,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return ContentSlideTemplate(
+      title: Text('Flutter supports this quite easily!'),
+      mainContent: Align(
+        alignment: Alignment.centerLeft,
+        child: CodeHighlight(code: springDemoCode),
+      ),
+    );
+  }
+}
+
+const springDemoCode = '''
+// Semi-pseudo code for a spring simulation
+
+final spring = SpringDescription.withDurationAndBounce(
+  duration: Duration(milliseconds: 400),
+  bounce: 0.0,
+);
+
+final animationController = AnimationController(vsync: this);
+
+/// Could be called when the user lets go of the sheet
+void onDragEnd(DragEndDetails details) {
+  final velocity = details.velocity.pixelsPerSecond;
+
+  // animationController.animateTo(0, duration: Duration(milliseconds: 400));
+
+  animationController.animateWith(
+    SpringSimulation(
+      spring,                      // Our SpringDescription
+      animationController.value,   // Starting value
+      0,                           // Target value
+      velocity,                    // Initial velocity
+    ),
+  );
+}
+
+
+''';

@@ -12,6 +12,7 @@ import 'package:physical_ui/slides/motion_slides.dart';
 import 'package:physical_ui/slides/motor_title_slide.dart';
 import 'package:physical_ui/slides/simulation_vs_curve_slides.dart';
 import 'package:physical_ui/slides/title_slide.dart';
+import 'package:wnma_talk/big_quote_template.dart';
 import 'package:wnma_talk/wnma_talk.dart';
 
 void main() {
@@ -51,8 +52,9 @@ class PhysicalUiTalk extends StatelessWidget {
             AquaStickiesSlide(),
             IphoneNotesPhysicsSlide(),
             MaterialNotesFlatSlide(),
+            BigQuoteTemplate(title: Text("Part 2: Motion")),
             ...motionSlides,
-            WhatChangesForYouSlide(),
+            BigQuoteTemplate(title: Text("Well, it's settled then!")),
             ...dimensionalitySlides,
             SimulationVsCurveSlide(),
             MotorTitleSlide(),
