@@ -8,7 +8,7 @@ class GaussianSplattingSlide extends FlutterDeckSlideWidget {
     : super(
         configuration: const FlutterDeckSlideConfiguration(
           route: '/gaussian-splatting',
-          steps: 3,
+          steps: 4,
         ),
       );
 
@@ -70,7 +70,8 @@ class GaussianSplattingSlide extends FlutterDeckSlideWidget {
                   visible: stepNumber >= 1,
                   stagger: 4,
                   child: const CitationContainer(
-                    citation: 'Kerbl, B., Kopanas, G., Leimkühler, T., & Drettakis, G. (2023). 3D Gaussian splatting for real-time radiance field rendering. ACM Trans. Graph., 42(4), 139-1.',
+                    citation:
+                        'Kerbl, B., Kopanas, G., Leimkühler, T., & Drettakis, G. (2023). 3D Gaussian splatting for real-time radiance field rendering. ACM Trans. Graph., 42(4), 139-1.',
                     fontSize: 16,
                   ),
                 ),
@@ -194,97 +195,112 @@ class _SecondRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: [
-        // Ellipsoid image (step 2)
-        Expanded(
-          flex: 2,
-          child: AnimatedElement(
-            visible: stepNumber >= 2,
-            stagger: 1,
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Image.asset(
-                  'assets/elipsoid.png',
-                  height: 150,
-                  fit: BoxFit.contain,
+        // Bracket and properties (step 2)
+        AnimatedElement(
+          visible: stepNumber >= 2,
+          stagger: 2,
+          child: Row(
+            children: [
+              // Ellipsoid image (step 2)
+              AnimatedElement(
+                visible: stepNumber >= 2,
+                stagger: 1,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Image.asset(
+                      'assets/elipsoid.png',
+                      height: 150,
+                      fit: BoxFit.contain,
+                    ),
+                  ],
                 ),
-              ],
-            ),
+              ),
+              SizedBox(
+                width: 32,
+              ),
+              // Bracket
+              SizedBox(
+                width: 40,
+                height: 200,
+                child: CustomPaint(
+                  painter: _BracketPainter(colorScheme.onSurface),
+                ),
+              ),
+
+              const SizedBox(width: 20),
+
+              // Properties column
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  _PropertyItem(
+                    number: '1.',
+                    property: 'xyz → position',
+                    theme: theme,
+                    colorScheme: colorScheme,
+                  ),
+                  const SizedBox(height: 12),
+                  _PropertyItem(
+                    number: '2.',
+                    property: 'rotation',
+                    theme: theme,
+                    colorScheme: colorScheme,
+                  ),
+                  const SizedBox(height: 12),
+                  _PropertyItem(
+                    number: '3.',
+                    property: 'scale',
+                    theme: theme,
+                    colorScheme: colorScheme,
+                  ),
+                  const SizedBox(height: 12),
+                  _PropertyItem(
+                    number: '4.',
+                    property: 'opacity',
+                    theme: theme,
+                    colorScheme: colorScheme,
+                  ),
+                  const SizedBox(height: 12),
+                  _PropertyItem(
+                    number: '5.',
+                    property: 'color',
+                    theme: theme,
+                    colorScheme: colorScheme,
+                  ),
+                ],
+              ),
+            ],
           ),
         ),
-
-        // Bracket and properties (step 2)
-        Expanded(
-          flex: 3,
-          child: AnimatedElement(
-            visible: stepNumber >= 2,
-            stagger: 2,
-            child: Row(
-              children: [
-                // Bracket
-                SizedBox(
-                  width: 40,
-                  height: 200,
-                  child: CustomPaint(
-                    painter: _BracketPainter(colorScheme.onSurface),
-                  ),
+        AnimatedElement(
+          visible: stepNumber >=4,
+          stagger: 0,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              Text(
+                'Storage: ~20 MB',
+                style: theme.textTheme.bodyLarge.copyWith(
+                  color: colorScheme.onSurfaceVariant,
                 ),
-
-                const SizedBox(width: 20),
-
-                // Properties column
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      _PropertyItem(
-                        number: '1.',
-                        property: 'xyz → position',
-                        theme: theme,
-                        colorScheme: colorScheme,
-                      ),
-                      const SizedBox(height: 12),
-                      _PropertyItem(
-                        number: '2.',
-                        property: 'rotation',
-                        theme: theme,
-                        colorScheme: colorScheme,
-                      ),
-                      const SizedBox(height: 12),
-                      _PropertyItem(
-                        number: '3.',
-                        property: 'scale',
-                        theme: theme,
-                        colorScheme: colorScheme,
-                      ),
-                      const SizedBox(height: 12),
-                      _PropertyItem(
-                        number: '4.',
-                        property: 'opacity',
-                        theme: theme,
-                        colorScheme: colorScheme,
-                      ),
-                      const SizedBox(height: 12),
-                      _PropertyItem(
-                        number: '5.',
-                        property: 'color',
-                        theme: theme,
-                        colorScheme: colorScheme,
-                      ),
-                    ],
-                  ),
+              ),
+              Text(
+                'Explicit Representation',
+                style: theme.textTheme.bodyLarge.copyWith(
+                  color: colorScheme.onSurfaceVariant,
                 ),
-                Text(
-                  'Larger files, but fast reendering - Explicit representation',
-                  style: theme.textTheme.bodyMedium.copyWith(
-                    color: colorScheme.onSurfaceVariant,
-                    fontSize: 18,
-                  ),
+              ),
+              Text(
+                'Fast to render',
+                style: theme.textTheme.bodyLarge.copyWith(
+                  color: Colors.green.shade700,
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ],
@@ -343,12 +359,11 @@ class _BracketPainter extends CustomPainter {
       ..style = PaintingStyle.stroke;
 
     final path = Path()
-
-    // Left bracket shape
-    ..moveTo(size.width * 0.8, 0)
-    ..lineTo(0, 0)
-    ..lineTo(0, size.height)
-    ..lineTo(size.width * 0.8, size.height);
+      // Left bracket shape
+      ..moveTo(size.width * 0.8, 0)
+      ..lineTo(0, 0)
+      ..lineTo(0, size.height)
+      ..lineTo(size.width * 0.8, size.height);
 
     canvas.drawPath(path, paint);
   }
@@ -356,5 +371,3 @@ class _BracketPainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
-
-

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:gaussian_splatting/shared/scrollable_code_highlight.dart';
 import 'package:wnma_talk/content_slide_template.dart';
+import 'package:wnma_talk/video.dart';
 import 'package:wnma_talk/wnma_talk.dart';
 
 class HowToSlide extends FlutterDeckSlideWidget {
@@ -8,7 +8,7 @@ class HowToSlide extends FlutterDeckSlideWidget {
     : super(
         configuration: const FlutterDeckSlideConfiguration(
           route: '/how-to',
-          // steps: 1,
+          steps: 3,
         ),
       );
 
@@ -21,15 +21,35 @@ class HowToSlide extends FlutterDeckSlideWidget {
         'I want to try this! How?',
         textAlign: TextAlign.left,
       ),
-      mainContent: FlutterDeckBulletList(
-        items: const [
-          '1. Collect data.',
-          '2. Estimate poses',
-          '3. Optimize',
-        ],
-
+      mainContent: FlutterDeckSlideStepsBuilder(
+        builder: (context, stepNumber) {
+          switch (stepNumber) {
+            case 1:
+              return Center(
+                child: Text(
+                  '1. Collect Data',
+                  style: theme.textTheme.header.copyWith(
+                    color: theme.materialTheme.colorScheme.onSurface,
+                  ),
+                ),
+              );
+            case 2:
+              return const Center(
+                child: Video(
+                  assetKey: 'assets/colmap.mp4',
+                ),
+              );
+            case 3:
+              return const Center(
+                child: Video(
+                  assetKey: 'assets/brush.mp4',
+                ),
+              );
+            default:
+              return const SizedBox.shrink();
+          }
+        },
       ),
-
       secondaryContent: Center(
         child: Image.asset(
           'assets/how_to.png',

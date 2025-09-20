@@ -249,7 +249,7 @@ class _RadianceFieldScreenState extends State<RadianceFieldScreen> {
       0.1,
       500,
     );
-    threeJs.camera.position.setValues(40, 30, 40);
+    threeJs.camera.position.setValues(35, 33, 30);
     threeJs.camera.lookAt(three.Vector3(0, 0, 0));
 
     // Setup orbit controls for viewport navigation
@@ -950,8 +950,9 @@ class _RadianceFieldScreenState extends State<RadianceFieldScreen> {
     final y = widget.camRadius * math.sin(widget.pitch);
     final z = widget.camRadius * math.cos(widget.pitch) * math.sin(widget.yaw);
     fakeCam.position.setValues(x, y, z);
-    fakeCam..lookAt(three.Vector3(0, 0, 0))
-    ..updateMatrixWorld(true);
+    fakeCam
+      ..lookAt(three.Vector3(0, 0, 0))
+      ..updateMatrixWorld(true);
 
     // Update visual representation
     if (fakeCamVisual != null) {

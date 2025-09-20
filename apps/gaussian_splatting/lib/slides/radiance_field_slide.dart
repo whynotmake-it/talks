@@ -35,7 +35,7 @@ class RadianceFieldSlide extends FlutterDeckSlideWidget {
             builder: (context, yaw, child) => RadianceFieldScreen(
               showSamplePoints: stepNumber > 2, // OFF steps 0-1, ON step 2+
               showVoxels: stepNumber <= 3, // ON steps 0-3, OFF step 4+
-              showSensor: stepNumber > 4, // OFF step 0, ON step 1+
+              showSensor: stepNumber > 2, // OFF step 0, ON step 1+
               showRaySamples: stepNumber > 2, // OFF steps 0-3, ON step 4+
               showUI: false,
               yaw: yaw,

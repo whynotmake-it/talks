@@ -69,7 +69,7 @@ void main() {
 }
 
   ''',
-        fileName: 'splat_draw_pass.dart',
+        fileName: 'vertex.glsl',
       ),
 
       secondaryContent: Image.asset(

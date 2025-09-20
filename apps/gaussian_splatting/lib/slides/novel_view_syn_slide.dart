@@ -8,7 +8,7 @@ class NovelViewSynSlide extends FlutterDeckSlideWidget {
     : super(
         configuration: const FlutterDeckSlideConfiguration(
           route: '/novel-view-syn',
-          steps: 8,
+          steps: 7,
         ),
       );
 
@@ -101,7 +101,7 @@ class NovelViewSynSlide extends FlutterDeckSlideWidget {
                     ),
 
                     // Final step: Full-screen text overlay
-                    if (stepNumber >= 8)
+                    if (stepNumber >= 7)
                       _NovelViewSynthesisOverlay(
                         theme: theme,
                         colorScheme: colorScheme,

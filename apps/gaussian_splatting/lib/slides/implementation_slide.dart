@@ -8,7 +8,7 @@ class ImplementationSlide extends FlutterDeckSlideWidget {
     : super(
         configuration: const FlutterDeckSlideConfiguration(
           route: '/implementation',
-          steps: 4,
+          steps: 3,
         ),
       );
 
