@@ -21,7 +21,7 @@ dependencies:
   flutter_highlight: ^0.7.0
   flutter_hooks: ^0.21.3+1
   google_fonts: ^6.3.1
-  rivership: ^0.3.0-dev.7
+  rivership: ^0.3.0-dev.12
   video_player: ^2.10.0
   wnmi_design:
     path: ../wnmi_design

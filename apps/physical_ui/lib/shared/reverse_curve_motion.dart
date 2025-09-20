@@ -4,11 +4,11 @@ import 'package:motor/motor.dart';
 import 'package:motor/src/simulations/curve_simulation.dart';
 
 class ReverseCurveMotion extends CurvedMotion {
-  const ReverseCurveMotion({
-    required super.duration,
+  const ReverseCurveMotion(
+    super.duration, [
     super.curve = Curves.linear,
     this.reverseCurve,
-  });
+  ]);
 
   final Curve? reverseCurve;
 

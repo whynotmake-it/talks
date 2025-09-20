@@ -22,6 +22,7 @@ class CodeHighlight extends StatelessWidget {
       clipBehavior: Clip.hardEdge,
       color: vs2015Theme['root']!.backgroundColor,
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           if (filename case final filename?) ...[
@@ -43,7 +44,7 @@ class CodeHighlight extends StatelessWidget {
               color: Colors.white24,
             ),
           ],
-          Expanded(
+          Flexible(
             child: SingleChildScrollView(
               child: HighlightView(
                 code,

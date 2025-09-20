@@ -13,12 +13,12 @@ import 'package:wnma_talk/wnma_talk.dart';
 final dimensionalitySlides = [
   DimensionalitySlideTemplate(
     showTitle: false,
-    motion: CurvedMotion(duration: .5.seconds, curve: Curves.ease),
+    motion: CurvedMotion(.5.seconds, Curves.ease),
     showTrajectoryInStep2: false,
   ),
   DimensionalitySlideTemplate(
     showTitle: false,
-    motion: CurvedMotion(duration: .5.seconds, curve: Curves.ease),
+    motion: CurvedMotion(.5.seconds, Curves.ease),
     code: _standardAnimationPseudocode,
   ),
   DimensionalitySlideTemplate(
@@ -41,7 +41,7 @@ final dimensionalitySlides = [
     code: _multiDimensionPseudocode,
   ),
   DimensionalitySlideTemplate(
-    motion: MaterialSpringMotion.expressiveSpatialSlow,
+    motion: MaterialSpringMotion.expressiveSpatialSlow(),
     filename: 'flutter_physics_simulation_example.dart',
     code: _flutterSpringCodeExample,
     showTrajectoryInStep2: false,

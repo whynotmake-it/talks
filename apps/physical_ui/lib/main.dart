@@ -52,6 +52,7 @@ class PhysicalUiTalk extends StatelessWidget {
             AquaStickiesSlide(),
             IphoneNotesPhysicsSlide(),
             MaterialNotesFlatSlide(),
+            BigQuoteTemplate(title: Text("Part 2: Motion")),
             ...motionSlides,
             BigQuoteTemplate(title: Text("Well, it's settled then!")),
             ...dimensionalitySlides,
