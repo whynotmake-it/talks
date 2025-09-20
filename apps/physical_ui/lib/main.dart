@@ -14,6 +14,7 @@ import 'package:physical_ui/slides/history/slides/material_notes_flat_slide.dart
 import 'package:physical_ui/slides/history/slides/objects_and_metaphors_slide.dart';
 import 'package:physical_ui/slides/history/slides/osx_aqua_slide.dart';
 import 'package:physical_ui/slides/history/slides/shading_animation_slide.dart';
+import 'package:physical_ui/slides/history/what_next/slides.dart';
 import 'package:physical_ui/slides/how_did_we_get_here_slide.dart';
 import 'package:physical_ui/slides/motion_character_slide.dart';
 import 'package:physical_ui/slides/motion_slides.dart';
