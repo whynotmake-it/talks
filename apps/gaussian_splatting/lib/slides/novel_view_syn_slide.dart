@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:gaussian_splatting/shared/animated_element.dart';
 import 'package:rivership/rivership.dart';
+import 'package:wnma_talk/animated_element.dart';
 import 'package:wnma_talk/wnma_talk.dart';
 
 class NovelViewSynSlide extends FlutterDeckSlideWidget {
