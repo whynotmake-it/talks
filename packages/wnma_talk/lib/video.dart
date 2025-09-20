@@ -47,7 +47,7 @@ class Video extends HookWidget {
     super.key,
     this.play = true,
     this.loop = true,
-    this.assumedSize = Size.zero,
+    this.assumedSize = const Size(1920, 1080),
   });
 
   final String assetKey;
