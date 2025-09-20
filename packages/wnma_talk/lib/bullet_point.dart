@@ -39,6 +39,7 @@ class BulletPoint extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final defaultColor = DefaultTextStyle.of(context).style.color;
     final style = FlutterDeckTheme.of(context).textTheme.bodyLarge;
     return AnimatedVisibility(
       visible: visible,
@@ -62,7 +63,7 @@ class BulletPoint extends StatelessWidget {
           const SizedBox(width: 8),
           Flexible(
             child: DefaultTextStyle(
-              style: style,
+              style: style.copyWith(color: defaultColor),
               child: text,
             ),
           ),
