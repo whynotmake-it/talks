@@ -9,6 +9,7 @@ class ContentSlideTemplate extends FlutterDeckSlideWidget {
     this.mainContent,
     this.description,
     this.secondaryContent,
+    this.insetSecondaryContent = false,
     super.key,
   });
 
@@ -17,11 +18,17 @@ class ContentSlideTemplate extends FlutterDeckSlideWidget {
   final Widget? description;
   final Widget? secondaryContent;
 
+  final bool insetSecondaryContent;
+
   @override
   Widget build(BuildContext context) {
     final theme = FlutterDeckTheme.of(context);
     final colorScheme = theme.materialTheme.colorScheme;
-
+    final titleStyle = theme.textTheme.display.copyWith(
+      color: colorScheme.onPrimaryContainer,
+      letterSpacing: -5,
+      height: 1,
+    );
     return FlutterDeckSlide.custom(
       builder: (context) => ColoredBox(
         color: colorScheme.surface,
@@ -32,49 +39,61 @@ class ContentSlideTemplate extends FlutterDeckSlideWidget {
               style: theme.textTheme.bodyLarge.copyWith(
                 color: colorScheme.onSurfaceVariant,
               ),
-              child: Row(
-                spacing: 32,
+              child: Column(
+                spacing: 64,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Flexible(
-                    flex: 3,
-                    fit: FlexFit.tight,
-                    child: Column(
-                      spacing: 64,
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                  if (title case final title? when insetSecondaryContent)
+                    DefaultTextStyle.merge(
+                      style: titleStyle,
+                      child: title,
+                    ),
+                  Expanded(
+                    child: Row(
+                      spacing: 32,
                       children: [
-                        if (title case final title?)
-                          DefaultTextStyle.merge(
-                            style: theme.textTheme.display.copyWith(
-                              color: colorScheme.onPrimaryContainer,
-                              letterSpacing: -5,
-                              height: 1,
-                            ),
-                            child: ConstrainedBox(
-                              constraints: const BoxConstraints(maxWidth: 1000),
-                              child: title,
-                            ),
+                        Flexible(
+                          flex: 3,
+                          fit: FlexFit.tight,
+                          child: Column(
+                            spacing: 64,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              if (title case final title?
+                                  when !insetSecondaryContent)
+                                DefaultTextStyle.merge(
+                                  style: titleStyle,
+                                  child: ConstrainedBox(
+                                    constraints: const BoxConstraints(
+                                      maxWidth: 1000,
+                                    ),
+                                    child: title,
+                                  ),
+                                ),
+                              if (mainContent case final c?)
+                                Expanded(
+                                  child: c,
+                                ),
+                            ],
                           ),
-                        if (mainContent case final c?)
-                          Expanded(
-                            child: c,
+                        ),
+                        if (description != null || secondaryContent != null)
+                          Flexible(
+                            flex: 2,
+                            child: Column(
+                              spacing: 64,
+                              children: [
+                                ?description,
+                                if (secondaryContent case final c?)
+                                  Expanded(
+                                    child: c,
+                                  ),
+                              ],
+                            ),
                           ),
                       ],
                     ),
                   ),
-                  if (description != null || secondaryContent != null)
-                    Flexible(
-                      flex: 2,
-                      child: Column(
-                        spacing: 64,
-                        children: [
-                          ?description,
-                          if (secondaryContent case final c?)
-                            Expanded(
-                              child: c,
-                            ),
-                        ],
-                      ),
-                    ),
                 ],
               ),
             ),
