@@ -107,6 +107,12 @@ class Surface extends StatelessWidget {
                         image: DecorationImage(
                           image: AssetImage('assets/noise.png'),
                           fit: BoxFit.scaleDown,
+                          alignment:
+                              Alignment.center -
+                              Alignment(
+                                sin(lightDirection) * 0.02,
+                                -cos(lightDirection) * 0.02,
+                              ),
                           colorFilter: ColorFilter.mode(
                             state.color.withValues(alpha: .5),
                             BlendMode.colorDodge,
