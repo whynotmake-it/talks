@@ -10,9 +10,13 @@ class AnimatedVisibility extends StatelessWidget {
     this.from = const Offset(0, 20),
     this.scaleFrom = 1.0,
     this.opacityFrom = 0.0,
+    this.motion = const CupertinoMotion.smooth(),
+    this.stagger = 0,
   });
 
   final bool visible;
+
+  final int stagger;
 
   final bool animateIn;
 
@@ -21,6 +25,8 @@ class AnimatedVisibility extends StatelessWidget {
   final double scaleFrom;
 
   final double opacityFrom;
+
+  final CupertinoMotion motion;
 
   final Widget child;
 
@@ -32,7 +38,9 @@ class AnimatedVisibility extends StatelessWidget {
     final scaleTarget = visible ? 1.0 : this.scaleFrom;
     final scaleFrom = animateIn ? this.scaleFrom : scaleTarget;
 
-    const motion = CupertinoMotion.smooth();
+    final motion = this.motion.copyWith(
+      duration: this.motion.duration + Duration(milliseconds: 100 * stagger),
+    );
 
     return SingleMotionBuilder(
       value: target,

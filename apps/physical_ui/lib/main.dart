@@ -12,6 +12,7 @@ import 'package:physical_ui/slides/history/slides/gui_system1_slide.dart';
 import 'package:physical_ui/slides/history/slides/iphone_notes_physics_slide.dart';
 import 'package:physical_ui/slides/history/slides/material_notes_flat_slide.dart';
 import 'package:physical_ui/slides/history/slides/osx_aqua_slide.dart';
+import 'package:physical_ui/slides/history/what_next/slides.dart';
 import 'package:physical_ui/slides/how_did_we_get_here_slide.dart';
 import 'package:physical_ui/slides/motion_character_slide.dart';
 import 'package:physical_ui/slides/motion_slides.dart';
@@ -50,6 +51,9 @@ class PhysicalUiTalk extends StatelessWidget {
             ),
           ),
           slides: [
+            BigQuoteTemplate(title: Text("What next?")),
+            ...whatNextSlides,
+
             BigQuoteTemplate(title: Text("Part 3: Haptic")),
             HapticSlide(),
             MotionCharacterSlide(),

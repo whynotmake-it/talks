@@ -3,6 +3,8 @@ description: "A new Flutter project."
 publish_to: 'none'
 version: 0.1.0
 
+resolution: workspace
+
 environment:
   sdk: ^3.8.1
 
@@ -17,26 +19,14 @@ dependencies:
   graphite: ^1.2.1
   heroine: ^0.5.0-dev.7
   hooks_riverpod: ^2.6.1
-  liquid_glass_renderer: ^0.1.1-dev.10
-  motor: ^1.0.0-dev.4
-  rivership: ^0.3.0-dev.7
-  stupid_simple_sheet: ^0.0.2
+  motor: ^1.0.0-dev.9
+  rivership: ^0.3.0-dev.12
+  stupid_simple_sheet: ^0.3.0+1
   three_js: ^0.2.4
   three_js_transform_controls: ^0.2.0
   value_notifier_tools: ^0.1.2
   wnma_talk:
     path: ../../packages/wnma_talk
-dependency_overrides:
-  motor:
-    git:
-      url: https://github.com/whynotmake-it/rivership
-      ref: vibe-phases
-      path: packages/motor
-  stupid_simple_sheet:  
-    git:
-      url: https://github.com/whynotmake-it/rivership
-      ref: vibe-phases
-      path: packages/stupid_simple_sheet
 
 dev_dependencies:
   flutter_test:
