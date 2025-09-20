@@ -1,12 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:heroine/heroine.dart';
+import 'package:physical_ui/slides/audio/audio_category_slide.dart';
+import 'package:physical_ui/slides/audio/sound_haptics_slide.dart';
 import 'package:physical_ui/slides/dimensionality_slides.dart';
 import 'package:physical_ui/slides/glass_slide.dart';
-import 'package:physical_ui/slides/history/slides/command_line_slide.dart';
-import 'package:physical_ui/slides/history/slides/gui_system1_slide.dart';
-import 'package:physical_ui/slides/history/slides/iphone_notes_physics_slide.dart';
-import 'package:physical_ui/slides/history/slides/material_notes_flat_slide.dart';
-import 'package:physical_ui/slides/history/slides/osx_aqua_slide.dart';
 import 'package:physical_ui/slides/history/slides/command_line_slide.dart';
 import 'package:physical_ui/slides/history/slides/gui_system1_slide.dart';
 import 'package:physical_ui/slides/history/slides/iphone_notes_physics_slide.dart';
@@ -50,6 +47,9 @@ class PhysicalUiTalk extends StatelessWidget {
             ),
           ),
           slides: [
+            BigQuoteTemplate(title: Text("Part 2: Audio")),
+            AudioCategorySlide(),
+            SoundHapticsSlide(),
             TitleSlide(),
             GlassSlide(),
             HowDidWeGetHereSlide(),

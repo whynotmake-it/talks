@@ -15,13 +15,13 @@ dependencies:
   flutter_hooks: ^0.21.2
   heroine: ^0.5.0-dev.7
   hooks_riverpod: ^2.6.1
+  just_audio: ^0.10.5
   liquid_glass_renderer: ^0.1.1-dev.10
   motor: ^1.0.0-dev.9
   rivership: ^0.3.0-dev.12
   stupid_simple_sheet: ^0.3.0+1
   value_notifier_tools: ^0.1.2
-  wnma_talk:
-    path: ../../packages/wnma_talk
+  wnma_talk: any
 
 dev_dependencies:
   flutter_test:
