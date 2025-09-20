@@ -48,6 +48,70 @@ ColorScheme _buildColorScheme() {
   return scheme;
 }
 
+FlutterDeckThemeData buildGaussianSplattingTheme() {
+  final colorScheme = _buildGaussianSplattingColorScheme();
+  final textTheme = _buildGaussianSplattingTextTheme();
+
+  return FlutterDeckThemeData.fromThemeAndText(
+    ThemeData.from(
+      colorScheme: colorScheme,
+    ),
+    textTheme,
+  );
+}
+
+ColorScheme _buildGaussianSplattingColorScheme() {
+  // Light mode: Clean whites with vibrant tech-inspired accent colors
+  const primary = Color(0xFF0288D1); // Deep sky blue
+  const secondary = Color(0xFF00ACC1); // Cyan
+  const tertiary = Color(0xFFE91E63); // Pink
+  const surface = Color(0xFFFAFDFF); // Pure white with hint of blue
+  const error = Color(0xFFD32F2F);
+
+  final scheme =
+      SeedColorScheme.fromSeeds(
+        variant: FlexSchemeVariant.vivid,
+        brightness: Brightness.light,
+        primaryKey: primary,
+        secondaryKey: secondary,
+        tertiaryKey: tertiary,
+        errorKey: error,
+      ).copyWith(
+        surface: surface,
+        onSurface: const Color(0xFF0D1B2A),
+        surfaceContainerHighest: const Color(0xFFF0F8FF),
+        primaryContainer: const Color(0xFFE1F5FE),
+        onPrimaryContainer: const Color(0xFF01579B),
+        secondaryContainer: const Color(0xFFE0F2F1),
+        onSecondaryContainer: const Color(0xFF004D40),
+        outline: const Color(0xFFB0BEC5),
+        outlineVariant: const Color(0xFFE0E0E0),
+      );
+
+  return scheme;
+}
+
+FlutterDeckTextTheme _buildGaussianSplattingTextTheme() {
+  final display = TypographyDisplay.standard();
+  final body = TypographyBody.standard();
+  return FlutterDeckTextTheme(
+    bodyLarge: body.large.copyWith(
+      fontSize: 36,
+      height: 1.2,
+    ),
+    bodyMedium: body.medium.copyWith(fontSize: 32),
+    bodySmall: body.small,
+    display: display.large.copyWith(fontSize: 96),
+    title: display.medium.copyWith(
+      fontSize: 190,
+      fontWeight: FontWeight.w300,
+      letterSpacing: 1,
+      height: .96,
+    ),
+    header: display.small,
+  );
+}
+
 FlutterDeckTextTheme _buildTextTheme() {
   final display = TypographyDisplay.standard();
   final body = TypographyBody.standard();
