@@ -4,6 +4,7 @@ import 'package:physical_ui/slides/1_surfaces/code_slides.dart';
 import 'package:physical_ui/slides/1_surfaces/surfaces_slides.dart';
 import 'package:physical_ui/slides/audio/audio_category_slide.dart';
 import 'package:physical_ui/slides/audio/sound_haptics_slide.dart';
+import 'package:physical_ui/slides/design_system_slide.dart';
 import 'package:physical_ui/slides/dimensionality_slides.dart';
 import 'package:physical_ui/slides/glass_slide.dart';
 import 'package:physical_ui/slides/haptic_slide.dart';
@@ -54,6 +55,7 @@ class PhysicalUiTalk extends StatelessWidget {
             ),
           ),
           slides: [
+            DesignSystemSlide(),
             MotorCardStackSlide(),
             ShadingAnimationSlide(),
             ObjectsAndMetaphorsSlide(),
