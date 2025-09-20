@@ -7,7 +7,7 @@ import 'package:wnma_talk/bullet_point.dart';
 import 'package:wnma_talk/content_slide_template.dart';
 import 'package:wnma_talk/wnma_talk.dart';
 
-final surfacesSlides = [WhatAreSurfaces(), Light()];
+final surfacesSlides = [WhatAreSurfaces(), Light(), SpecialEffectsSlide()];
 
 class WhatAreSurfaces extends FlutterDeckSlideWidget {
   WhatAreSurfaces({super.key})
@@ -115,6 +115,89 @@ class Light extends FlutterDeckSlideWidget {
                 color: theme.colorScheme.secondary,
                 elevation: 12,
                 gradientOpacity: 1,
+              ),
+              4: SurfaceState(
+                radius: 48,
+                noiseOpacity: 1,
+                color: theme.colorScheme.secondary,
+                elevation: 12,
+                gradientOpacity: 1,
+                borderOpacity: 1,
+              ),
+              5: SurfaceState(
+                radius: 48,
+                noiseOpacity: 1,
+                color: theme.colorScheme.secondary,
+                elevation: 12,
+                gradientOpacity: 1,
+                borderOpacity: 1,
+                rotateLight: true,
+              ),
+            },
+            motion: CupertinoMotion.smooth(),
+          ),
+          currentPhase: stepNumber,
+          playing: false,
+          converter: surfaceStateConverter,
+          builder: (context, value, phase, child) {
+            return Surface(
+              state: value,
+              phase: phase,
+            );
+          },
+        ),
+      ),
+    );
+  }
+}
+
+class SpecialEffectsSlide extends FlutterDeckSlideWidget {
+  SpecialEffectsSlide({super.key})
+    : super(
+        configuration: FlutterDeckSlideConfiguration(
+          route: '/surfaces/special_effects',
+          steps: 4,
+        ),
+      );
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return FlutterDeckSlideStepsBuilder(
+      builder: (context, stepNumber) => ContentSlideTemplate(
+        title: Text('Materials'),
+        mainContent: Column(
+          spacing: 32,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Materials are defined by their surface properties and how light '
+              'interacts with them.',
+            ),
+          ],
+        ),
+        secondaryContent: SequenceMotionBuilder(
+          sequence: StateSequence(
+            <int, SurfaceState>{
+              1: SurfaceState(
+                radius: 48,
+                noiseOpacity: 1,
+                color: theme.colorScheme.secondary,
+                elevation: 12,
+                gradientOpacity: 1,
+                borderOpacity: 1,
+                rotateLight: true,
+              ),
+              2: SurfaceState(
+                radius: 48,
+                rotateLight: true,
+                elevation: 12,
+                effect: SpecialEffects.halofoil,
+              ),
+              3: SurfaceState(
+                radius: 48,
+                rotateLight: true,
+                effect: SpecialEffects.liquidGlass,
               ),
               4: SurfaceState(
                 radius: 48,
