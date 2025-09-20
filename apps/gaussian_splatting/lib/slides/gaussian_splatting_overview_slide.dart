@@ -5,11 +5,11 @@ import 'package:wnma_talk/wnma_talk.dart';
 
 class GaussianSplattingOverviewSlide extends FlutterDeckSlideWidget {
   const GaussianSplattingOverviewSlide({super.key})
-      : super(
-          configuration: const FlutterDeckSlideConfiguration(
-            route: '/gaussian-splatting-overview',
-          ),
-        );
+    : super(
+        configuration: const FlutterDeckSlideConfiguration(
+          route: '/gaussian-splatting-overview',
+        ),
+      );
 
   @override
   Widget build(BuildContext context) {
@@ -110,8 +110,8 @@ class GaussianSplattingOverviewSlide extends FlutterDeckSlideWidget {
             ],
           ),
         ),
-      ), title: const Text('Gaussian Splatting Overview'),
+      ),
+      title: const Text('Gaussian Splatting Overview'),
     );
   }
 }
-

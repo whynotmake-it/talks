@@ -10,6 +10,7 @@ class ContentSlideTemplate extends FlutterDeckSlideWidget {
     this.description,
     this.secondaryContent,
     this.insetSecondaryContent = false,
+    this.fitSecondaryContent = false,
     super.key,
   });
 
@@ -19,6 +20,7 @@ class ContentSlideTemplate extends FlutterDeckSlideWidget {
   final Widget? secondaryContent;
 
   final bool insetSecondaryContent;
+  final bool fitSecondaryContent;
 
   @override
   Widget build(BuildContext context) {
@@ -79,7 +81,7 @@ class ContentSlideTemplate extends FlutterDeckSlideWidget {
                         ),
                         if (description != null || secondaryContent != null)
                           Flexible(
-                            flex: 2,
+                            flex: fitSecondaryContent ? 0 : 2,
                             child: Column(
                               spacing: 64,
                               children: [

@@ -47,6 +47,7 @@ class Video extends HookWidget {
     super.key,
     this.play = true,
     this.loop = true,
+    this.assumedSize = Size.zero,
   });
 
   final String assetKey;
@@ -54,6 +55,8 @@ class Video extends HookWidget {
   final bool play;
 
   final bool loop;
+
+  final Size assumedSize;
 
   @override
   Widget build(BuildContext context) {
@@ -64,11 +67,16 @@ class Video extends HookWidget {
     );
 
     final initialized = useValueListenable(videoPlayerController).isInitialized;
+    final size = useValueListenable(videoPlayerController).size;
 
     return AnimatedSizeSwitcher(
+      immediateResize: true,
       child: initialized
-          ? VideoPlayer(videoPlayerController)
-          : const SizedBox.expand(),
+          ? SizedBox.fromSize(
+              size: size,
+              child: VideoPlayer(videoPlayerController),
+            )
+          : SizedBox.fromSize(size: assumedSize),
     );
   }
 }
