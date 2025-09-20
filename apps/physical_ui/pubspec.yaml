@@ -22,6 +22,9 @@ dependencies:
       url: https://github.com/whynotmake-it/flutter_liquid_glass
       path: packages/liquid_glass_renderer
       ref: f77f38835524f3a4fbec2d093b794c3c545aaeab
+
+  paper_liquid_metal_logo:
+    git: git@github.com:whynotmake-it/glibber.git
   motor: ^1.0.0-dev.9
   rivership: ^0.3.0-dev.12
   stupid_simple_sheet: ^0.3.0+1
@@ -33,6 +36,10 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
   lintervention: ^0.3.1
+  vector_graphics_compiler: ^1.1.19
+
+dependency_overrides:
+  freezed_annotation: ^3.0.0
 
 flutter:
   uses-material-design: true

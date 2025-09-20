@@ -1,5 +1,3 @@
-import 'dart:math';
-
 import 'package:flutter/material.dart';
 import 'package:physical_ui/slides/1_surfaces/surface.dart';
 import 'package:rivership/rivership.dart';
@@ -14,7 +12,7 @@ class WhatAreSurfaces extends FlutterDeckSlideWidget {
     : super(
         configuration: FlutterDeckSlideConfiguration(
           route: '/surfaces/what_are_surfaces',
-          steps: 4,
+          steps: 5,
         ),
       );
 
@@ -23,17 +21,22 @@ class WhatAreSurfaces extends FlutterDeckSlideWidget {
     final theme = Theme.of(context);
     return FlutterDeckSlideStepsBuilder(
       builder: (context, stepNumber) => ContentSlideTemplate(
+        insetSecondaryContent: true,
         title: Text('What are Surfaces?'),
-        mainContent: Column(
-          spacing: 32,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Every UI element starts with a surface.'),
-            const SizedBox(height: 64),
-            BulletPoint(text: Text('Color'), visible: stepNumber > 1),
-            BulletPoint(text: Text('Shape'), visible: stepNumber > 2),
-            BulletPoint(text: Text('Texture'), visible: stepNumber > 3),
-          ],
+        mainContent: AnimatedSizeSwitcher(
+          child: stepNumber == 5
+              ? Surface(state: SurfaceState(), phase: 0)
+              : Column(
+                  spacing: 32,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Every UI element starts with a surface.'),
+                    const SizedBox(height: 64),
+                    BulletPoint(text: Text('Color'), visible: stepNumber > 1),
+                    BulletPoint(text: Text('Shape'), visible: stepNumber > 2),
+                    BulletPoint(text: Text('Texture'), visible: stepNumber > 3),
+                  ],
+                ),
         ),
         secondaryContent: SequenceMotionBuilder(
           sequence: StateSequence(
@@ -51,6 +54,11 @@ class WhatAreSurfaces extends FlutterDeckSlideWidget {
                 color: theme.colorScheme.secondary,
                 noiseOpacity: 1,
               ),
+              5: SurfaceState(
+                radius: 48,
+                color: theme.colorScheme.secondary,
+                noiseOpacity: 1,
+              ),
             },
             motion: CupertinoMotion.smooth(),
           ),
@@ -60,7 +68,7 @@ class WhatAreSurfaces extends FlutterDeckSlideWidget {
           builder: (context, value, phase, child) {
             return Surface(
               state: value,
-              phase: phase,
+              phase: phase.clamp(0, 4),
             );
           },
         ),
@@ -83,17 +91,32 @@ class Light extends FlutterDeckSlideWidget {
     final theme = Theme.of(context);
     return FlutterDeckSlideStepsBuilder(
       builder: (context, stepNumber) => ContentSlideTemplate(
+        insetSecondaryContent: true,
         title: Text('Light'),
-        mainContent: Column(
-          spacing: 32,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Think about how light interacts with your surface..'),
-            const SizedBox(height: 64),
-            BulletPoint(text: Text('Shadows'), visible: stepNumber > 1),
-            BulletPoint(text: Text('Gradients'), visible: stepNumber > 2),
-            BulletPoint(text: Text('Borders'), visible: stepNumber > 3),
-          ],
+        mainContent: AnimatedSizeSwitcher(
+          child: stepNumber == 5
+              ? Surface(
+                  state: SurfaceState(
+                    radius: 48,
+                    noiseOpacity: 1,
+                    color: theme.colorScheme.secondary,
+                  ),
+                  phase: 0,
+                )
+              : Column(
+                  spacing: 32,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Think about how light interacts with your surface..'),
+                    const SizedBox(height: 64),
+                    BulletPoint(text: Text('Shadows'), visible: stepNumber > 1),
+                    BulletPoint(
+                      text: Text('Gradients'),
+                      visible: stepNumber > 2,
+                    ),
+                    BulletPoint(text: Text('Borders'), visible: stepNumber > 3),
+                  ],
+                ),
         ),
         secondaryContent: SequenceMotionBuilder(
           sequence: StateSequence(
@@ -142,7 +165,8 @@ class Light extends FlutterDeckSlideWidget {
           builder: (context, value, phase, child) {
             return Surface(
               state: value,
-              phase: phase,
+              // Don't tell about last phase change so it doesn't bounce
+              phase: phase.clamp(0, 4),
             );
           },
         ),
@@ -165,11 +189,12 @@ class SpecialEffectsSlide extends FlutterDeckSlideWidget {
     final theme = Theme.of(context);
     return FlutterDeckSlideStepsBuilder(
       builder: (context, stepNumber) => ContentSlideTemplate(
+        insetSecondaryContent: true,
         title: Text('Materials'),
         mainContent: Column(
           spacing: 32,
           crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
+          children: const [
             Text(
               'Materials are defined by their surface properties and how light '
               'interacts with them.',
@@ -190,6 +215,7 @@ class SpecialEffectsSlide extends FlutterDeckSlideWidget {
               ),
               2: SurfaceState(
                 radius: 48,
+                noiseOpacity: 1,
                 rotateLight: true,
                 elevation: 12,
                 effect: SpecialEffects.halofoil,
@@ -197,15 +223,12 @@ class SpecialEffectsSlide extends FlutterDeckSlideWidget {
               3: SurfaceState(
                 radius: 48,
                 rotateLight: true,
-                effect: SpecialEffects.liquidGlass,
+                effect: SpecialEffects.liquidMetal,
               ),
               4: SurfaceState(
                 radius: 48,
-                noiseOpacity: 1,
-                color: theme.colorScheme.secondary,
-                elevation: 12,
-                gradientOpacity: 1,
-                borderOpacity: 1,
+                rotateLight: true,
+                effect: SpecialEffects.liquidGlass,
               ),
               5: SurfaceState(
                 radius: 48,

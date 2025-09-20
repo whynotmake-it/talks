@@ -4,6 +4,7 @@ import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
 import 'package:halofoil/halofoil.dart';
 import 'package:liquid_glass_renderer/liquid_glass_renderer.dart';
+import 'package:physical_ui/slides/1_surfaces/erasable_liquid_metal_logo.dart';
 import 'package:rivership/rivership.dart';
 
 class Surface extends StatelessWidget {
@@ -26,11 +27,12 @@ class Surface extends StatelessWidget {
               const [0, 2 * pi],
               loop: LoopMode.seamless,
               motion: Motion.linear(
-                Duration(seconds: 2),
+                Duration(seconds: 3),
               ),
             )
           : StepSequence(const [0.0], motion: Motion.smoothSpring()),
       converter: SingleMotionConverter(),
+      // We bounce the child whenenver the phase changes
       builder: (context, lightDirection, _, child) => SequenceMotionBuilder(
         sequence: StepSequence.withMotions(
           [
@@ -39,7 +41,7 @@ class Surface extends StatelessWidget {
             (1.0, Motion.smoothSpring()),
           ],
         ),
-
+        playing: phase > 1,
         restartTrigger: phase,
         converter: SingleMotionConverter(),
         builder: (context, scale, _, child) {
@@ -47,17 +49,19 @@ class Surface extends StatelessWidget {
             child: Transform.scale(
               scale: scale,
               child: AnimatedSizeSwitcher(
+                clipBehavior: Clip.none,
                 duration: Duration(milliseconds: 600),
                 child: switch (state.effect) {
                   SpecialEffects.none => _buildNoEffect(
+                    context,
                     lightDirection,
                   ),
                   SpecialEffects.halofoil => _buildHalofoil(lightDirection),
                   SpecialEffects.liquidGlass => _buildLiquidGlass(
                     lightDirection,
                   ),
-                  SpecialEffects.liquidMetal => _buildNoEffect(
-                    lightDirection,
+                  SpecialEffects.liquidMetal => LiquidMetalLogo(
+                    state: state,
                   ),
                 },
               ),
@@ -68,7 +72,7 @@ class Surface extends StatelessWidget {
     );
   }
 
-  Widget _buildNoEffect(double lightDirection) {
+  Widget _buildNoEffect(BuildContext context, double lightDirection) {
     // Calculate shadow offsets based on light direction and elevation
     final closeDistance = state.elevation * .5;
     final farDistance = state.elevation * 2;
@@ -85,15 +89,16 @@ class Surface extends StatelessWidget {
 
     final lightColor = HctTools.lerpBlend(
       Colors.white,
-      state.color,
-      0.05,
+      Theme.of(context).colorScheme.secondaryContainer,
+      0.5,
     )!;
     final shadowColor = HctTools.lerpBlend(
-      Colors.black,
+      Theme.of(context).colorScheme.onSecondaryContainer,
       state.color,
-      0.8,
+      0.5,
     )!;
     return Stack(
+      key: ValueKey(SpecialEffects.none),
       children: [
         // Main surface container
         Container(
@@ -106,16 +111,16 @@ class Surface extends StatelessWidget {
                 ? [
                     // Far, soft shadow for ambient depth
                     BoxShadow(
-                      color: shadowColor.withValues(alpha: 0.15),
+                      color: shadowColor.withValues(alpha: 0.25),
                       offset: farShadowOffset,
                       blurRadius: state.elevation * 1.5,
                       spreadRadius: state.elevation * 0.2,
                     ),
                     // Close, sharp shadow for definition
                     BoxShadow(
-                      color: shadowColor.withValues(alpha: 0.25),
+                      color: shadowColor.withValues(alpha: 0.8),
                       offset: closeShadowOffset,
-                      blurRadius: state.elevation,
+                      blurRadius: closeDistance * 2,
                     ),
                   ]
                 : null,
@@ -129,7 +134,7 @@ class Surface extends StatelessWidget {
               end: Alignment.bottomCenter,
               colors: [
                 lightColor.withValues(
-                  alpha: state.gradientOpacity * 0.8,
+                  alpha: state.gradientOpacity * 1,
                 ),
                 state.color.withValues(
                   alpha: state.gradientOpacity,
@@ -169,13 +174,12 @@ class Surface extends StatelessWidget {
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
                 colors: [
-                  lightColor.withValues(
+                  Colors.white.withValues(
                     alpha: state.borderOpacity,
                   ),
-                  shadowColor.withValues(
-                    alpha: state.borderOpacity * 0.5,
-                  ),
+                  lightColor.withAlpha(0),
                 ],
+                stops: const [0, .8],
                 transform: GradientRotation(lightDirection),
               ).createShader(bounds);
             },
@@ -184,7 +188,7 @@ class Surface extends StatelessWidget {
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(state.radius),
                   side: BorderSide(
-                    width: 4,
+                    width: 3,
                     color: Colors.white,
                   ),
                 ),
@@ -202,10 +206,10 @@ class Surface extends StatelessWidget {
       clipBehavior: Clip.none,
       children: [
         Positioned(
-          top: -800,
-          left: -800,
-          right: -800,
-          bottom: -800,
+          top: -400,
+          left: -400,
+          right: -400,
+          bottom: -400,
           child: ShaderMask(
             blendMode: BlendMode.dstIn,
             shaderCallback: (bounds) {
@@ -226,7 +230,7 @@ class Surface extends StatelessWidget {
         SequenceMotionBuilder(
           sequence: StepSequence.withMotions(
             const [
-              (0.0, NoMotion(Duration(seconds: 1))),
+              (0.0, NoMotion(Duration(milliseconds: 700))),
               (1.0, Motion.bouncySpring()),
             ],
           ),
@@ -235,12 +239,13 @@ class Surface extends StatelessWidget {
             return LiquidGlass(
               settings: LiquidGlassSettings(
                 lightAngle: lightDirection,
-                thickness: 50 * visibility,
+                thickness: 80 * visibility,
                 lightIntensity: 1 * visibility,
                 refractiveIndex: 1.25,
                 blur: 4 * visibility,
                 chromaticAberration: .2,
                 saturation: 1.2,
+                glassColor: Colors.white.withValues(alpha: visibility * 0.2),
               ),
               shape: LiquidRoundedSuperellipse(
                 borderRadius: Radius.circular(state.radius * 1.5),
@@ -257,6 +262,7 @@ class Surface extends StatelessWidget {
     final angleX = sin(lightDirection);
     final angleY = -cos(lightDirection);
     return SizedBox.square(
+      key: ValueKey(SpecialEffects.halofoil),
       dimension: size,
       child: Transform(
         transform: Matrix4.identity()
@@ -274,7 +280,12 @@ class Surface extends StatelessWidget {
             angleY: angleY * .4,
             grainAsset: 'assets/noise.png',
             borderRadius: BorderRadius.circular(state.radius),
-            children: [],
+            children: const [
+              Icon(
+                Icons.auto_awesome_rounded,
+                size: 200,
+              ),
+            ],
           ),
         ),
       ),
@@ -285,15 +296,15 @@ class Surface extends StatelessWidget {
 enum SpecialEffects {
   none,
   halofoil,
-  liquidGlass,
   liquidMetal,
+  liquidGlass,
 }
 
 class SurfaceState with EquatableMixin {
   const SurfaceState({
     this.radius = 0,
     this.noiseOpacity = 0,
-    this.color = Colors.transparent,
+    this.color = Colors.black26,
     this.elevation = 0,
     this.gradientOpacity = 0,
     this.borderOpacity = 0,
@@ -341,6 +352,10 @@ final surfaceStateConverter = MotionConverter<SurfaceState>.custom(
     gradientOpacity: value[7],
     borderOpacity: value[8],
     rotateLight: value[9] > 0.5,
-    effect: SpecialEffects.values[value[10].round()],
+    effect:
+        SpecialEffects.values[value[10].round().clamp(
+          0,
+          SpecialEffects.values.length - 1,
+        )],
   ),
 );

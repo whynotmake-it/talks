@@ -24,6 +24,7 @@ class CodeHighlight extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
           if (filename case final filename?) ...[
             Container(
