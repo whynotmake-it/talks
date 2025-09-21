@@ -10,6 +10,7 @@ import 'package:physical_ui/slides/dimensionality_slides.dart';
 import 'package:physical_ui/slides/glass_slide.dart';
 import 'package:physical_ui/slides/haptic_slide.dart';
 import 'package:physical_ui/slides/haptic_studio_slide.dart';
+import 'package:physical_ui/slides/history/flat/flat_slides.dart';
 import 'package:physical_ui/slides/history/slides/command_line_slide.dart';
 import 'package:physical_ui/slides/history/slides/gui_system1_slide.dart';
 import 'package:physical_ui/slides/history/slides/iphone_notes_physics_slide.dart';
