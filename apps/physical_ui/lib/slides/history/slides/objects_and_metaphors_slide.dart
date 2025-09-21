@@ -5,13 +5,13 @@ import 'package:wnma_talk/wnma_talk.dart';
 
 class ObjectsAndMetaphorsSlide extends FlutterDeckSlideWidget {
   const ObjectsAndMetaphorsSlide({super.key})
-      : super(
-          configuration: const FlutterDeckSlideConfiguration(
-            title: 'Objects and Metaphors',
-            route: '/objects-and-metaphors',
-            steps: 2,
-          ),
-        );
+    : super(
+        configuration: const FlutterDeckSlideConfiguration(
+          title: 'Objects and Metaphors',
+          route: '/objects-and-metaphors',
+          steps: 3,
+        ),
+      );
 
   @override
   Widget build(BuildContext context) {
