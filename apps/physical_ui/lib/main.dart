@@ -59,6 +59,7 @@ class PhysicalUiTalk extends StatelessWidget {
             ),
           ),
           slides: [
+            HapticSlide(),
             MagnifierSlide(),
             HapticStudioSlide(),
             SummarySurfaceSlide(),
@@ -75,7 +76,7 @@ class PhysicalUiTalk extends StatelessWidget {
             ...whatNextSlides,
 
             BigQuoteTemplate(title: Text("Part 3: Haptic")),
-            HapticSlide(),
+
             MotionCharacterSlide(),
             BigQuoteTemplate(title: Text("Part 2: Audio & Haptics")),
             AudioCategorySlide(),

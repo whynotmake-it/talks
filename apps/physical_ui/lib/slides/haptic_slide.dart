@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:wnma_talk/content_slide_template.dart';
+import 'package:wnma_talk/video.dart';
 import 'package:wnma_talk/wnma_talk.dart';
 
 class HapticSlide extends FlutterDeckSlideWidget {
@@ -16,25 +17,19 @@ class HapticSlide extends FlutterDeckSlideWidget {
     return ContentSlideTemplate(
       title: const Text('Haptic Feedback'),
       mainContent: const Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
-          Expanded(
-            child: _HapticColumn(
-              title: 'Contact',
-              imagePath: 'assets/keyboard.png',
-            ),
+          _HapticColumn(
+            title: 'Contact',
+            videoPath: 'assets/contact.MP4',
           ),
-          Expanded(
-            child: _HapticColumn(
-              title: 'Confirm',
-              imagePath: 'assets/faceid.png',
-            ),
+          _HapticColumn(
+            title: 'Confirm',
+            videoPath: 'assets/confirm.MP4',
           ),
-          Expanded(
-            child: _HapticColumn(
-              title: 'Continuity',
-              imagePath: 'assets/timers.png',
-            ),
+          _HapticColumn(
+            title: 'Continuity',
+            videoPath: 'assets/continuity.MP4',
           ),
         ],
       ),
@@ -46,31 +41,33 @@ class HapticSlide extends FlutterDeckSlideWidget {
 class _HapticColumn extends StatelessWidget {
   const _HapticColumn({
     required this.title,
-    required this.imagePath,
+    required this.videoPath,
   });
 
   final String title;
-  final String imagePath;
+  final String videoPath;
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 24),
-      child: Column(
-        children: [
-          Text(
-            title,
-            style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-              fontWeight: FontWeight.bold,
-            ),
+    return Column(
+      spacing: 24,
+      children: [
+        Text(
+          title,
+          style: Theme.of(context).textTheme.headlineLarge?.copyWith(
+            fontWeight: FontWeight.bold,
           ),
-          const SizedBox(height: 32),
-          Image.asset(
-            imagePath,
-            height: 600,
+        ),
+
+        SizedBox(
+          height: 2778 /4,
+          width: 1284/4,
+          child: Video(
+            assetKey: videoPath,
+   
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }

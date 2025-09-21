@@ -21,7 +21,7 @@ class SingleContentSlideTemplate extends FlutterDeckSlideWidget {
       builder: (context) => ColoredBox(
         color: colorScheme.surface,
         child: Padding(
-          padding: const EdgeInsets.all(100),
+          padding: const EdgeInsets.all(72),
           child: DefaultTextStyle(
             style: theme.textTheme.bodyLarge.copyWith(
               color: colorScheme.onSurfaceVariant,

@@ -36,7 +36,7 @@ class ContentSlideTemplate extends FlutterDeckSlideWidget {
         color: colorScheme.surface,
         child: SlideNumber(
           child: Padding(
-            padding: const EdgeInsets.all(100),
+            padding: const EdgeInsets.all(72),
             child: DefaultTextStyle(
               style: theme.textTheme.bodyLarge.copyWith(
                 color: colorScheme.onSurfaceVariant,
