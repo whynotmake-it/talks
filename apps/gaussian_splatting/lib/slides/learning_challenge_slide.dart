@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:wnma_talk/animated_element.dart';
+import 'package:wnma_talk/animated_visibility.dart';
 import 'package:wnma_talk/content_slide_template.dart';
 import 'package:wnma_talk/wnma_talk.dart';
 
@@ -8,7 +9,7 @@ class LearningChallengeSlide extends FlutterDeckSlideWidget {
     : super(
         configuration: const FlutterDeckSlideConfiguration(
           route: '/learning-challenge',
-          steps: 3,
+          steps: 4,
         ),
       );
 
@@ -38,13 +39,20 @@ class LearningChallengeSlide extends FlutterDeckSlideWidget {
                     child: _DifferentiableRenderingSection(
                       theme: theme,
                       colorScheme: colorScheme,
+                      step: stepNumber,
                     ),
                   ),
                 ],
               ),
 
-              // Fullscreen backpropagation overlay
               if (stepNumber == 2)
+                _GradientDescentOverlay(
+                  theme: theme,
+                  colorScheme: colorScheme,
+                ),
+
+              // Fullscreen backpropagation overlay
+              if (stepNumber == 3)
                 _BackpropagationOverlay(
                   theme: theme,
                   colorScheme: colorScheme,
@@ -60,10 +68,12 @@ class LearningChallengeSlide extends FlutterDeckSlideWidget {
 class _DifferentiableRenderingSection extends StatelessWidget {
   const _DifferentiableRenderingSection({
     required this.theme,
+    required this.step,
     required this.colorScheme,
   });
 
   final FlutterDeckThemeData theme;
+  final int step;
   final ColorScheme colorScheme;
 
   @override
@@ -72,7 +82,7 @@ class _DifferentiableRenderingSection extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const SizedBox(height: 60),
-    
+
         // Bullet points
         AnimatedElement(
           visible: true,
@@ -80,10 +90,12 @@ class _DifferentiableRenderingSection extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _BulletPoint(
-                text: 'Optimization based on images',
-                theme: theme,
-                colorScheme: colorScheme,
+              AnimatedVisibility(
+                child: _BulletPoint(
+                  text: 'Optimization based on images',
+                  theme: theme,
+                  colorScheme: colorScheme,
+                ),
               ),
               const SizedBox(height: 20),
               _BulletPoint(
@@ -154,7 +166,6 @@ class _BulletPoint extends StatelessWidget {
     return SizedBox(
       width: 600,
       child: Row(
-
         children: [
           Container(
             width: 8,
@@ -169,7 +180,6 @@ class _BulletPoint extends StatelessWidget {
             child: DefaultTextStyle.merge(
               style: theme.textTheme.bodyLarge.copyWith(
                 color: colorScheme.onSurface,
-         
               ),
               child: Text(
                 text,
@@ -203,6 +213,35 @@ class _BackpropagationOverlay extends StatelessWidget {
             stagger: 0,
             child: Image.asset(
               'assets/backpropagation.png',
+              fit: BoxFit.contain,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _GradientDescentOverlay extends StatelessWidget {
+  const _GradientDescentOverlay({
+    required this.theme,
+    required this.colorScheme,
+  });
+
+  final FlutterDeckThemeData theme;
+  final ColorScheme colorScheme;
+
+  @override
+  Widget build(BuildContext context) {
+    return Positioned.fill(
+      child: ColoredBox(
+        color: Theme.of(context).colorScheme.surface,
+        child: Center(
+          child: AnimatedElement(
+            visible: true,
+            stagger: 0,
+            child: Image.asset(
+              'assets/gradient_descent.png',
               fit: BoxFit.contain,
             ),
           ),

@@ -22,7 +22,6 @@ class RenderingSlide6 extends FlutterDeckSlideWidget {
         textAlign: TextAlign.left,
       ),
       mainContent: CodeHighlight(
- 
         code: '''
 in vec2 vUV;       // interpolated across the stretched quad
 in vec4 vColor;    // sRGB color + base alpha
@@ -41,8 +40,7 @@ void main() {
   frag = vec4(vColor.rgb * w, a);
 }
   ''',
-        filename: 'splat_draw_pass.dart',
-        
+        filename: 'fragment.glsl',
       ),
 
       secondaryContent: Image.asset(
