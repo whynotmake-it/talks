@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:gaussian_splatting/slides/ar_video_slide.dart';
 import 'package:gaussian_splatting/slides/classic_rendering_slide.dart';
 import 'package:gaussian_splatting/slides/food_video_slide.dart';
-import 'package:gaussian_splatting/slides/gaussian_splatting_overview_slide.dart';
 import 'package:gaussian_splatting/slides/gaussian_splatting_slide.dart';
+import 'package:gaussian_splatting/slides/gaussian_splatting_slide2.dart';
 import 'package:gaussian_splatting/slides/gs_demo_slide.dart';
 import 'package:gaussian_splatting/slides/how_to_slide.dart';
 import 'package:gaussian_splatting/slides/implementation_slide.dart';
@@ -13,7 +13,6 @@ import 'package:gaussian_splatting/slides/maps_video_slide.dart';
 import 'package:gaussian_splatting/slides/nerf_slide.dart';
 import 'package:gaussian_splatting/slides/novel_view_syn_slide.dart';
 import 'package:gaussian_splatting/slides/radiance_field_slide.dart';
-import 'package:gaussian_splatting/slides/rendering_slide_1.dart';
 import 'package:gaussian_splatting/slides/rendering_slide_2.dart';
 import 'package:gaussian_splatting/slides/rendering_slide_3.dart';
 import 'package:gaussian_splatting/slides/rendering_slide_4.dart';
@@ -61,9 +60,9 @@ class GaussianSplattingTalk extends StatelessWidget {
             RadianceFieldSlide(),
             NerfSlide(),
             GaussianSplattingSlide(),
-            GaussianSplattingOverviewSlide(),
+            GaussianSplattingSlide2(),
             ImplementationSlide(),
-            RenderingSlide1(),
+            // RenderingSlide1(),
             RenderingSlide2(),
             RenderingSlide3(),
             RenderingSlide4(),

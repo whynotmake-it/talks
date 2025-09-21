@@ -1,14 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_gaussian_splatter/widgets/gaussian_splatter_widget.dart';
 import 'package:gaussian_splatting/shared/citation_container.dart';
 import 'package:wnma_talk/animated_element.dart';
 import 'package:wnma_talk/wnma_talk.dart';
 
-class GaussianSplattingSlide extends FlutterDeckSlideWidget {
-  const GaussianSplattingSlide({super.key})
+class GaussianSplattingSlide2 extends FlutterDeckSlideWidget {
+  const GaussianSplattingSlide2({super.key})
     : super(
         configuration: const FlutterDeckSlideConfiguration(
-          route: '/gaussian-splatting',
+          route: '/gaussian-splatting2',
           steps: 3,
         ),
       );
@@ -41,7 +40,9 @@ class GaussianSplattingSlide extends FlutterDeckSlideWidget {
                     ),
                   ),
                 ),
+
                 const SizedBox(height: 32),
+
                 // First row: splat_banana -> rasterizer -> banana
                 Expanded(
                   flex: 4,
@@ -106,25 +107,11 @@ class _FirstRow extends StatelessWidget {
             stagger: 1,
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
-              children: const [
-                SizedBox(
-                  height: 400,
-                  width: 500,
-                  child: Stack(
-                    clipBehavior: Clip.none,
-                    children: [
-                      Positioned(
-                        top: -200,
-                        bottom: -200,
-                        width: 800,
-                        child: GaussianSplatterWidget(
-                          assetPath:
-                              'assets/gs_two_splats_with_and_without_sh_logscaled.ply',
-                          disableAlphaWrite: false,
-                        ),
-                      ),
-                    ],
-                  ),
+              children: [
+                Image.asset(
+                  'assets/splat_banana.png',
+                  height: 550,
+                  fit: BoxFit.contain,
                 ),
               ],
             ),
@@ -134,7 +121,7 @@ class _FirstRow extends StatelessWidget {
         // Arrow and rasterizer label (step 3)
         Expanded(
           child: AnimatedElement(
-            visible: stepNumber >= 3,
+            visible: stepNumber >= 2,
             stagger: 2,
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -156,7 +143,7 @@ class _FirstRow extends StatelessWidget {
                     border: Border.all(color: colorScheme.primary),
                   ),
                   child: Text(
-                    'OPTIMIZE',
+                    'RASTERIZER',
                     style: theme.textTheme.bodyMedium.copyWith(
                       color: colorScheme.primary,
                       fontSize: 18,
@@ -178,12 +165,14 @@ class _FirstRow extends StatelessWidget {
         // Final banana (step 3)
         Expanded(
           child: AnimatedElement(
-            visible: stepNumber >= 3,
+            visible: stepNumber >= 2,
             stagger: 3,
-            child: Image.asset(
-              'assets/splat_banana.png',
-              height: 550,
-              fit: BoxFit.contain,
+            child: Transform.scale(
+              scale: 1.8,
+              child: Image.asset(
+                'assets/banana.png',
+                fit: BoxFit.fitHeight,
+              ),
             ),
           ),
         ),
@@ -208,70 +197,34 @@ class _SecondRow extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: [
-        // Bracket and properties (step 2)
+
         AnimatedElement(
-          visible: stepNumber >= 2,
-          stagger: 2,
-          child: Row(
+          visible: stepNumber >= 3,
+          stagger: 0,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
-              // Bracket
-              SizedBox(
-                width: 40,
-                height: 200,
-                child: CustomPaint(
-                  painter: _BracketPainter(colorScheme.onSurface),
+              Text(
+                'Storage: ~20 MB',
+                style: theme.textTheme.bodyLarge.copyWith(
+                  color: colorScheme.onSurfaceVariant,
                 ),
               ),
-
-              const SizedBox(width: 20),
-
-              // Properties column
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  _PropertyItem(
-                    number: '1.',
-                    property: 'xyz → position',
-                    theme: theme,
-                    colorScheme: colorScheme,
-                  ),
-                  const SizedBox(height: 12),
-                  _PropertyItem(
-                    number: '2.',
-                    property: 'rotation',
-                    theme: theme,
-                    colorScheme: colorScheme,
-                  ),
-                  const SizedBox(height: 12),
-                  _PropertyItem(
-                    number: '3.',
-                    property: 'scale',
-                    theme: theme,
-                    colorScheme: colorScheme,
-                  ),
-                  const SizedBox(height: 12),
-                  _PropertyItem(
-                    number: '4.',
-                    property: 'opacity',
-                    theme: theme,
-                    colorScheme: colorScheme,
-                  ),
-                  const SizedBox(height: 12),
-                  _PropertyItem(
-                    number: '5.',
-                    property: 'color',
-                    theme: theme,
-                    colorScheme: colorScheme,
-                  ),
-                ],
+              Text(
+                'Explicit Representation',
+                style: theme.textTheme.bodyLarge.copyWith(
+                  color: colorScheme.onSurfaceVariant,
+                ),
+              ),
+              Text(
+                'Fast to render',
+                style: theme.textTheme.bodyLarge.copyWith(
+                  color: Colors.green.shade700,
+                ),
               ),
             ],
           ),
         ),
-       SizedBox(
-        width: 600,
-       )
       ],
     );
   }
