@@ -71,6 +71,16 @@ class MotionCharacterColumn extends HookWidget {
   final String emoji;
   final Motion motion;
 
+  String _getMotionDescription() {
+    if (motion is CupertinoMotion) {
+      final cupertinoMotion = motion as CupertinoMotion;
+      final durationMs = cupertinoMotion.duration.inMilliseconds;
+      final bounce = cupertinoMotion.bounce;
+      return 'Duration: ${durationMs}ms\nBounce: ${bounce.toStringAsFixed(2)}';
+    }
+    return 'Unknown motion type';
+  }
+
   @override
   Widget build(BuildContext context) {
     final playing = useState(false);
@@ -91,7 +101,7 @@ class MotionCharacterColumn extends HookWidget {
 
       playing.value = true;
 
-      target.value = const Offset(0, 250);
+      target.value = const Offset(0, 200);
 
       // Fade out spring after a short delay (only on first click)
       Future.delayed(const Duration(milliseconds: 200), () {
@@ -109,6 +119,17 @@ class MotionCharacterColumn extends HookWidget {
             style: Theme.of(context).textTheme.headlineLarge?.copyWith(),
           ),
           const SizedBox(height: 8),
+          
+          // Motion parameters
+          Text(
+            _getMotionDescription(),
+            style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+              height: 1.3,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 16),
 
           // Animation area
           Expanded(
@@ -142,7 +163,7 @@ class MotionCharacterColumn extends HookWidget {
                             painter: SpringPainter(
                               start: const Offset(
                                 0,
-                                350,
+                                300,
                               ), 
                               end: value,
                               color: Theme.of(
