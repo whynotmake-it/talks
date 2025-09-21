@@ -373,7 +373,7 @@ import 'dart:ui';
 import 'package:flutter_shaders/flutter_shaders.dart';
 
 final myShaderProgram = await FragmentProgram.fromAsset(
-  'shaders/my_shader.glsl',
+  'shaders/my_shader.frag',
 );
 
 AnimatedSampler(
