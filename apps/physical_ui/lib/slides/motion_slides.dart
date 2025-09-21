@@ -44,20 +44,26 @@ and responsive...
     ),
     motion: CurvedMotion(0.8.seconds, Curves.ease),
   ),
+
   MotionSlideTemplate(
     title: 'Curves and Easing',
     description: const Text(
       '''
-...but they can feel weird when used to respond to user gestures.
+... but you have to make sure to use the right curve, the right way around. 
 ''',
     ),
-    motion: CurvedMotion(0.8.seconds, Curves.ease),
+
+    motion: ReverseCurveMotion(
+      0.8.seconds,
+      Curves.ease,
+      Curves.ease.flipped,
+    ),
   ),
   MotionSlideTemplate(
     title: 'Curves and Easing',
     description: const Text(
       '''
-Curves are also often used in reverse where they shouldn't be. 
+And they don't respond well to user gestures.
 ''',
     ),
     motion: ReverseCurveMotion(

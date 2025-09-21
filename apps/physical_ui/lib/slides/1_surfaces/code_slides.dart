@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:physical_ui/slides/1_surfaces/decorative_gradient.dart';
 import 'package:physical_ui/slides/1_surfaces/surface.dart';
+import 'package:physical_ui/slides/magnifier_slide.dart';
 import 'package:rivership/rivership.dart';
 import 'package:wnma_talk/big_quote_template.dart';
 import 'package:wnma_talk/code_highlight.dart';
@@ -17,6 +18,7 @@ final surfacesCodeSlides = [
   SurfaceWithShadowSlide(),
   PhysicalModelSlide(),
   CustomPainterSlide(),
+  MagnifierSlide(),
   ShadersSlide(),
 ];
 

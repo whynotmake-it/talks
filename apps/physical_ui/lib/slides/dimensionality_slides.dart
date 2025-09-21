@@ -294,8 +294,8 @@ const _standardAnimationPseudocode = '''
 animationController.animateWith(
   SpringSimulation(
     springDescription,
-    1,
     0,
+    1,
     relativeVelocity,
   ),
 );
