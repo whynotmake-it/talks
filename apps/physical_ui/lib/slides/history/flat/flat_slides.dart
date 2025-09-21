@@ -1,17 +1,19 @@
 import 'package:flutter/cupertino.dart';
-import 'package:physical_ui/slides/history/slides/material_notes_flat_slide.dart';
+import 'package:physical_ui/slides/history/slides/flat_transition_slide.dart';
 import 'package:wnma_talk/animated_visibility.dart';
 import 'package:wnma_talk/content_slide_template.dart';
+import 'package:wnma_talk/slide_number.dart';
 import 'package:wnma_talk/video.dart';
 import 'package:wnma_talk/wnma_talk.dart';
 
-final flatSlides = [FlatDesignSlide(), MaterialNotesFlatSlide()];
+final flatSlides = [FlatDesignSlide(), FlatTransitionSlide()];
 
 class FlatDesignSlide extends FlutterDeckSlideWidget {
   FlatDesignSlide({super.key})
     : super(
         configuration: FlutterDeckSlideConfiguration(
           route: '/history/what_next/flat_design',
+          speakerNotes: timSlideNotesHeader,
         ),
       );
 

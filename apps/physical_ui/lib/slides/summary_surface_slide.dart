@@ -2,16 +2,18 @@ import 'package:flutter/material.dart';
 import 'package:physical_ui/slides/1_surfaces/surface.dart';
 import 'package:wnma_talk/bullet_point.dart';
 import 'package:wnma_talk/content_slide_template.dart';
+import 'package:wnma_talk/slide_number.dart';
 import 'package:wnma_talk/wnma_talk.dart';
 
 class SummarySurfaceSlide extends FlutterDeckSlideWidget {
   const SummarySurfaceSlide({super.key})
-      : super(
-          configuration: const FlutterDeckSlideConfiguration(
-            route: '/surface-summary',
-            steps: 4,
-          ),
-        );
+    : super(
+        configuration: const FlutterDeckSlideConfiguration(
+          route: '/surface-summary',
+          steps: 4,
+          speakerNotes: jesperSlideNotesHeader,
+        ),
+      );
 
   @override
   Widget build(BuildContext context) {

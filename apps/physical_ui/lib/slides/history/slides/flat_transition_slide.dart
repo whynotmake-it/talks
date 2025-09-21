@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:rivership/rivership.dart';
+import 'package:wnma_talk/slide_number.dart';
 import 'package:wnma_talk/wnma_talk.dart';
 
 // -------- State --------
@@ -29,12 +30,13 @@ class _NotesController extends StateNotifier<List<String>> {
 }
 
 // -------- Slide (2 steps: 1 windows → 2 iOS) --------
-class MaterialNotesFlatSlide extends FlutterDeckSlideWidget {
-  const MaterialNotesFlatSlide({super.key})
+class FlatTransitionSlide extends FlutterDeckSlideWidget {
+  const FlatTransitionSlide({super.key})
     : super(
         configuration: const FlutterDeckSlideConfiguration(
           route: '/history/material-notes',
           steps: 2, // 1: show Windows, 2: show iOS
+          speakerNotes: timSlideNotesHeader,
         ),
       );
 
@@ -219,8 +221,6 @@ class _FlyInCard extends StatelessWidget {
     );
   }
 }
-
-
 
 class _NotesDemoScreen extends HookConsumerWidget {
   const _NotesDemoScreen({required this.runDemo});

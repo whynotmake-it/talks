@@ -3,6 +3,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:motor/motor.dart';
 import 'package:physical_ui/slides/motion/spring_visualizer.dart';
 import 'package:wnma_talk/content_slide_template.dart';
+import 'package:wnma_talk/slide_number.dart';
 import 'package:wnma_talk/wnma_talk.dart';
 
 class MotionCharacterSlide extends FlutterDeckSlideWidget {
@@ -11,6 +12,7 @@ class MotionCharacterSlide extends FlutterDeckSlideWidget {
         configuration: const FlutterDeckSlideConfiguration(
           title: 'Motion Characters',
           route: '/motion-characters',
+          speakerNotes: jesperSlideNotesHeader,
         ),
       );
 
@@ -119,7 +121,7 @@ class MotionCharacterColumn extends HookWidget {
             style: Theme.of(context).textTheme.headlineLarge?.copyWith(),
           ),
           const SizedBox(height: 8),
-          
+
           // Motion parameters
           Text(
             _getMotionDescription(),
@@ -164,7 +166,7 @@ class MotionCharacterColumn extends HookWidget {
                               start: const Offset(
                                 0,
                                 300,
-                              ), 
+                              ),
                               end: value,
                               color: Theme.of(
                                 context,

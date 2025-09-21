@@ -2,6 +2,7 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:rivership/rivership.dart';
+import 'package:wnma_talk/slide_number.dart';
 import 'package:wnma_talk/video.dart';
 import 'package:wnma_talk/wnma_talk.dart';
 
@@ -11,41 +12,44 @@ class GlassSlide extends FlutterDeckSlideWidget {
         configuration: const FlutterDeckSlideConfiguration(
           route: '/glass',
           steps: 2,
+          speakerNotes: timSlideNotesHeader,
         ),
       );
 
   @override
   Widget build(BuildContext context) {
     return FlutterDeckSlide.custom(
-      builder: (context) => FlutterDeckSlideStepsBuilder(
-        builder: (context, step) {
-          return Stack(
-            children: [
-              Positioned.fill(
-                child: SingleMotionBuilder(
-                  motion: CupertinoMotion.smooth(),
-                  value: step == 1 ? 0.0 : 20.0,
-                  child: Video(
-                    assetKey: 'assets/glass.mp4',
-                    play: step == 1,
-                  ),
-                  builder: (context, value, child) => ImageFiltered(
-                    imageFilter: ImageFilter.blur(
-                      tileMode: TileMode.mirror,
-                      sigmaX: value,
-                      sigmaY: value,
+      builder: (context) => SlideNumber(
+        child: FlutterDeckSlideStepsBuilder(
+          builder: (context, step) {
+            return Stack(
+              children: [
+                Positioned.fill(
+                  child: SingleMotionBuilder(
+                    motion: CupertinoMotion.smooth(),
+                    value: step == 1 ? 0.0 : 20.0,
+                    child: Video(
+                      assetKey: 'assets/glass.mp4',
+                      play: step == 1,
                     ),
-                    child: child,
+                    builder: (context, value, child) => ImageFiltered(
+                      imageFilter: ImageFilter.blur(
+                        tileMode: TileMode.mirror,
+                        sigmaX: value,
+                        sigmaY: value,
+                      ),
+                      child: child,
+                    ),
                   ),
                 ),
-              ),
-              Padding(
-                padding: const EdgeInsets.all(100),
-                child: _Comments(hidden: step == 1),
-              ),
-            ],
-          );
-        },
+                Padding(
+                  padding: const EdgeInsets.all(100),
+                  child: _Comments(hidden: step == 1),
+                ),
+              ],
+            );
+          },
+        ),
       ),
     );
   }

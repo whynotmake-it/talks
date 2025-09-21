@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:rivership/rivership.dart';
 import 'package:wnma_talk/content_slide_template.dart';
+import 'package:wnma_talk/slide_number.dart';
 import 'package:wnma_talk/wnma_talk.dart';
 
 class BoxStossSlide extends FlutterDeckSlideWidget {
@@ -9,6 +10,7 @@ class BoxStossSlide extends FlutterDeckSlideWidget {
         configuration: const FlutterDeckSlideConfiguration(
           title: "What's missing here?",
           route: '/box-stoss',
+          speakerNotes: jesperSlideNotesHeader,
         ),
       );
 

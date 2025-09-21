@@ -2,15 +2,23 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:just_audio/just_audio.dart';
+import 'package:wnma_talk/slide_number.dart';
 import 'package:wnma_talk/wnma_talk.dart';
 
 class SoundHapticsSlide extends FlutterDeckSlideWidget {
-  const SoundHapticsSlide({super.key});
+  const SoundHapticsSlide({super.key})
+    : super(
+        configuration: const FlutterDeckSlideConfiguration(
+          route: '/audio/sound-haptics',
+          title: 'Audio as Haptic Proxy',
+          speakerNotes: jesperSlideNotesHeader,
+        ),
+      );
 
   @override
   Widget build(BuildContext context) {
     return FlutterDeckSlide.custom(
-      builder: (context) => const _SoundHapticsContent(),
+      builder: (context) => SlideNumber(child: const _SoundHapticsContent()),
     );
   }
 }
@@ -101,7 +109,6 @@ class _SoundHapticsContent extends HookWidget {
                             ),
                           ),
                           child: CupertinoDatePicker(
-                            
                             mode: CupertinoDatePickerMode.date,
                             initialDateTime: selectedDate.value,
                             onDateTimeChanged: (DateTime newDate) {

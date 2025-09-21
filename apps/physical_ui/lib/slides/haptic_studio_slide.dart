@@ -4,6 +4,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:wnma_talk/single_content_slide_template.dart';
+import 'package:wnma_talk/slide_number.dart';
 import 'package:wnma_talk/video.dart';
 import 'package:wnma_talk/wnma_talk.dart';
 
@@ -14,6 +15,7 @@ class HapticStudioSlide extends FlutterDeckSlideWidget {
           title: 'Haptics Studio',
           route: '/haptic-studio',
           steps: 3,
+          speakerNotes: timSlideNotesHeader,
         ),
       );
 

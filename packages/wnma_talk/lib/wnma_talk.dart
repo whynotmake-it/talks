@@ -4,6 +4,7 @@ library wnma_talk;
 import 'package:flex_seed_scheme/flex_seed_scheme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_deck/flutter_deck.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:wnmi_design/wnmi_design.dart';
 
 export 'package:device_frame/device_frame.dart';
@@ -20,7 +21,12 @@ FlutterDeckThemeData buildTalkTheme() {
       colorScheme: colorScheme,
     ),
     textTheme,
+  ).copyWith(
+    codeHighlightTheme: FlutterDeckCodeHighlightThemeData(
+      textStyle: GoogleFonts.sourceCodePro(),
+    ),
   );
+  ;
 }
 
 ColorScheme _buildColorScheme() {
@@ -49,6 +55,10 @@ FlutterDeckThemeData buildGaussianSplattingTheme() {
       colorScheme: colorScheme,
     ),
     textTheme,
+  ).copyWith(
+    codeHighlightTheme: FlutterDeckCodeHighlightThemeData(
+      textStyle: GoogleFonts.sourceCodePro(),
+    ),
   );
 }
 

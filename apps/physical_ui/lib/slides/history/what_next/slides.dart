@@ -19,6 +19,7 @@ class VisionProUiSlide extends FlutterDeckSlideWidget {
     : super(
         configuration: FlutterDeckSlideConfiguration(
           route: '/history/what_next/vision_pro_ui',
+          speakerNotes: jesperSlideNotesHeader,
         ),
       );
 
@@ -81,6 +82,7 @@ class ReturnToSkeumorphismSlide extends FlutterDeckSlideWidget {
     : super(
         configuration: FlutterDeckSlideConfiguration(
           route: '/history/what_next/return_to_skeumorphism',
+          speakerNotes: timSlideNotesHeader,
         ),
       );
 
@@ -180,6 +182,7 @@ class ComputingPowerSlide extends FlutterDeckSlideWidget {
     : super(
         configuration: FlutterDeckSlideConfiguration(
           route: '/history/what_next/computing_power',
+          speakerNotes: jesperSlideNotesHeader,
         ),
       );
 
@@ -209,6 +212,7 @@ class NotSoFastSlide extends FlutterDeckSlideWidget {
     : super(
         configuration: FlutterDeckSlideConfiguration(
           route: '/history/what_next/not_so_fast',
+          speakerNotes: timSlideNotesHeader,
         ),
       );
 
@@ -247,6 +251,7 @@ class NotSoFastSlide2 extends FlutterDeckSlideWidget {
     : super(
         configuration: FlutterDeckSlideConfiguration(
           route: '/history/what_next/not_so_fast2',
+          speakerNotes: timSlideNotesHeader,
         ),
       );
 

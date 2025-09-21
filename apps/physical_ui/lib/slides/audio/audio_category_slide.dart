@@ -1,15 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:just_audio/just_audio.dart';
+import 'package:wnma_talk/slide_number.dart';
 import 'package:wnma_talk/wnma_talk.dart';
 
 class AudioCategorySlide extends FlutterDeckSlideWidget {
-  const AudioCategorySlide({super.key});
+  const AudioCategorySlide({super.key})
+    : super(
+        configuration: const FlutterDeckSlideConfiguration(
+          title: 'Audio Categories',
+          route: '/audio-categories',
+          speakerNotes: jesperSlideNotesHeader,
+        ),
+      );
 
   @override
   Widget build(BuildContext context) {
     return FlutterDeckSlide.custom(
-      builder: (context) => const _AudioCategoryContent(),
+      builder: (context) => SlideNumber(child: const _AudioCategoryContent()),
     );
   }
 }
@@ -22,7 +30,7 @@ class _AudioCategoryContent extends HookWidget {
     final currentlyPlaying = useState<String?>(null);
     final audioPlayer = useMemoized(AudioPlayer.new);
     final playerState = useState<PlayerState?>(null);
-    
+
     // Listen to player state changes
     useEffect(() {
       final subscription = audioPlayer.playerStateStream.listen((state) {
@@ -32,18 +40,18 @@ class _AudioCategoryContent extends HookWidget {
           currentlyPlaying.value = null;
         }
       });
-      
+
       return subscription.cancel;
     }, [audioPlayer]);
-    
+
     // Dispose audio player when widget is disposed
     useEffect(() {
       return audioPlayer.dispose;
     }, []);
-    
+
     Future<void> playSound(String soundPath) async {
       try {
-        if (currentlyPlaying.value == soundPath && 
+        if (currentlyPlaying.value == soundPath &&
             playerState.value?.playing == true) {
           // Stop if already playing
           await audioPlayer.stop();
@@ -83,22 +91,26 @@ class _AudioCategoryContent extends HookWidget {
                       _AudioItem(
                         name: 'System Start',
                         path: 'assets/windows_start.mp3',
-                        isPlaying: currentlyPlaying.value == 'assets/windows_start.mp3' && 
-                                   playerState.value?.playing == true,
+                        isPlaying:
+                            currentlyPlaying.value ==
+                                'assets/windows_start.mp3' &&
+                            playerState.value?.playing == true,
                         onTap: () => playSound('assets/windows_start.mp3'),
                       ),
                       _AudioItem(
                         name: 'Goodbye',
                         path: 'assets/windows_off.mp3',
-                        isPlaying: currentlyPlaying.value == 'assets/windows_off.mp3' && 
-                                   playerState.value?.playing == true,
+                        isPlaying:
+                            currentlyPlaying.value ==
+                                'assets/windows_off.mp3' &&
+                            playerState.value?.playing == true,
                         onTap: () => playSound('assets/windows_off.mp3'),
                       ),
                     ],
                   ),
                 ),
                 const SizedBox(width: 60),
-                
+
                 // Passive Sounds Column
                 Expanded(
                   child: _AudioCategory(
@@ -107,35 +119,39 @@ class _AudioCategoryContent extends HookWidget {
                       _AudioItem(
                         name: 'Call for Attention',
                         path: 'assets/iphone_ringtone.mp3',
-                        isPlaying: currentlyPlaying.value == 'assets/iphone_ringtone.mp3' && 
-                                   playerState.value?.playing == true,
+                        isPlaying:
+                            currentlyPlaying.value ==
+                                'assets/iphone_ringtone.mp3' &&
+                            playerState.value?.playing == true,
                         onTap: () => playSound('assets/iphone_ringtone.mp3'),
                       ),
                     ],
                   ),
                 ),
                 const SizedBox(width: 60),
-                
+
                 // Active Sounds Column
                 Expanded(
                   child: _AudioCategory(
                     title: 'Active Sounds',
                     sounds: [
-                                 _AudioItem(
+                      _AudioItem(
                         name: 'Amplify Meaning',
                         path: 'assets/error.mp3',
-                        isPlaying: currentlyPlaying.value == 'assets/error.mp3' && 
-                                   playerState.value?.playing == true,
+                        isPlaying:
+                            currentlyPlaying.value == 'assets/error.mp3' &&
+                            playerState.value?.playing == true,
                         onTap: () => playSound('assets/error.mp3'),
                       ),
                       _AudioItem(
                         name: 'Amplify Physicality',
                         path: 'assets/iphone_keyboard.mp3',
-                        isPlaying: currentlyPlaying.value == 'assets/iphone_keyboard.mp3' && 
-                                   playerState.value?.playing == true,
+                        isPlaying:
+                            currentlyPlaying.value ==
+                                'assets/iphone_keyboard.mp3' &&
+                            playerState.value?.playing == true,
                         onTap: () => playSound('assets/iphone_keyboard.mp3'),
                       ),
-                
                     ],
                   ),
                 ),
@@ -194,7 +210,7 @@ class _AudioItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = FlutterDeckTheme.of(context);
-    
+
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -208,16 +224,18 @@ class _AudioItem extends StatelessWidget {
               color: theme.materialTheme.colorScheme.outline,
               width: 2,
             ),
-            color: isPlaying 
+            color: isPlaying
                 ? theme.materialTheme.colorScheme.primaryContainer
                 : theme.materialTheme.colorScheme.surface,
           ),
           child: Row(
             children: [
               Icon(
-                isPlaying ? Icons.pause_circle_filled : Icons.play_circle_filled,
+                isPlaying
+                    ? Icons.pause_circle_filled
+                    : Icons.play_circle_filled,
                 size: 48,
-                color: isPlaying 
+                color: isPlaying
                     ? theme.materialTheme.colorScheme.primary
                     : theme.materialTheme.colorScheme.onSurface,
               ),
@@ -226,7 +244,7 @@ class _AudioItem extends StatelessWidget {
                 child: Text(
                   name,
                   style: theme.textTheme.bodyMedium.copyWith(
-                    color: isPlaying 
+                    color: isPlaying
                         ? theme.materialTheme.colorScheme.onPrimaryContainer
                         : theme.materialTheme.colorScheme.onSurface,
                   ),
@@ -238,4 +256,4 @@ class _AudioItem extends StatelessWidget {
       ),
     );
   }
-} 
+}

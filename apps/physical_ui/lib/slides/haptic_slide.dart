@@ -1,16 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:wnma_talk/content_slide_template.dart';
+import 'package:wnma_talk/slide_number.dart';
 import 'package:wnma_talk/video.dart';
 import 'package:wnma_talk/wnma_talk.dart';
 
 class HapticSlide extends FlutterDeckSlideWidget {
   const HapticSlide({super.key})
-      : super(
-          configuration: const FlutterDeckSlideConfiguration(
-            title: 'Haptic Feedback',
-            route: '/haptic-feedback',
-          ),
-        );
+    : super(
+        configuration: const FlutterDeckSlideConfiguration(
+          title: 'Haptic Feedback',
+          route: '/haptic-feedback',
+          speakerNotes: timSlideNotesHeader,
+        ),
+      );
 
   @override
   Widget build(BuildContext context) {
@@ -33,7 +35,6 @@ class HapticSlide extends FlutterDeckSlideWidget {
           ),
         ],
       ),
-     
     );
   }
 }
@@ -60,11 +61,10 @@ class _HapticColumn extends StatelessWidget {
         ),
 
         SizedBox(
-          height: 2778 /4,
-          width: 1284/4,
+          height: 2778 / 4,
+          width: 1284 / 4,
           child: Video(
             assetKey: videoPath,
-   
           ),
         ),
       ],

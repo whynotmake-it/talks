@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:wnma_talk/code_highlight.dart';
 import 'package:wnma_talk/single_content_slide_template.dart';
+import 'package:wnma_talk/slide_number.dart';
 import 'package:wnma_talk/wnma_talk.dart';
-
 
 // Why a RenderObject (not CustomPainter)
 // Backdrop sampling: only a render object can pushLayer(BackdropFilterLayer) to transform what’s already painted. A CustomPainter can’t read the backdrop.
@@ -15,6 +15,7 @@ class MagnifierSlide extends FlutterDeckSlideWidget {
         configuration: const FlutterDeckSlideConfiguration(
           title: 'RawMagnifier',
           route: '/magnifier',
+          speakerNotes: timSlideNotesHeader,
         ),
       );
 
@@ -101,8 +102,6 @@ class _MagnifierDemoState extends State<MagnifierDemo> {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-     
-    
         // Demo Area
         Expanded(
           child: RepaintBoundary(
@@ -129,7 +128,7 @@ class _MagnifierDemoState extends State<MagnifierDemo> {
                     ),
                   ),
                 ),
-    
+
                 // Magnifier
                 if (showMagnifier)
                   Positioned(
@@ -162,10 +161,7 @@ class _MagnifierDemoState extends State<MagnifierDemo> {
             ),
           ),
         ),
-    
-        
       ],
     );
   }
 }
-

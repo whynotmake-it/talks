@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:wnma_talk/animated_visibility.dart';
 import 'package:wnma_talk/bullet_point.dart';
 import 'package:wnma_talk/content_slide_template.dart';
+import 'package:wnma_talk/slide_number.dart';
 import 'package:wnma_talk/wnma_talk.dart';
 
 class SimulationVsCurveSlide extends FlutterDeckSlideWidget {
@@ -10,6 +11,7 @@ class SimulationVsCurveSlide extends FlutterDeckSlideWidget {
         configuration: FlutterDeckSlideConfiguration(
           route: '/simulation_vs_curve',
           steps: 5,
+          speakerNotes: timSlideNotesHeader,
         ),
       );
 

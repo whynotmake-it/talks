@@ -12,6 +12,7 @@ import 'package:physical_ui/slides/motion/spring_visualizer.dart';
 import 'package:rivership/rivership.dart';
 import 'package:wnma_talk/code_highlight.dart';
 import 'package:wnma_talk/content_slide_template.dart';
+import 'package:wnma_talk/slide_number.dart';
 import 'package:wnma_talk/wnma_talk.dart';
 
 final motionSlides = [
@@ -24,6 +25,7 @@ Transitions without motion feel jarring and unnatural.
     ),
     motion: CurvedMotion(.5.seconds, Interval(0, 0.0001)),
     filterIdentical: false,
+    speakerNotes: jesperSlideNotesHeader,
   ),
   MotionSlideTemplate(
     title: 'Linear Motion',
@@ -33,6 +35,7 @@ Motion gives elements context and meaning.
 ''',
     ),
     motion: CurvedMotion(0.5.seconds),
+    speakerNotes: timSlideNotesHeader,
   ),
   MotionSlideTemplate(
     title: 'Curves and Easing',
@@ -43,6 +46,7 @@ and responsive...
 ''',
     ),
     motion: CurvedMotion(0.8.seconds, Curves.ease),
+    speakerNotes: timSlideNotesHeader,
   ),
 
   MotionSlideTemplate(
@@ -58,6 +62,7 @@ and responsive...
       Curves.ease,
       Curves.ease.flipped,
     ),
+    speakerNotes: timSlideNotesHeader,
   ),
   MotionSlideTemplate(
     title: 'Curves and Easing',
@@ -71,6 +76,7 @@ And they don't respond well to user gestures.
       Curves.ease,
       Curves.ease.flipped,
     ),
+    speakerNotes: timSlideNotesHeader,
   ),
   MotionSlideTemplate(
     title: 'Spring Simulations',
@@ -81,6 +87,7 @@ natural movement.
 ''',
     ),
     motion: CupertinoMotion.smooth(duration: 0.8.seconds),
+    speakerNotes: jesperSlideNotesHeader,
   ),
   SpringVisualisationSlide(),
   CodeSlide(),
@@ -93,6 +100,7 @@ class MotionSlideTemplate extends FlutterDeckSlideWidget {
     required this.motion,
     super.key,
     this.filterIdentical = true,
+    String speakerNotes = '',
   }) : super(
          configuration: FlutterDeckSlideConfiguration(
            title: title,
@@ -104,6 +112,7 @@ class MotionSlideTemplate extends FlutterDeckSlideWidget {
                  filterIdentical,
                )}',
            steps: 2,
+           speakerNotes: speakerNotes,
          ),
        );
 
@@ -213,6 +222,7 @@ class SpringVisualisationSlide extends FlutterDeckSlideWidget {
           title: 'What is a Spring Simulation?',
           route: '/what-is-a-spring-simulation',
           steps: 2,
+          speakerNotes: timSlideNotesHeader,
         ),
       );
 
@@ -244,7 +254,14 @@ class SpringVisualisationSlide extends FlutterDeckSlideWidget {
 class CodeSlide extends FlutterDeckSlideWidget {
   const CodeSlide({
     super.key,
-  });
+  }) : super(
+         configuration: const FlutterDeckSlideConfiguration(
+           title: 'Spring Simulation Code',
+           route: '/spring-simulation-code',
+           steps: 1,
+           speakerNotes: jesperSlideNotesHeader,
+         ),
+       );
 
   @override
   Widget build(BuildContext context) {
@@ -261,9 +278,15 @@ class CodeSlide extends FlutterDeckSlideWidget {
 const springDemoCode = '''
 // Semi-pseudo code for a spring simulation
 
+final customSpring = SpringDescription(
+  mass: 1,          // Heavier = slower
+  stiffness: 100,   // Higher = faster
+  damping: 10,      // Higher = less bouncy
+);
+
 final spring = SpringDescription.withDurationAndBounce(
-  duration: Duration(milliseconds: 400),
-  bounce: 0.0,
+  duration: Duration(milliseconds: 400), // Approximate duration
+  bounce: 0.0, // From 0 (no bounce) to 1 (very bouncy)
 );
 
 final animationController = AnimationController(vsync: this);

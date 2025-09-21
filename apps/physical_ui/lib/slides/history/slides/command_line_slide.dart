@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:wnma_talk/slide_number.dart';
 import 'package:wnma_talk/wnma_talk.dart';
 
 /// Command-line era demo: create a note and delete it.
@@ -10,16 +11,19 @@ class CommandLineSlide extends FlutterDeckSlideWidget {
         configuration: const FlutterDeckSlideConfiguration(
           route: '/history/cli',
           steps: 7,
+          speakerNotes: jesperSlideNotesHeader,
         ),
       );
 
   @override
   Widget build(BuildContext context) {
     return FlutterDeckSlide.custom(
-      builder: (context) => FlutterDeckSlideStepsBuilder(
-        builder: (context, step) {
-          return _CliTerminal(step: step);
-        },
+      builder: (context) => SlideNumber(
+        child: FlutterDeckSlideStepsBuilder(
+          builder: (context, step) {
+            return _CliTerminal(step: step);
+          },
+        ),
       ),
     );
   }

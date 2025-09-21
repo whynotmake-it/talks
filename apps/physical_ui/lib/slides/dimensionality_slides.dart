@@ -8,6 +8,7 @@ import 'package:wnma_talk/animated_visibility.dart';
 import 'package:wnma_talk/code_highlight.dart';
 import 'package:wnma_talk/content_slide_template.dart';
 import 'package:wnma_talk/line_painter.dart';
+import 'package:wnma_talk/slide_number.dart';
 import 'package:wnma_talk/wnma_talk.dart';
 
 final dimensionalitySlides = [
@@ -15,11 +16,13 @@ final dimensionalitySlides = [
     showTitle: false,
     motion: CurvedMotion(.5.seconds, Curves.ease),
     showTrajectoryInStep2: false,
+    speakerNotes: timSlideNotesHeader,
   ),
   DimensionalitySlideTemplate(
     showTitle: false,
     motion: CurvedMotion(.5.seconds, Curves.ease),
     code: _standardAnimationPseudocode,
+    speakerNotes: timSlideNotesHeader,
   ),
   DimensionalitySlideTemplate(
     showTitle: false,
@@ -29,6 +32,7 @@ final dimensionalitySlides = [
         bounce: 0.1,
       ),
     ),
+    speakerNotes: jesperSlideNotesHeader,
   ),
   DimensionalitySlideTemplate(
     motion: SpringMotion(
@@ -39,12 +43,7 @@ final dimensionalitySlides = [
     ),
     showTrajectoryInStep2: false,
     code: _multiDimensionPseudocode,
-  ),
-  DimensionalitySlideTemplate(
-    motion: MaterialSpringMotion.expressiveSpatialSlow(),
-    filename: 'flutter_physics_simulation_example.dart',
-    code: _flutterSpringCodeExample,
-    showTrajectoryInStep2: false,
+    speakerNotes: jesperSlideNotesHeader,
   ),
 ];
 
@@ -56,10 +55,12 @@ class DimensionalitySlideTemplate extends FlutterDeckSlideWidget {
     this.filename,
     this.code,
     bool showTrajectoryInStep2 = true,
+    String speakerNotes = '',
   }) : super(
          configuration: FlutterDeckSlideConfiguration(
            route: '/dimensionality-${Object.hash(motion, code)}',
            steps: showTrajectoryInStep2 ? 2 : 1,
+           speakerNotes: speakerNotes,
          ),
        );
 

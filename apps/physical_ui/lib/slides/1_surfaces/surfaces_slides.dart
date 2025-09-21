@@ -3,6 +3,7 @@ import 'package:physical_ui/slides/1_surfaces/surface.dart';
 import 'package:rivership/rivership.dart';
 import 'package:wnma_talk/bullet_point.dart';
 import 'package:wnma_talk/content_slide_template.dart';
+import 'package:wnma_talk/slide_number.dart';
 import 'package:wnma_talk/wnma_talk.dart';
 
 final surfacesSlides = [WhatAreSurfaces(), Light(), SpecialEffectsSlide()];
@@ -13,6 +14,7 @@ class WhatAreSurfaces extends FlutterDeckSlideWidget {
         configuration: FlutterDeckSlideConfiguration(
           route: '/surfaces/what_are_surfaces',
           steps: 5,
+          speakerNotes: timSlideNotesHeader,
         ),
       );
 
@@ -83,6 +85,7 @@ class Light extends FlutterDeckSlideWidget {
         configuration: FlutterDeckSlideConfiguration(
           route: '/surfaces/light',
           steps: 5,
+          speakerNotes: jesperSlideNotesHeader,
         ),
       );
 
@@ -181,6 +184,7 @@ class SpecialEffectsSlide extends FlutterDeckSlideWidget {
         configuration: FlutterDeckSlideConfiguration(
           route: '/surfaces/special_effects',
           steps: 4,
+          speakerNotes: timSlideNotesHeader,
         ),
       );
 

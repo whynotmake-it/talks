@@ -8,6 +8,7 @@ import 'package:rivership/rivership.dart';
 import 'package:wnma_talk/big_quote_template.dart';
 import 'package:wnma_talk/code_highlight.dart';
 import 'package:wnma_talk/content_slide_template.dart';
+import 'package:wnma_talk/slide_number.dart';
 import 'package:wnma_talk/wnma_talk.dart';
 
 final surfacesCodeSlides = [
@@ -28,6 +29,7 @@ class BasicSurfaceSlide extends FlutterDeckSlideWidget {
         configuration: FlutterDeckSlideConfiguration(
           route: '/surfaces/basic_surface',
           steps: 1,
+          speakerNotes: jesperSlideNotesHeader,
         ),
       );
 
@@ -67,6 +69,7 @@ class SurfaceWithGradientSlide extends FlutterDeckSlideWidget {
         configuration: FlutterDeckSlideConfiguration(
           route: '/surfaces/with_gradient',
           steps: 1,
+          speakerNotes: jesperSlideNotesHeader,
         ),
       );
 
@@ -119,6 +122,7 @@ class SurfaceWithNoiseSlide extends FlutterDeckSlideWidget {
         configuration: FlutterDeckSlideConfiguration(
           route: '/surfaces/with_noise',
           steps: 1,
+          speakerNotes: jesperSlideNotesHeader,
         ),
       );
 
@@ -174,6 +178,7 @@ class SurfaceWithShadowSlide extends FlutterDeckSlideWidget {
         configuration: FlutterDeckSlideConfiguration(
           route: '/surfaces/with_shadow',
           steps: 2,
+          speakerNotes: jesperSlideNotesHeader,
         ),
       );
 
@@ -242,6 +247,7 @@ class PhysicalModelSlide extends FlutterDeckSlideWidget {
         configuration: FlutterDeckSlideConfiguration(
           route: '/surfaces/physical_model',
           steps: 1,
+          speakerNotes: jesperSlideNotesHeader,
         ),
       );
 
@@ -290,6 +296,7 @@ class CustomPainterSlide extends FlutterDeckSlideWidget {
     : super(
         configuration: FlutterDeckSlideConfiguration(
           route: '/surfaces/custom_painter',
+          speakerNotes: timSlideNotesHeader,
         ),
       );
 
@@ -360,6 +367,7 @@ class ShadersSlide extends FlutterDeckSlideWidget {
     : super(
         configuration: FlutterDeckSlideConfiguration(
           route: '/surfaces/shaders',
+          speakerNotes: timSlideNotesHeader,
         ),
       );
 
