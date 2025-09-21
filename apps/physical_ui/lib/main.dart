@@ -4,10 +4,12 @@ import 'package:physical_ui/slides/1_surfaces/code_slides.dart';
 import 'package:physical_ui/slides/1_surfaces/surfaces_slides.dart';
 import 'package:physical_ui/slides/audio/audio_category_slide.dart';
 import 'package:physical_ui/slides/audio/sound_haptics_slide.dart';
+import 'package:physical_ui/slides/box_stoss_slide.dart';
 import 'package:physical_ui/slides/design_system_slide.dart';
 import 'package:physical_ui/slides/dimensionality_slides.dart';
 import 'package:physical_ui/slides/glass_slide.dart';
 import 'package:physical_ui/slides/haptic_slide.dart';
+import 'package:physical_ui/slides/history/flat/flat_slides.dart';
 import 'package:physical_ui/slides/history/slides/command_line_slide.dart';
 import 'package:physical_ui/slides/history/slides/gui_system1_slide.dart';
 import 'package:physical_ui/slides/history/slides/iphone_notes_physics_slide.dart';
@@ -55,38 +57,44 @@ class PhysicalUiTalk extends StatelessWidget {
             ),
           ),
           slides: [
-            DesignSystemSlide(),
-            MotorCardStackSlide(),
-            ShadingAnimationSlide(),
-            ObjectsAndMetaphorsSlide(),
-            CommandLineSlide(),
-            GuiSystem1Slide(),
-            AquaStickiesSlide(),
-            MaterialNotesFlatSlide(),
-            IphoneNotesPhysicsSlide(),
-            BigQuoteTemplate(title: Text("What next?")),
-            ...whatNextSlides,
-
-            BigQuoteTemplate(title: Text("Part 3: Haptic")),
-            HapticSlide(),
-            MotionCharacterSlide(),
-            BigQuoteTemplate(title: Text("Part 2: Audio")),
-            AudioCategorySlide(),
-            SoundHapticsSlide(),
             TitleSlide(),
             GlassSlide(),
             HowDidWeGetHereSlide(),
-    
+
+            CommandLineSlide(),
+            ObjectsAndMetaphorsSlide(),
+            ShadingAnimationSlide(),
+
+            BigQuoteTemplate(title: Text("A sudden shift.")),
+            ...flatSlides,
+
+            BigQuoteTemplate(title: Text("What next?")),
+            ...whatNextSlides,
+
+            DesignSystemSlide(),
+
             BigQuoteTemplate(title: Text("Part 1: Surfaces")),
             ...surfacesSlides,
             ...surfacesCodeSlides,
 
-            BigQuoteTemplate(title: Text("Part 2: Motion")),
+            BigQuoteTemplate(title: Text("Part 2: Audio")),
+            AudioCategorySlide(),
+            BoxStossSlide(),
+            SoundHapticsSlide(),
+
+            BigQuoteTemplate(title: Text("Part 3: Haptic")),
+            HapticSlide(),
+
+            BigQuoteTemplate(title: Text("Part 4: Motion")),
             ...motionSlides,
+            MotionCharacterSlide(),
+
             BigQuoteTemplate(title: Text("Well, it's settled then!")),
             ...dimensionalitySlides,
             SimulationVsCurveSlide(),
             MotorTitleSlide(),
+
+            MotorCardStackSlide(),
           ],
           themeMode: ThemeMode.light,
         ),
