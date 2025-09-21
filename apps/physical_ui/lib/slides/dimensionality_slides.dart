@@ -84,7 +84,9 @@ class DimensionalitySlideTemplate extends FlutterDeckSlideWidget {
               visible: showTitle,
               child: Text('We need more than one dimension.'),
             ),
+
             mainContent: Stack(
+              fit: StackFit.expand,
               children: [
                 Positioned.fill(
                   child: AnimatedVisibility(
@@ -100,6 +102,7 @@ class DimensionalitySlideTemplate extends FlutterDeckSlideWidget {
                     child: _LetGoPoint(at: letGoAt.value),
                   ),
                 ),
+
                 Align(
                   child: _Draggable(
                     recorder: recorder,
@@ -111,23 +114,34 @@ class DimensionalitySlideTemplate extends FlutterDeckSlideWidget {
                     onLetGo: (offset) {
                       letGoAt.value = offset;
                     },
-                    child: FlutterLogo(
-                      size: 200,
+                    child: Image.asset(
+                      'assets/file.png',
+                      height: 200,
                     ),
                   ),
                 ),
               ],
             ),
-            secondaryContent: AnimatedVisibility(
-              visible: code != null,
-              animateIn: false,
-              child: SizedBox(
-                width: double.infinity,
-                child: CodeHighlight(
-                  filename: filename,
-                  code: code ?? '',
+            secondaryContent: Stack(
+              children: [
+                Align(
+                  child: Image.asset(
+                    'assets/folder.png',
+                    height: 200,
+                  ),
                 ),
-              ),
+                AnimatedVisibility(
+                  visible: code != null,
+                  animateIn: false,
+                  child: SizedBox(
+                    width: double.infinity,
+                    child: CodeHighlight(
+                      filename: filename,
+                      code: code ?? '',
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
         );
