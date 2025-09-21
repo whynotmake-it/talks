@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:gaussian_splatting/shared/scrollable_code_highlight.dart';
+import 'package:wnma_talk/code_highlight.dart';
 import 'package:wnma_talk/content_slide_template.dart';
 import 'package:wnma_talk/wnma_talk.dart';
 
@@ -21,11 +21,8 @@ class RenderingSlide6 extends FlutterDeckSlideWidget {
         'Render Journey',
         textAlign: TextAlign.left,
       ),
-      mainContent: ScrollableCodeHighlight(
-        maxHeight: 655,
-
-        textStyle: theme.textTheme.bodyMedium,
-        language: 'glsl',
+      mainContent: CodeHighlight(
+ 
         code: '''
 in vec2 vUV;       // interpolated across the stretched quad
 in vec4 vColor;    // sRGB color + base alpha
@@ -44,7 +41,8 @@ void main() {
   frag = vec4(vColor.rgb * w, a);
 }
   ''',
-        fileName: 'splat_draw_pass.dart',
+        filename: 'splat_draw_pass.dart',
+        
       ),
 
       secondaryContent: Image.asset(

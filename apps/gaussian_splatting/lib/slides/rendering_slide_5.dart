@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:gaussian_splatting/shared/scrollable_code_highlight.dart';
+import 'package:wnma_talk/code_highlight.dart';
 import 'package:wnma_talk/content_slide_template.dart';
 import 'package:wnma_talk/wnma_talk.dart';
 
@@ -14,18 +14,14 @@ class RenderingSlide5 extends FlutterDeckSlideWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = FlutterDeckTheme.of(context);
+    FlutterDeckTheme.of(context);
 
     return ContentSlideTemplate(
       title: const Text(
         'Render Journey',
         textAlign: TextAlign.left,
       ),
-      mainContent: ScrollableCodeHighlight(
-        maxHeight: 655,
-
-        textStyle: theme.textTheme.bodyMedium,
-        language: 'glsl',
+      mainContent: CodeHighlight(
         code: '''
 // Inputs
 in vec3 aPosition;                  // (x,y) ∈ {-1,+1}, z = local splat index
@@ -69,7 +65,7 @@ void main() {
 }
 
   ''',
-        fileName: 'vertex.glsl',
+        filename: 'vertex.glsl',
       ),
 
       secondaryContent: Image.asset(

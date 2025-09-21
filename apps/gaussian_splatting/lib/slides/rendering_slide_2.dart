@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:rivership/rivership.dart';
+import 'package:wnma_talk/code_highlight.dart';
 import 'package:wnma_talk/content_slide_template.dart';
 import 'package:wnma_talk/wnma_talk.dart';
 
@@ -14,15 +14,15 @@ class RenderingSlide2 extends FlutterDeckSlideWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = FlutterDeckTheme.of(context);
+
 
     return ContentSlideTemplate(
       title: const Text(
         'Render Journey',
         textAlign: TextAlign.left,
       ),
-      mainContent: FlutterDeckCodeHighlight(
-        textStyle: theme.textTheme.bodyMedium,
+      mainContent: CodeHighlight(
+
         code: '''
 // --- P0: pos.xyz + packed quat ---
 writeTexel(0, px, py, pz, quatPackedF32);
@@ -36,7 +36,7 @@ writeTexel(3, sh[4], sh[5], sh[6], sh[7]);
 writeTexel(4, sh[8], sh[9], sh[10], sh[11]);
 
   ''',
-        fileName: 'splat_source.dart',
+        filename: 'splat_source.dart',
       ),
 
       secondaryContent: Image.asset(

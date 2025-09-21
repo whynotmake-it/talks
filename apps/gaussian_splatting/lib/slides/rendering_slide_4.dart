@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:gaussian_splatting/shared/scrollable_code_highlight.dart';
+import 'package:wnma_talk/code_highlight.dart';
 import 'package:wnma_talk/content_slide_template.dart';
 import 'package:wnma_talk/wnma_talk.dart';
 
@@ -58,17 +58,15 @@ class RenderingSlide4 extends FlutterDeckSlideWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = FlutterDeckTheme.of(context);
+    FlutterDeckTheme.of(context);
 
     return ContentSlideTemplate(
       title: const Text(
         'Render Journey',
         textAlign: TextAlign.left,
       ),
-      mainContent: ScrollableCodeHighlight(
-        maxHeight: 655,
-        
-        textStyle: theme.textTheme.bodyMedium,
+      mainContent: CodeHighlight(
+
         code: '''
  // Pipeline state (viewport already set by main renderer)
     gl
@@ -131,7 +129,7 @@ class RenderingSlide4 extends FlutterDeckSlideWidget {
         _instanceCount,
       );
   ''',
-        fileName: 'splat_draw_pass.dart',
+        filename: 'splat_draw_pass.dart',
       ),
 
       secondaryContent: Image.asset(

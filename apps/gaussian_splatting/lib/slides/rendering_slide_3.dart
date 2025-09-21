@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:rivership/rivership.dart';
+import 'package:wnma_talk/code_highlight.dart';
 import 'package:wnma_talk/content_slide_template.dart';
 import 'package:wnma_talk/wnma_talk.dart';
 
@@ -14,15 +14,15 @@ class RenderingSlide3 extends FlutterDeckSlideWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = FlutterDeckTheme.of(context);
+    FlutterDeckTheme.of(context);
 
     return ContentSlideTemplate(
       title: const Text(
         'Render Journey',
         textAlign: TextAlign.left,
       ),
-      mainContent: FlutterDeckCodeHighlight(
-        textStyle: theme.textTheme.bodyMedium,
+      mainContent: CodeHighlight(
+        
         code: '''
 # Main thread
 sorter.init(onComplete: (idx) => uploadOrderTexture(idx))
@@ -36,7 +36,7 @@ onMessage(viewProj, buffer, n):
         quantize=true, reuse_arrays=true)
   sendToMain(idx)
   ''',
-        fileName: 'depth_sorter.dart',
+        filename: 'depth_sorter.dart',
       ),
 
       secondaryContent: Image.asset(

@@ -67,14 +67,12 @@ class _DraggableText extends StatefulWidget {
     required this.text,
     required this.initialPosition,
     required this.color,
-    this.fontSize = 48,
     this.fontWeight = FontWeight.normal,
   });
 
   final String text;
   final Offset initialPosition;
   final Color color;
-  final double fontSize;
   final FontWeight fontWeight;
 
   @override
@@ -104,7 +102,7 @@ class _DraggableTextState extends State<_DraggableText> {
         child: _TextWidget(
           text: widget.text,
           color: widget.color,
-          fontSize: widget.fontSize,
+  
           fontWeight: widget.fontWeight,
         ),
       ),

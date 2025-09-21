@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:rivership/rivership.dart';
+import 'package:wnma_talk/code_highlight.dart';
 import 'package:wnma_talk/content_slide_template.dart';
 import 'package:wnma_talk/wnma_talk.dart';
 
@@ -14,15 +14,14 @@ class RenderingSlide1 extends FlutterDeckSlideWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = FlutterDeckTheme.of(context);
 
     return ContentSlideTemplate(
       title: const Text(
         'Render Journey',
         textAlign: TextAlign.left,
       ),
-      mainContent: FlutterDeckCodeHighlight(
-        textStyle: theme.textTheme.bodyMedium,
+      mainContent: CodeHighlight(
+
         code: '''
 
   // Returns: 
@@ -37,7 +36,7 @@ class RenderingSlide1 extends FlutterDeckSlideWidget {
   ...
   }
   ''',
-        fileName: 'file_processor.dart',
+        filename: 'file_processor.dart',
       ),
 
       secondaryContent: Image.asset(

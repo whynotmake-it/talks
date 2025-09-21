@@ -21,13 +21,6 @@ FlutterDeckThemeData buildTalkTheme() {
       colorScheme: colorScheme,
     ),
     textTheme,
-  ).copyWith(
-    codeHighlightTheme: FlutterDeckCodeHighlightThemeData(
-      backgroundColor: colorScheme.surfaceContainerHighest,
-      textStyle: GoogleFonts.sourceCodePro(
-        fontSize: 24,
-      ),
-    ),
   );
 }
 
