@@ -28,13 +28,13 @@ class _NotesController extends StateNotifier<List<String>> {
   }
 }
 
-// -------- Slide (3 steps: 0 app → 1 windows → 2 iOS) --------
+// -------- Slide (2 steps: 1 windows → 2 iOS) --------
 class MaterialNotesFlatSlide extends FlutterDeckSlideWidget {
   const MaterialNotesFlatSlide({super.key})
     : super(
         configuration: const FlutterDeckSlideConfiguration(
           route: '/history/material-notes',
-          steps: 3, // 0: run app demo, 1: show Windows, 2: show iOS
+          steps: 2, // 1: show Windows, 2: show iOS
         ),
       );
 
@@ -42,14 +42,7 @@ class MaterialNotesFlatSlide extends FlutterDeckSlideWidget {
   Widget build(BuildContext context) {
     return FlutterDeckSlide.custom(
       builder: (context) => FlutterDeckSlideStepsBuilder(
-        builder: (context, step) => Stack(
-          children: [
-            _DeviceFramedDemo(
-              step: step,
-            ), // app is always visible; auto-demo only on step 0
-            Positioned.fill(child: _FlatGallery(step: step)),
-          ],
-        ),
+        builder: (context, step) => _FlatGallery(step: step),
       ),
     );
   }
@@ -62,8 +55,8 @@ class _FlatGallery extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final showWin = step >= 2;
-    final showIOS = step >= 3;
+    final showWin = step >= 1;
+    final showIOS = step >= 2;
     return Stack(
       children: [
         AnimatedOpacity(
@@ -227,35 +220,7 @@ class _FlyInCard extends StatelessWidget {
   }
 }
 
-// -------- Device demo (auto-runs only at step 0) --------
-class _DeviceFramedDemo extends StatelessWidget {
-  const _DeviceFramedDemo({required this.step});
-  final int step;
 
-  static final DeviceInfo _modernPhone = DeviceInfo.genericPhone(
-    platform: TargetPlatform.android,
-    name: 'Modern Android',
-    id: 'modern-android',
-    screenSize: const Size(360, 760),
-    pixelRatio: 3,
-    safeAreas: const EdgeInsets.only(top: 24, bottom: 24),
-    rotatedSafeAreas: const EdgeInsets.only(left: 24, right: 24),
-  );
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: DeviceFrame(
-        device: _modernPhone,
-        screen: ProviderScope(
-          child: ExcludeFocus(
-            child: MaterialApp(home: _NotesDemoScreen(runDemo: step == 0)),
-          ),
-        ),
-      ),
-    );
-  }
-}
 
 class _NotesDemoScreen extends HookConsumerWidget {
   const _NotesDemoScreen({required this.runDemo});
