@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:gaussian_splatting/shared/citation_container.dart';
 import 'package:wnma_talk/animated_element.dart';
+import 'package:wnma_talk/slide_number.dart';
 import 'package:wnma_talk/wnma_talk.dart';
 
 class GaussianSplattingSlide2 extends FlutterDeckSlideWidget {
@@ -9,6 +10,7 @@ class GaussianSplattingSlide2 extends FlutterDeckSlideWidget {
         configuration: const FlutterDeckSlideConfiguration(
           route: '/gaussian-splatting2',
           steps: 3,
+          speakerNotes: timSlideNotesHeader,
         ),
       );
 
@@ -18,64 +20,66 @@ class GaussianSplattingSlide2 extends FlutterDeckSlideWidget {
     final colorScheme = theme.materialTheme.colorScheme;
 
     return FlutterDeckSlide.custom(
-      builder: (context) => FlutterDeckSlideStepsBuilder(
-        builder: (context, stepNumber) => ColoredBox(
-          color: colorScheme.surface,
-          child: Padding(
-            padding: const EdgeInsets.all(32),
-            child: Column(
-              children: [
-                // Title
-                AnimatedElement(
-                  visible: stepNumber >= 1,
-                  stagger: 0,
-                  child: DefaultTextStyle.merge(
-                    style: theme.textTheme.header.copyWith(
-                      color: colorScheme.onSurface,
-                      fontSize: 56,
+      builder: (context) => SlideNumber(
+        child: FlutterDeckSlideStepsBuilder(
+          builder: (context, stepNumber) => ColoredBox(
+            color: colorScheme.surface,
+            child: Padding(
+              padding: const EdgeInsets.all(32),
+              child: Column(
+                children: [
+                  // Title
+                  AnimatedElement(
+                    visible: stepNumber >= 1,
+                    stagger: 0,
+                    child: DefaultTextStyle.merge(
+                      style: theme.textTheme.header.copyWith(
+                        color: colorScheme.onSurface,
+                        fontSize: 56,
+                      ),
+                      child: const Text(
+                        '3D Gaussian Splatting',
+                        textAlign: TextAlign.center,
+                      ),
                     ),
-                    child: const Text(
-                      '3D Gaussian Splatting',
-                      textAlign: TextAlign.center,
+                  ),
+
+                  const SizedBox(height: 32),
+
+                  // First row: splat_banana -> rasterizer -> banana
+                  Expanded(
+                    flex: 4,
+                    child: _FirstRow(
+                      theme: theme,
+                      colorScheme: colorScheme,
+                      stepNumber: stepNumber,
                     ),
                   ),
-                ),
 
-                const SizedBox(height: 32),
-
-                // First row: splat_banana -> rasterizer -> banana
-                Expanded(
-                  flex: 4,
-                  child: _FirstRow(
-                    theme: theme,
-                    colorScheme: colorScheme,
-                    stepNumber: stepNumber,
+                  // Second row: ellipsoid and properties
+                  Expanded(
+                    flex: 2,
+                    child: _SecondRow(
+                      theme: theme,
+                      colorScheme: colorScheme,
+                      stepNumber: stepNumber,
+                    ),
                   ),
-                ),
 
-                // Second row: ellipsoid and properties
-                Expanded(
-                  flex: 2,
-                  child: _SecondRow(
-                    theme: theme,
-                    colorScheme: colorScheme,
-                    stepNumber: stepNumber,
+                  const SizedBox(height: 16),
+
+                  // Citation
+                  AnimatedElement(
+                    visible: stepNumber >= 1,
+                    stagger: 4,
+                    child: const CitationContainer(
+                      citation:
+                          'Kerbl, B., Kopanas, G., Leimkühler, T., & Drettakis, G. (2023). 3D Gaussian splatting for real-time radiance field rendering. ACM Trans. Graph., 42(4), 139-1.',
+                      fontSize: 16,
+                    ),
                   ),
-                ),
-
-                const SizedBox(height: 16),
-
-                // Citation
-                AnimatedElement(
-                  visible: stepNumber >= 1,
-                  stagger: 4,
-                  child: const CitationContainer(
-                    citation:
-                        'Kerbl, B., Kopanas, G., Leimkühler, T., & Drettakis, G. (2023). 3D Gaussian splatting for real-time radiance field rendering. ACM Trans. Graph., 42(4), 139-1.',
-                    fontSize: 16,
-                  ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),
@@ -197,7 +201,6 @@ class _SecondRow extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: [
-
         AnimatedElement(
           visible: stepNumber >= 3,
           stagger: 0,

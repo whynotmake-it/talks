@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:wnma_talk/code_highlight.dart';
 import 'package:wnma_talk/content_slide_template.dart';
+import 'package:wnma_talk/slide_number.dart';
 import 'package:wnma_talk/wnma_talk.dart';
-
-
-
 
 // Pipeline state
 // disable(DEPTH_TEST)
@@ -46,13 +44,13 @@ import 'package:wnma_talk/wnma_talk.dart';
 // drawElementsInstanced(TRIANGLES, _indicesPerBatch, UNSIGNED_SHORT, 0, _instanceCount)
 // Fire the batched draw. Each instance covers N splats (e.g., 128). The VS uses gl_InstanceID + position.z to find the global splat id, then fetches from the textures.
 
-
 class RenderingSlide4 extends FlutterDeckSlideWidget {
   const RenderingSlide4({super.key})
     : super(
         configuration: const FlutterDeckSlideConfiguration(
           route: '/rendering-4',
           // steps: 1,
+          speakerNotes: jesperSlideNotesHeader,
         ),
       );
 
@@ -66,7 +64,6 @@ class RenderingSlide4 extends FlutterDeckSlideWidget {
         textAlign: TextAlign.left,
       ),
       mainContent: CodeHighlight(
-
         code: '''
  // Pipeline state (viewport already set by main renderer)
     gl

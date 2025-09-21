@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:wnma_talk/code_highlight.dart';
 import 'package:wnma_talk/content_slide_template.dart';
+import 'package:wnma_talk/slide_number.dart';
 import 'package:wnma_talk/wnma_talk.dart';
 
 class RenderingSlide2 extends FlutterDeckSlideWidget {
@@ -8,6 +9,7 @@ class RenderingSlide2 extends FlutterDeckSlideWidget {
     : super(
         configuration: const FlutterDeckSlideConfiguration(
           route: '/rendering-2',
+          speakerNotes: timSlideNotesHeader,
           // steps: 1,
         ),
       );

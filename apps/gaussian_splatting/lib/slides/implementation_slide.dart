@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:wnma_talk/animated_element.dart';
 import 'package:wnma_talk/content_slide_template.dart';
+import 'package:wnma_talk/slide_number.dart';
 import 'package:wnma_talk/wnma_talk.dart';
 
 class ImplementationSlide extends FlutterDeckSlideWidget {
@@ -9,6 +10,7 @@ class ImplementationSlide extends FlutterDeckSlideWidget {
         configuration: const FlutterDeckSlideConfiguration(
           route: '/implementation',
           steps: 3,
+          speakerNotes: jesperSlideNotesHeader,
         ),
       );
 
@@ -22,7 +24,10 @@ class ImplementationSlide extends FlutterDeckSlideWidget {
         'How is it implemented?',
         textAlign: TextAlign.left,
       ),
-      secondaryContent: Image.asset('assets/angle_project.png', fit: BoxFit.fitWidth,),
+      secondaryContent: Image.asset(
+        'assets/angle_project.png',
+        fit: BoxFit.fitWidth,
+      ),
       mainContent: FlutterDeckSlideStepsBuilder(
         builder: (context, stepNumber) => ColoredBox(
           color: colorScheme.surface,
@@ -271,7 +276,6 @@ class _AngleBenefits extends StatelessWidget {
           theme: theme,
           colorScheme: colorScheme,
         ),
-
       ],
     );
   }
@@ -315,5 +319,3 @@ class _BenefitItem extends StatelessWidget {
     );
   }
 }
-
-

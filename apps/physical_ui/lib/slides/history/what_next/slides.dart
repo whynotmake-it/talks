@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:wnma_talk/animated_visibility.dart';
 import 'package:wnma_talk/content_slide_template.dart';
+import 'package:wnma_talk/slide_number.dart';
 import 'package:wnma_talk/video.dart';
 import 'package:wnma_talk/wnma_talk.dart';
 
@@ -136,6 +137,7 @@ class UiAsFunctionSlide extends FlutterDeckSlideWidget {
     : super(
         configuration: FlutterDeckSlideConfiguration(
           route: '/history/what_next/ui_as_function',
+          speakerNotes: jesperSlideNotesHeader,
         ),
       );
 

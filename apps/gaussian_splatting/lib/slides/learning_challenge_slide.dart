@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:wnma_talk/animated_element.dart';
 import 'package:wnma_talk/animated_visibility.dart';
 import 'package:wnma_talk/content_slide_template.dart';
+import 'package:wnma_talk/slide_number.dart';
 import 'package:wnma_talk/wnma_talk.dart';
 
 class LearningChallengeSlide extends FlutterDeckSlideWidget {
@@ -10,6 +11,7 @@ class LearningChallengeSlide extends FlutterDeckSlideWidget {
         configuration: const FlutterDeckSlideConfiguration(
           route: '/learning-challenge',
           steps: 4,
+          speakerNotes: timSlideNotesHeader,
         ),
       );
 

@@ -32,71 +32,73 @@ class ContentSlideTemplate extends FlutterDeckSlideWidget {
       height: 1,
     );
     return FlutterDeckSlide.custom(
-      builder: (context) => ColoredBox(
-        color: colorScheme.surface,
-        child: SlideNumber(
-          child: Padding(
-            padding: const EdgeInsets.all(72),
-            child: DefaultTextStyle(
-              style: theme.textTheme.bodyLarge.copyWith(
-                color: colorScheme.onSurfaceVariant,
-              ),
-              child: Column(
-                spacing: 64,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  if (title case final title? when insetSecondaryContent)
-                    DefaultTextStyle.merge(
-                      style: titleStyle,
-                      child: title,
-                    ),
-                  Expanded(
-                    child: Row(
-                      spacing: 32,
-                      children: [
-                        Flexible(
-                          flex: 3,
-                          fit: FlexFit.tight,
-                          child: Column(
-                            spacing: 64,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              if (title case final title?
-                                  when !insetSecondaryContent)
-                                DefaultTextStyle.merge(
-                                  style: titleStyle,
-                                  child: ConstrainedBox(
-                                    constraints: const BoxConstraints(
-                                      maxWidth: 1000,
-                                    ),
-                                    child: title,
-                                  ),
-                                ),
-                              if (mainContent case final c?)
-                                Expanded(
-                                  child: c,
-                                ),
-                            ],
-                          ),
-                        ),
-                        if (description != null || secondaryContent != null)
+      builder: (context) => SlideNumber(
+        child: ColoredBox(
+          color: colorScheme.surface,
+          child: SlideNumber(
+            child: Padding(
+              padding: const EdgeInsets.all(72),
+              child: DefaultTextStyle(
+                style: theme.textTheme.bodyLarge.copyWith(
+                  color: colorScheme.onSurfaceVariant,
+                ),
+                child: Column(
+                  spacing: 64,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    if (title case final title? when insetSecondaryContent)
+                      DefaultTextStyle.merge(
+                        style: titleStyle,
+                        child: title,
+                      ),
+                    Expanded(
+                      child: Row(
+                        spacing: 32,
+                        children: [
                           Flexible(
-                            flex: fitSecondaryContent ? 0 : 2,
+                            flex: 3,
+                            fit: FlexFit.tight,
                             child: Column(
                               spacing: 64,
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                ?description,
-                                if (secondaryContent case final c?)
+                                if (title case final title?
+                                    when !insetSecondaryContent)
+                                  DefaultTextStyle.merge(
+                                    style: titleStyle,
+                                    child: ConstrainedBox(
+                                      constraints: const BoxConstraints(
+                                        maxWidth: 1000,
+                                      ),
+                                      child: title,
+                                    ),
+                                  ),
+                                if (mainContent case final c?)
                                   Expanded(
                                     child: c,
                                   ),
                               ],
                             ),
                           ),
-                      ],
+                          if (description != null || secondaryContent != null)
+                            Flexible(
+                              flex: fitSecondaryContent ? 0 : 2,
+                              child: Column(
+                                spacing: 64,
+                                children: [
+                                  ?description,
+                                  if (secondaryContent case final c?)
+                                    Expanded(
+                                      child: c,
+                                    ),
+                                ],
+                              ),
+                            ),
+                        ],
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),

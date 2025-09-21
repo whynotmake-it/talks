@@ -3,6 +3,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_deck/flutter_deck.dart';
 import 'package:flutter_gaussian_splatter/widgets/gaussian_splatter_widget.dart';
+import 'package:wnma_talk/slide_number.dart';
 
 class GaussianSplatterDemoSlide extends FlutterDeckSlideWidget {
   const GaussianSplatterDemoSlide({super.key})
@@ -10,7 +11,11 @@ class GaussianSplatterDemoSlide extends FlutterDeckSlideWidget {
         configuration: const FlutterDeckSlideConfiguration(
           route: '/gs-demo',
           title: 'Gaussian Splatter Demo',
-          speakerNotes: 'Interactive Gaussian Splatting demonstration',
+          speakerNotes:
+              '''
+$jesperSlideNotesHeader
+
+Interactive Gaussian Splatting demonstration''',
         ),
       );
 
@@ -28,25 +33,25 @@ class GaussianSplatterDemoSlide extends FlutterDeckSlideWidget {
                   padding: EdgeInsets.only(bottom: 200),
                   child: _TextWidget(
                     text: 'BACKGROUND',
-                  
+
                     color: Colors.white,
                     fontSize: 164,
                     fontWeight: FontWeight.w800,
                   ),
                 ),
               ),
-              
+
               // Gaussian Splatter Widget (middle layer - the car)
               GaussianSplatterWidget(
                 assetPath: 'assets/toycar.ply',
                 disableAlphaWrite: false,
               ),
-              
+
               // Frosted glass box
               _DraggableGlassBox(
                 initialPosition: Offset(1400, 300),
               ),
-              
+
               // Foreground draggable text (in front of everything)
               _DraggableText(
                 text: 'FOREGROUND',
@@ -102,7 +107,7 @@ class _DraggableTextState extends State<_DraggableText> {
         child: _TextWidget(
           text: widget.text,
           color: widget.color,
-  
+
           fontWeight: widget.fontWeight,
         ),
       ),

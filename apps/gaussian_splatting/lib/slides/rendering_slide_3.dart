@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:wnma_talk/code_highlight.dart';
 import 'package:wnma_talk/content_slide_template.dart';
+import 'package:wnma_talk/slide_number.dart';
 import 'package:wnma_talk/wnma_talk.dart';
 
 class RenderingSlide3 extends FlutterDeckSlideWidget {
@@ -8,6 +9,7 @@ class RenderingSlide3 extends FlutterDeckSlideWidget {
     : super(
         configuration: const FlutterDeckSlideConfiguration(
           route: '/rendering-3',
+          speakerNotes: jesperSlideNotesHeader,
           // steps: 1,
         ),
       );
@@ -22,7 +24,6 @@ class RenderingSlide3 extends FlutterDeckSlideWidget {
         textAlign: TextAlign.left,
       ),
       mainContent: CodeHighlight(
-        
         code: '''
 // Main thread
 sorter.init(onComplete: (idx) => uploadOrderTexture(idx))

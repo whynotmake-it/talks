@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:wnma_talk/animated_element.dart';
+import 'package:wnma_talk/slide_number.dart';
 import 'package:wnma_talk/wnma_talk.dart';
 
 class LearningQuerySlide extends FlutterDeckSlideWidget {
@@ -8,6 +9,7 @@ class LearningQuerySlide extends FlutterDeckSlideWidget {
         configuration: const FlutterDeckSlideConfiguration(
           route: '/learning-query',
           steps: 2,
+          speakerNotes: timSlideNotesHeader,
         ),
       );
 
@@ -17,49 +19,51 @@ class LearningQuerySlide extends FlutterDeckSlideWidget {
     final colorScheme = theme.materialTheme.colorScheme;
 
     return FlutterDeckSlide.custom(
-      builder: (context) => ColoredBox(
-        color: colorScheme.surface,
-        child: Stack(
-          children: [
-            // Split divider line
-            Positioned(
-              left: 0,
-              right: 0,
-              top: 0,
-              bottom: 0,
-              child: Center(
-                child: Container(
-                  width: 2,
-                  color: colorScheme.onSurfaceVariant.withValues(alpha: 0.2),
+      builder: (context) => SlideNumber(
+        child: ColoredBox(
+          color: colorScheme.surface,
+          child: Stack(
+            children: [
+              // Split divider line
+              Positioned(
+                left: 0,
+                right: 0,
+                top: 0,
+                bottom: 0,
+                child: Center(
+                  child: Container(
+                    width: 2,
+                    color: colorScheme.onSurfaceVariant.withValues(alpha: 0.2),
+                  ),
                 ),
               ),
-            ),
 
-            FlutterDeckSlideStepsBuilder(
-              builder: (context, stepNumber) {
-                return Row(
-                  children: [
-                    // LEFT SIDE: Learning
-                    Expanded(
-                      child: _LearningSection(
-                        theme: theme,
-                        colorScheme: colorScheme,
+              FlutterDeckSlideStepsBuilder(
+                builder: (context, stepNumber) {
+                  return Row(
+                    children: [
+                      // LEFT SIDE: Learning
+                      Expanded(
+                        child: _LearningSection(
+                          theme: theme,
+                          colorScheme: colorScheme,
+                        ),
                       ),
-                    ),
 
-                    // RIGHT SIDE: Query
-                    Expanded(
-                      child: _QuerySection(
-                        stepNumber: stepNumber,
-                        theme: theme,
-                        colorScheme: colorScheme,
+                      // RIGHT SIDE: Query
+                      Expanded(
+                        child: _QuerySection(
+                          stepNumber: stepNumber,
+                          theme: theme,
+                          colorScheme: colorScheme,
+                        ),
                       ),
-                    ),
-                  ],
-                );
-              },
-            ),
-          ],
+                    ],
+                  );
+                },
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -166,4 +170,3 @@ class _QuerySection extends StatelessWidget {
     );
   }
 }
-

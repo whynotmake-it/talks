@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:wnma_talk/content_slide_template.dart';
+import 'package:wnma_talk/slide_number.dart';
 import 'package:wnma_talk/video.dart';
 import 'package:wnma_talk/wnma_talk.dart';
 
@@ -9,6 +10,7 @@ class HowToSlide extends FlutterDeckSlideWidget {
         configuration: const FlutterDeckSlideConfiguration(
           route: '/how-to',
           steps: 3,
+          speakerNotes: timSlideNotesHeader,
         ),
       );
 

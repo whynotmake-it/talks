@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:rivership/rivership.dart';
+import 'package:wnma_talk/slide_number.dart';
 import 'package:wnma_talk/wnma_talk.dart';
 
 class ClassicRenderingSlide extends FlutterDeckSlideWidget {
@@ -8,6 +9,7 @@ class ClassicRenderingSlide extends FlutterDeckSlideWidget {
         configuration: const FlutterDeckSlideConfiguration(
           route: '/classic-rendering',
           steps: 4,
+          speakerNotes: timSlideNotesHeader,
         ),
       );
 
@@ -17,68 +19,70 @@ class ClassicRenderingSlide extends FlutterDeckSlideWidget {
     final colorScheme = theme.materialTheme.colorScheme;
 
     return FlutterDeckSlide.custom(
-      builder: (context) => ColoredBox(
-        color: colorScheme.surface,
-        child: Stack(
-          children: [
-            // Background: Final banana (always visible like novel view syn)
-            Align(
-              alignment: Alignment(0, -5),
-              child: Image.asset(
-                'assets/mesh-banana.png',
+      builder: (context) => SlideNumber(
+        child: ColoredBox(
+          color: colorScheme.surface,
+          child: Stack(
+            children: [
+              // Background: Final banana (always visible like novel view syn)
+              Align(
+                alignment: Alignment(0, -5),
+                child: Image.asset(
+                  'assets/mesh-banana.png',
+                ),
               ),
-            ),
 
-            // Title (commented out following novel view syn pattern)
-            // Positioned(
-            //   top: 50,
-            //   left: 100,
-            //   child: DefaultTextStyle.merge(
-            //     style: theme.textTheme.display.copyWith(
-            //       color: colorScheme.onPrimaryContainer,
-            //       letterSpacing: -5,
-            //       height: 1,
-            //     ),
-            //     child: ConstrainedBox(
-            //       constraints: const BoxConstraints(maxWidth: 800),
-            //       child: const Text('Classic Rendering Pipeline'),
-            //     ),
-            //   ),
-            // ),
+              // Title (commented out following novel view syn pattern)
+              // Positioned(
+              //   top: 50,
+              //   left: 100,
+              //   child: DefaultTextStyle.merge(
+              //     style: theme.textTheme.display.copyWith(
+              //       color: colorScheme.onPrimaryContainer,
+              //       letterSpacing: -5,
+              //       height: 1,
+              //     ),
+              //     child: ConstrainedBox(
+              //       constraints: const BoxConstraints(maxWidth: 800),
+              //       child: const Text('Classic Rendering Pipeline'),
+              //     ),
+              //   ),
+              // ),
 
-            // Animated rendering pipeline
-            FlutterDeckSlideStepsBuilder(
-              builder: (context, stepNumber) {
-                return Stack(
-                  children: [
-                    // Step 2: Texture appears next to mesh
-                    _AnimatedRenderingElement(
-                      visible: stepNumber >= 2,
-                      stagger: 1,
-                      asset: 'assets/banana-texture.png',
-                      position: const Offset(500, 0),
-                    ),
+              // Animated rendering pipeline
+              FlutterDeckSlideStepsBuilder(
+                builder: (context, stepNumber) {
+                  return Stack(
+                    children: [
+                      // Step 2: Texture appears next to mesh
+                      _AnimatedRenderingElement(
+                        visible: stepNumber >= 2,
+                        stagger: 1,
+                        asset: 'assets/banana-texture.png',
+                        position: const Offset(500, 0),
+                      ),
 
-                    // Step 3: Light bulb icon
-                    _AnimatedRenderingElement(
-                      visible: stepNumber >= 3,
-                      stagger: 2,
-                      icon: Icons.lightbulb,
-                      position: const Offset(-500, 160),
-                    ),
+                      // Step 3: Light bulb icon
+                      _AnimatedRenderingElement(
+                        visible: stepNumber >= 3,
+                        stagger: 2,
+                        icon: Icons.lightbulb,
+                        position: const Offset(-500, 160),
+                      ),
 
-                    // Step 4: Camera
-                    _AnimatedRenderingElement(
-                      visible: stepNumber >= 4,
-                      stagger: 3,
-                      asset: 'assets/top-left-cam.png',
-                      position: const Offset(-500, -320),
-                    ),
-                  ],
-                );
-              },
-            ),
-          ],
+                      // Step 4: Camera
+                      _AnimatedRenderingElement(
+                        visible: stepNumber >= 4,
+                        stagger: 3,
+                        asset: 'assets/top-left-cam.png',
+                        position: const Offset(-500, -320),
+                      ),
+                    ],
+                  );
+                },
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -89,7 +93,8 @@ class _AnimatedRenderingElement extends StatelessWidget {
   const _AnimatedRenderingElement({
     required this.visible,
     required this.stagger,
-    required this.position, this.asset,
+    required this.position,
+    this.asset,
     this.icon,
   });
 
