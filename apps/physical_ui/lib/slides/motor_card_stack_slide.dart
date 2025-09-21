@@ -6,12 +6,12 @@ import 'package:wnma_talk/wnma_talk.dart';
 
 class MotorCardStackSlide extends FlutterDeckSlideWidget {
   const MotorCardStackSlide({super.key})
-      : super(
-          configuration: const FlutterDeckSlideConfiguration(
-            title: 'Motor Card Stack',
-            route: '/motor-card-stack',
-          ),
-        );
+    : super(
+        configuration: const FlutterDeckSlideConfiguration(
+          title: 'Motor Card Stack',
+          route: '/motor-card-stack',
+        ),
+      );
 
   static const _motorPseudoCode = '''
 // 1. Setup
@@ -21,7 +21,14 @@ final controller = SequenceMotionController<Phase, Offset>(
   converter: OffsetMotionConverter(),
 );
 
-// 2. Drag handling
+// 2. Build a motion sequence
+final sequence = MotionSequence.statesWithMotions({
+  Phase.idle: (currentOffset, Motion.none()),
+  Phase.clearing: (clearanceOffset, Motion.smoothSpring().trimmed(endTrim: .5)),
+  Phase.dismissing: (Offset.zero, Motion.smoothSpring()),
+});
+
+// 3. Drag handling
 GestureDetector(
   onPanUpdate: (details) {
     controller.value += details.delta;
@@ -29,22 +36,12 @@ GestureDetector(
   onPanEnd: (details) {
     // Auto spring-back with velocity
     if (dragDistance > threshold) {
-      controller.playSequence(buildDismissSequence(
-        controller.value, 
-        details.velocity
-      ));
+      controller.playSequence(sequence);
     } else {
       controller.animateTo(Offset.zero);
     }
   },
 );
-
-// 3. Multi-phase animation sequence
-MotionSequence.statesWithMotions({
-  Phase.idle: (currentOffset, Motion.none()),
-  Phase.clearing: (clearanceOffset, Motion.smoothSpring()),
-  Phase.dismissing: (Offset.zero, Motion.smoothSpring()),
-});
 
 // 4. Transform with animation
 Transform.translate(
@@ -65,7 +62,7 @@ Transform.translate(
               child: CardStack(),
             ),
           ),
-          
+
           // Right Column: Code Example
           Expanded(
             child: Padding(
@@ -104,15 +101,16 @@ class _CardStackState extends State<CardStack> {
           Center(
             key: ValueKey(text),
             child: _DragCardExample(
-                index: _cards.length - 1 - index,
-                child: Text(
-                  text,
-                  style: Theme.of(context).textTheme.headlineLarge?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ),
+              index: _cards.length - 1 - index,
+              child: Text(
+                text,
+                style: Theme.of(context).textTheme.headlineLarge?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
                 ),
-                onDismiss: () => _removeCard(index)),
+              ),
+              onDismiss: () => _removeCard(index),
+            ),
           ),
       ],
     );
@@ -173,7 +171,9 @@ class _DragCardExampleState extends State<_DragCardExample>
   }
 
   MotionSequence<DragCardPhase, Offset> buildReturn(
-      Offset offset, Velocity velocity) {
+    Offset offset,
+    Velocity velocity,
+  ) {
     final clearance = getClearanceOffset(offset, velocity);
     return MotionSequence.statesWithMotions({
       DragCardPhase.idle: (offset, Motion.none()),

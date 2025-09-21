@@ -60,13 +60,13 @@ class SpringCodeVisualizer extends HookWidget {
           child: CodeHighlight(
             code:
                 '''
-final spring = 
-  SpringDescription.withDurationAndBounce(
+final spring = SpringDescription
+  .withDurationAndBounce(
     duration: Duration(
       milliseconds: ${duration.value.inMilliseconds}
     ),
     bounce: ${bounce.value.toStringAsFixed(2)},
-  );    ''',
+  );''',
           ),
         ),
       ],
