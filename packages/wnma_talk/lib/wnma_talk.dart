@@ -4,7 +4,6 @@ library wnma_talk;
 import 'package:flex_seed_scheme/flex_seed_scheme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_deck/flutter_deck.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:wnmi_design/wnmi_design.dart';
 
 export 'package:device_frame/device_frame.dart';
@@ -43,7 +42,7 @@ ColorScheme _buildColorScheme() {
 
 FlutterDeckThemeData buildGaussianSplattingTheme() {
   final colorScheme = _buildGaussianSplattingColorScheme();
-  final textTheme = _buildGaussianSplattingTextTheme();
+  final textTheme = _buildTextTheme();
 
   return FlutterDeckThemeData.fromThemeAndText(
     ThemeData.from(
@@ -64,7 +63,6 @@ ColorScheme _buildGaussianSplattingColorScheme() {
   final scheme =
       SeedColorScheme.fromSeeds(
         variant: FlexSchemeVariant.vivid,
-        brightness: Brightness.light,
         primaryKey: primary,
         secondaryKey: secondary,
         tertiaryKey: tertiary,
@@ -82,27 +80,6 @@ ColorScheme _buildGaussianSplattingColorScheme() {
       );
 
   return scheme;
-}
-
-FlutterDeckTextTheme _buildGaussianSplattingTextTheme() {
-  final display = TypographyDisplay.standard();
-  final body = TypographyBody.standard();
-  return FlutterDeckTextTheme(
-    bodyLarge: body.large.copyWith(
-      fontSize: 36,
-      height: 1.2,
-    ),
-    bodyMedium: body.medium.copyWith(fontSize: 32),
-    bodySmall: body.small,
-    display: display.large.copyWith(fontSize: 96),
-    title: display.medium.copyWith(
-      fontSize: 190,
-      fontWeight: FontWeight.w300,
-      letterSpacing: 1,
-      height: .96,
-    ),
-    header: display.small,
-  );
 }
 
 FlutterDeckTextTheme _buildTextTheme() {

@@ -22,7 +22,6 @@ class RenderingSlide2 extends FlutterDeckSlideWidget {
         textAlign: TextAlign.left,
       ),
       mainContent: CodeHighlight(
-
         code: '''
 // --- P0: pos.xyz + packed quat ---
 writeTexel(0, px, py, pz, quatPackedF32);

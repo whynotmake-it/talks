@@ -24,11 +24,11 @@ class RenderingSlide3 extends FlutterDeckSlideWidget {
       mainContent: CodeHighlight(
         
         code: '''
-# Main thread
+// Main thread
 sorter.init(onComplete: (idx) => uploadOrderTexture(idx))
 sorter.run(viewProj, splatBuffer, splatCount)
 
-# Sort isolate
+// Sort isolate
 onMessage(viewProj, buffer, n):
   pos = reinterpretF32(buffer)          # x,y,z per splat
   idx = counting/radix_sort(d,          # run bucket sort
