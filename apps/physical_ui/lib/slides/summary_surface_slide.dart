@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:motor/motor.dart';
 import 'package:physical_ui/slides/1_surfaces/surface.dart';
 import 'package:wnma_talk/bullet_point.dart';
 import 'package:wnma_talk/content_slide_template.dart';
@@ -18,45 +20,66 @@ class SummarySurfaceSlide extends FlutterDeckSlideWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return FlutterDeckSlideStepsBuilder(
-      builder: (context, stepNumber) => ContentSlideTemplate(
-        insetSecondaryContent: true,
-        title: const Text('Surface Summary'),
-        mainContent: Column(
-          spacing: 32,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            BulletPoint(
-              text: const Text('Create affordances'),
-              visible: stepNumber > 0,
+    return HookBuilder(
+      builder: (context) {
+        final pressed = useState(0);
+        return FlutterDeckSlideStepsBuilder(
+          builder: (context, stepNumber) => ContentSlideTemplate(
+            insetSecondaryContent: true,
+            title: const Text('Surface Summary'),
+            mainContent: Column(
+              spacing: 32,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                BulletPoint(
+                  text: const Text('Create affordances'),
+                  visible: stepNumber > 0,
+                ),
+                BulletPoint(
+                  text: const Text('Establish depth & space'),
+                  visible: stepNumber > 1,
+                ),
+                BulletPoint(
+                  text: const Text('Direct attention & hierarchy'),
+                  visible: stepNumber > 2,
+                ),
+                BulletPoint(
+                  text: const Text('Communicate state & feedback'),
+                  visible: stepNumber > 3,
+                ),
+              ],
             ),
-            BulletPoint(
-              text: const Text('Establish depth & space'),
-              visible: stepNumber > 1,
+            secondaryContent: InkWell(
+              onTapDown: (details) => pressed.value = 0,
+              onTapUp: (details) => pressed.value = 1,
+              child: MotionBuilder<SurfaceState>(
+                converter: surfaceStateConverter,
+                builder: (context, value, child) => Surface(
+                  state: value,
+                  phase: 0,
+                ),
+                value: pressed.value == 1
+                    ? SurfaceState(
+                        radius: 48,
+                        noiseOpacity: 1,
+                        color: theme.colorScheme.secondary,
+                        elevation: 12,
+                        gradientOpacity: 1,
+                        borderOpacity: 1,
+                        rotateLight: true,
+                      )
+                    : SurfaceState(
+                        radius: 48,
+                        noiseOpacity: 1,
+                        color: theme.colorScheme.secondary,
+                        gradientOpacity: 1,
+                      ),
+                motion: CupertinoMotion.smooth(),
+              ),
             ),
-            BulletPoint(
-              text: const Text('Direct attention & hierarchy'),
-              visible: stepNumber > 2,
-            ),
-            BulletPoint(
-              text: const Text('Communicate state & feedback'),
-              visible: stepNumber > 3,
-            ),
-          ],
-        ),
-        secondaryContent: Surface(
-          state: SurfaceState(
-            radius: 48,
-            noiseOpacity: 1,
-            color: theme.colorScheme.secondary,
-            elevation: 12,
-            gradientOpacity: 1,
-            borderOpacity: 1,
-            rotateLight: true,
           ),
-          phase: 0,
-        ),
-      ),
+        );
+      },
     );
   }
 }
