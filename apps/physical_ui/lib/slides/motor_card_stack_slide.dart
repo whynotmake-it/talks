@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:motor/motor.dart';
 import 'package:wnma_talk/code_highlight.dart';
+import 'package:wnma_talk/content_slide_template.dart';
 import 'package:wnma_talk/single_content_slide_template.dart';
 import 'package:wnma_talk/wnma_talk.dart';
 
@@ -22,11 +23,12 @@ final controller = SequenceMotionController<Phase, Offset>(
 );
 
 // 2. Build a motion sequence
-final sequence = MotionSequence.statesWithMotions({
-  Phase.idle: (currentOffset, Motion.none()),
-  Phase.clearing: (clearanceOffset, Motion.smoothSpring().trimmed(endTrim: .5)),
-  Phase.dismissing: (Offset.zero, Motion.smoothSpring()),
-});
+buildSequence(Offset currentOffset) => 
+  MotionSequence.statesWithMotions({
+    Phase.idle: (currentOffset, Motion.none()),
+    Phase.clearing: (clearanceOffset, Motion.smoothSpring().segment(length: .1)),
+    Phase.dismissing: (Offset.zero, Motion.smoothSpring()),
+  });
 
 // 3. Drag handling
 GestureDetector(
@@ -52,28 +54,14 @@ Transform.translate(
 
   @override
   Widget build(BuildContext context) {
-    return SingleContentSlideTemplate(
-      title: const Text('Card Stack'),
-      mainContent: const Row(
-        children: [
-          // Left Column: Interactive Demo
-          Expanded(
-            child: Center(
-              child: CardStack(),
-            ),
-          ),
-
-          // Right Column: Code Example
-          Expanded(
-            child: Padding(
-              padding: EdgeInsets.only(left: 32),
-              child: CodeHighlight(
-                filename: 'drag_card_example.dart',
-                code: _motorPseudoCode,
-              ),
-            ),
-          ),
-        ],
+    return ContentSlideTemplate(
+      insetSecondaryContent: true,
+      title: const Text('The next Step: Sequences'),
+      secondaryContent: Center(
+        child: CardStack(),
+      ),
+      mainContent: CodeHighlight(
+        code: _motorPseudoCode,
       ),
     );
   }
@@ -181,7 +169,7 @@ class _DragCardExampleState extends State<_DragCardExample>
         DragCardPhase.clearing: (
           clearance,
           // Only use the very beginning of the spring way before it settles
-          Motion.smoothSpring().subExtent(extent: .1),
+          Motion.smoothSpring().segment(length: .1),
         ),
       DragCardPhase.dismissing: (
         Offset.zero,
@@ -200,9 +188,11 @@ class _DragCardExampleState extends State<_DragCardExample>
     if (phaseController.value.distance > dismissThreshold) {
       phaseController.playSequence(
         buildReturn(phaseController.value, details.velocity),
-        onPhaseChanged: (phase) {
+        onTransition: (transition) {
           // We wait until the flight back to tell the stack to resort
-          if (phase == DragCardPhase.dismissing) {
+          if (transition case PhaseTransitioning(
+            to: DragCardPhase.dismissing,
+          )) {
             widget.onDismiss();
           }
         },

@@ -2,15 +2,29 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:motor/motor.dart';
 import 'package:wnma_talk/big_quote_template.dart';
+import 'package:wnma_talk/bullet_point.dart';
+import 'package:wnma_talk/content_slide_template.dart';
+import 'package:wnma_talk/slide_number.dart';
 import 'package:wnma_talk/wnma_talk.dart';
 
 class MotorTitleSlide extends FlutterDeckSlideWidget {
-  const MotorTitleSlide({super.key});
+  MotorTitleSlide({super.key})
+    : super(
+        configuration: FlutterDeckSlideConfiguration(
+          route: '/motor_title',
+          title: 'Motor',
+
+          steps: 1,
+          speakerNotes: timSlideNotesHeader,
+        ),
+      );
 
   @override
   Widget build(BuildContext context) {
-    return BigQuoteTemplate(
-      title: const _Logo(),
+    return FlutterDeckSlideStepsBuilder(
+      builder: (context, stepNumber) => BigQuoteTemplate(
+        title: const _Logo(),
+      ),
     );
   }
 }
@@ -28,6 +42,7 @@ class _Logo extends StatelessWidget {
             textTheme: CupertinoTheme.of(context).textTheme.copyWith(
               textStyle: TextStyle(
                 fontFamily: 'Archivo',
+                fontSize: DefaultTextStyle.of(context).style.fontSize,
                 color: Theme.of(context).colorScheme.onPrimaryContainer,
                 letterSpacing: 1,
                 fontVariations: const [
@@ -37,14 +52,7 @@ class _Logo extends StatelessWidget {
               ),
             ),
           ),
-      child: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: const [
-            MotorLogo('Motor'),
-          ],
-        ),
-      ),
+      child: MotorLogo('Motor'),
     );
   }
 }
@@ -120,7 +128,8 @@ class _LetterState extends State<_Letter> {
 
     final initialStyle = CupertinoTheme.of(context).textTheme.textStyle
         .copyWith(
-          fontSize: 64,
+          fontSize: DefaultTextStyle.of(context).style.fontSize,
+
           fontVariations: [FontVariation.weight(100), FontVariation.width(50)],
         );
     return MouseRegion(
@@ -131,7 +140,7 @@ class _LetterState extends State<_Letter> {
         from: initialStyle,
         value: widget.visible
             ? initialStyle.copyWith(
-                fontSize: widget.visible ? 64 : 0,
+                fontSize: DefaultTextStyle.of(context).style.fontSize,
                 fontVariations: [
                   FontVariation.weight(_hovered ? 900 : 700),
                   FontVariation.width(110),

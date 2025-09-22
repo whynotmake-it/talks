@@ -21,6 +21,7 @@ import 'package:physical_ui/slides/motion_character_slide.dart';
 import 'package:physical_ui/slides/motion_slides.dart';
 import 'package:physical_ui/slides/motor_card_stack_slide.dart';
 import 'package:physical_ui/slides/motor_title_slide.dart';
+import 'package:physical_ui/slides/motor_concepts_slides.dart';
 import 'package:physical_ui/slides/simulation_vs_curve_slides.dart';
 import 'package:physical_ui/slides/summary_surface_slide.dart';
 import 'package:physical_ui/slides/thanks_slide.dart';
@@ -93,6 +94,7 @@ class PhysicalUiTalk extends StatelessWidget {
             ...dimensionalitySlides,
             SimulationVsCurveSlide(),
             MotorTitleSlide(),
+            ...motorConceptSlides,
 
             MotorCardStackSlide(),
             HeroineDemoSlide(),

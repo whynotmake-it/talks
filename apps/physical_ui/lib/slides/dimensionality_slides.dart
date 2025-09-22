@@ -105,7 +105,7 @@ class DimensionalitySlideTemplate extends FlutterDeckSlideWidget {
                 ),
 
                 Align(
-                  child: _Draggable(
+                  child: Draggable2D(
                     recorder: recorder,
                     motion: motion,
                     onDragStart: () {
@@ -203,8 +203,8 @@ class _ValueGraph extends StatelessWidget {
   }
 }
 
-class _Draggable extends StatefulWidget {
-  const _Draggable({
+class Draggable2D extends StatefulWidget {
+  const Draggable2D({
     required this.child,
     required this.motion,
     this.recorder,
@@ -223,10 +223,10 @@ class _Draggable extends StatefulWidget {
   final ValueChanged<Offset>? onLetGo;
 
   @override
-  State<_Draggable> createState() => _DraggableState();
+  State<Draggable2D> createState() => _Draggable2DState();
 }
 
-class _DraggableState extends State<_Draggable>
+class _Draggable2DState extends State<Draggable2D>
     with SingleTickerProviderStateMixin {
   late final motionController = MotionController(
     vsync: this,
@@ -248,7 +248,7 @@ class _DraggableState extends State<_Draggable>
   }
 
   @override
-  void didUpdateWidget(covariant _Draggable oldWidget) {
+  void didUpdateWidget(covariant Draggable2D oldWidget) {
     if (oldWidget.motion != widget.motion) {
       motionController.motion = widget.motion;
     }
