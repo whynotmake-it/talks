@@ -26,7 +26,7 @@ dependencies:
 
   paper_liquid_metal_logo:
     git: git@github.com:whynotmake-it/glibber.git
-  motor: ^1.0.0-dev.9
+  motor: ^1.0.0-dev.10
   rivership: ^0.3.0-dev.12
   stupid_simple_sheet: ^0.3.0+1
   value_notifier_tools: ^0.1.2

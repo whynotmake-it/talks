@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:motor/motor.dart';
+import 'package:wnma_talk/big_quote_template.dart';
 import 'package:wnma_talk/bullet_point.dart';
 import 'package:wnma_talk/content_slide_template.dart';
 import 'package:wnma_talk/slide_number.dart';
@@ -12,13 +13,8 @@ class MotorTitleSlide extends FlutterDeckSlideWidget {
         configuration: FlutterDeckSlideConfiguration(
           route: '/motor_title',
           title: 'Motor',
-          // Step 1: Logo only
-          // Step 2: Tagline
-          // Step 3: Motion
-          // Step 4: MotionController
-          // Step 5: MotionConverter
-          // Step 6: MotionBuilder
-          steps: 6,
+
+          steps: 1,
           speakerNotes: timSlideNotesHeader,
         ),
       );
@@ -26,38 +22,8 @@ class MotorTitleSlide extends FlutterDeckSlideWidget {
   @override
   Widget build(BuildContext context) {
     return FlutterDeckSlideStepsBuilder(
-      builder: (context, stepNumber) => ContentSlideTemplate(
+      builder: (context, stepNumber) => BigQuoteTemplate(
         title: const _Logo(),
-        mainContent: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            BulletPoint(
-              text: const Text('The missing animation primitives for Flutter'),
-              visible: stepNumber > 1,
-            ),
-            BulletPoint(
-              text: const Text('Motion: curves + spring / physics unified'),
-              visible: stepNumber > 2,
-            ),
-            BulletPoint(
-              text: const Text(
-                'MotionController: multi‑dimensional, velocity aware',
-              ),
-              visible: stepNumber > 3,
-            ),
-            BulletPoint(
-              text: const Text('MotionConverter: animate any data type'),
-              visible: stepNumber > 4,
-            ),
-            BulletPoint(
-              text: const Text(
-                'MotionBuilder: declarative redirection & composition',
-              ),
-              visible: stepNumber > 5,
-            ),
-          ],
-        ),
       ),
     );
   }

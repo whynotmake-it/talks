@@ -1,53 +1,62 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:motor/motor.dart';
+import 'package:physical_ui/slides/dimensionality_slides.dart';
 // motor import not required directly for these code snippets at compile time
 import 'package:wnma_talk/code_highlight.dart';
+import 'package:wnma_talk/content_slide_template.dart';
 import 'package:wnma_talk/single_content_slide_template.dart';
 import 'package:wnma_talk/wnma_talk.dart';
 
 /// A group of slides that walk through the core Motor concepts.
 final motorConceptSlides = <FlutterDeckSlideWidget>[
   _MotionSlide(),
-  _MotionControllerSlide(),
   _MotionConverterSlide(),
+  _MotionControllerSlide(),
   _MotionBuilderSlide(),
-  _PuttingItTogetherSlide(),
 ];
 
 class _MotionSlide extends FlutterDeckSlideWidget {
-  _MotionSlide() : super(
-    configuration: const FlutterDeckSlideConfiguration(
-      route: '/motor-motion',
-      title: 'Motion',
-      steps: 1,
-    ),
-  );
+  _MotionSlide()
+    : super(
+        configuration: const FlutterDeckSlideConfiguration(
+          route: '/motor-motion',
+          title: 'Motion',
+        ),
+      );
 
-  static const _code = '''// Motion encapsulates timing + curve/physics
+  static const _code = '''
+import 'package:motor/motor.dart';
+
+// Motion encapsulates timing + curve/physics
 
 // Curve based
 final ease = Motion.curved(400.ms, Curves.easeInOut);
 
 // Spring (duration + bounce abstraction)
-final smooth = Motion.smoothSpring(duration: 500.ms); // bounce: 0
-final bouncy = Motion.bouncySpring(duration: 600.ms, extraBounce: .35);
+CupertinoMotion.smooth(duration: 500.ms); // bounce: 0
+CupertinoMotion.bouncy(duration: 600.ms, extraBounce: .1);
 
-// Shortcuts
-Motion.cupertino();
-Motion.smooth();
+// Trim / segment lets you use a subse of a motion characteristic
+final entrance = smooth.segment(length: .4); // Only first 40%
 
-// Trim / sub-extent lets you re-use a motion
-final entrance = smooth.subExtent(extent: .4); // Only first 40%
+// Also supports Material Expressive Motion tokens
+MaterialSpringMotion.expressiveEffectsDefault();
 ''';
 
   @override
   Widget build(BuildContext context) {
-    return SingleContentSlideTemplate(
-      title: const Text('Motion = curve OR spring'),
-      mainContent: Align(
-        alignment: Alignment.centerLeft,
-        child: CodeHighlight(
-          filename: 'motion.dart',
-          code: _code,
+    return ContentSlideTemplate(
+      insetSecondaryContent: true,
+      title: const Text('1. Motion – A unified Abstraction'),
+      mainContent: CodeHighlight(
+        code: _code,
+      ),
+      secondaryContent: Center(
+        child: Image.asset(
+          'assets/motion_friends.png',
+          width: 500,
         ),
       ),
     );
@@ -55,54 +64,69 @@ final entrance = smooth.subExtent(extent: .4); // Only first 40%
 }
 
 class _MotionControllerSlide extends FlutterDeckSlideWidget {
-  _MotionControllerSlide() : super(
-    configuration: const FlutterDeckSlideConfiguration(
-      route: '/motor-motion-controller',
-      title: 'MotionController',
-      steps: 1,
-    ),
-  );
+  const _MotionControllerSlide()
+    : super(
+        configuration: const FlutterDeckSlideConfiguration(
+          route: '/motor-motion-controller',
+          title: 'MotionController',
+        ),
+      );
 
-  static const _code = '''// Multi-dimensional controller
-class MyWidgetState extends State<MyWidget> with SingleTickerProviderStateMixin {
-  late final controller = MotionController<Offset>(
+  static const _code = '''
+import 'package:motor/motor.dart';
+
+// In your State class:
+late final controller = MotionController<Offset>(
     motion: Motion.smoothSpring(),
     vsync: this,
     converter: OffsetMotionConverter(),
-    // Initial value is required for custom types
     initialValue: Offset.zero,
+);
+
+@override
+void dispose() {
+  controller.dispose();
+  super.dispose();
+}
+
+// We can just set the value directly
+void onDragUpdate(DragUpdateDetails details) {
+  controller.value += details.delta;
+}
+
+// And it understands Offset, so this is easy
+void onDragEnd(DragEndDetails details) {
+  controller.animateTo(
+    Offset.zero, 
+    withVelocity: details.velocity.pixelsPerSecond,
   );
+}
 
-  void animate() {
-    controller.animateTo(const Offset(200, 0));
-  }
 
-  @override
-  void dispose() { controller.dispose(); super.dispose(); }
-
-  @override
-  Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: controller,
-      builder: (context, child) => Transform.translate(
-        offset: controller.value,
-        child: child,
-      ),
-      child: const _Card(),
-    );
-  }
+@override
+Widget build(BuildContext context) {
+  //... 
 }
 ''';
 
   @override
   Widget build(BuildContext context) {
-    return SingleContentSlideTemplate(
-      title: const Text('MotionController = multi‑dimensional AnimationController'),
+    return ContentSlideTemplate(
+      insetSecondaryContent: true,
+      title: const Text('3. MotionController'),
       mainContent: Align(
         alignment: Alignment.centerLeft,
         child: CodeHighlight(
-          filename: 'motion_controller.dart',
           code: _code,
+        ),
+      ),
+      secondaryContent: Center(
+        child: Draggable2D(
+          motion: CupertinoMotion.smooth(),
+          child: Image.asset(
+            'assets/file.png',
+            width: 200,
+          ),
         ),
       ),
     );
@@ -110,16 +134,28 @@ class MyWidgetState extends State<MyWidget> with SingleTickerProviderStateMixin 
 }
 
 class _MotionConverterSlide extends FlutterDeckSlideWidget {
-  _MotionConverterSlide() : super(
-    configuration: const FlutterDeckSlideConfiguration(
-      route: '/motor-motion-converter',
-      title: 'MotionConverter',
-      steps: 1,
-    ),
-  );
+  _MotionConverterSlide()
+    : super(
+        configuration: const FlutterDeckSlideConfiguration(
+          route: '/motor-motion-converter',
+          title: 'MotionConverter',
+        ),
+      );
 
-  static const _code = '''// Animate any type by mapping to List<double>
+  static const _code = '''
+import 'package:motor/motor.dart';
 
+// Common types are included
+MotionConverter<double> a = 
+  SingleMotionConverter();
+
+MotionConverter<Offset> b = 
+  OffsetMotionConverter();
+
+MotionConverter<Alignment> c = 
+  AlignmentMotionConverter();
+
+// Or animate any type by mapping to List<double>
 final surfaceStateConverter = MotionConverter<SurfaceState>.custom(
   normalize: (value) => [
     value.radius,
@@ -132,132 +168,95 @@ final surfaceStateConverter = MotionConverter<SurfaceState>.custom(
     elevation: values[2],
   ),
 );
-
-late final controller = MotionController<SurfaceState>(
-  motion: Motion.bouncySpring(),
-  vsync: this,
-  converter: surfaceStateConverter,
-  initialValue: const SurfaceState(),
-);
-
-controller.animateTo(const SurfaceState(radius: 32, noiseOpacity: .3));
 ''';
 
   @override
   Widget build(BuildContext context) {
-    return SingleContentSlideTemplate(
-      title: const Text('MotionConverter = custom tween'),
-      mainContent: Align(
-        alignment: Alignment.centerLeft,
-        child: CodeHighlight(
-          filename: 'motion_converter.dart',
-          code: _code,
-        ),
+    return ContentSlideTemplate(
+      insetSecondaryContent: true,
+      title: const Text('2. MotionConverter'),
+      mainContent: CodeHighlight(
+        code: _code,
       ),
+      secondaryContent: Image.asset('assets/motion_converter.png'),
     );
   }
 }
 
 class _MotionBuilderSlide extends FlutterDeckSlideWidget {
-  _MotionBuilderSlide() : super(
-    configuration: const FlutterDeckSlideConfiguration(
-      route: '/motor-motion-builder',
-      title: 'MotionBuilder',
-      steps: 1,
-    ),
-  );
+  _MotionBuilderSlide()
+    : super(
+        configuration: const FlutterDeckSlideConfiguration(
+          route: '/motor-motion-builder',
+          title: 'MotionBuilder',
+        ),
+      );
 
-  static const _code = '''// Declarative redirection & composition
+  String getCode(Alignment target) =>
+      '''
+import 'package:motor/motor.dart';
+
+// Declarative redirection & composition
 
 return MotionBuilder(
-  motion: Motion.smooth(),
-  from: 0.0,
-  value: target, // Changing target dynamically redirects the animation
-  builder: (context, value, child) => Opacity(
-    opacity: value,
+  motion: CupertinoMotion.smooth(),
+  converter: AlignmentMotionConverter(),
+  value: $target, // Changing target dynamically redirects the animation
+  from: Alignment.center, // (optional) On first build the animation starts here
+  builder: (context, alignment, child) => Align(
+    alignment: alignment,
     child: child,
   ),
   child: const Text('Hello'),
 );
-
-// Sequence with different motions per phase
-return SequenceMotionBuilder<int, double>(
-  playing: playing,
-  sequence: StepSequence.withMotions([
-    (0.0, Motion.smooth().subExtent(extent: .3)),
-    (1.0, Motion.bouncySpring(extraBounce: .4)),
-  ]),
-  converter: MotionConverter.single,
-  builder: (context, v, phase, child) => Transform.scale(
-    scale: 0.8 + v * .2,
-    child: child,
-  ),
-  child: const Icon(Icons.star),
-);
 ''';
 
   @override
   Widget build(BuildContext context) {
-    return SingleContentSlideTemplate(
-      title: const Text('MotionBuilder = TweenAnimationBuilder on steroids'),
-      mainContent: Align(
-        alignment: Alignment.centerLeft,
-        child: CodeHighlight(
-          filename: 'motion_builder.dart',
-          code: _code,
-        ),
-      ),
-    );
-  }
-}
+    return HookBuilder(
+      builder: (context) {
+        const order = [
+          Alignment.topLeft,
+          Alignment.topRight,
+          Alignment.bottomRight,
+          Alignment.bottomLeft,
+        ];
 
-class _PuttingItTogetherSlide extends FlutterDeckSlideWidget {
-  _PuttingItTogetherSlide() : super(
-    configuration: const FlutterDeckSlideConfiguration(
-      route: '/motor-putting-it-together',
-      title: 'Motor: Putting it together',
-      steps: 1,
-    ),
-  );
+        final index = useState(0);
+        final target = order[index.value % order.length];
 
-  static const _code = '''// Card flick (simplified) with sequence
-enum Phase { idle, clearing, dismissing }
-
-late final phaseController = SequenceMotionController<Phase, Offset>(
-  motion: Motion.bouncySpring(),
-  vsync: this,
-  converter: OffsetMotionConverter(),
-  initialValue: Offset.zero,
-);
-
-MotionSequence<Phase, Offset> buildReturn(Offset offset, Velocity velocity) {
-  final clearance = offset + Offset(0, -150);
-  return MotionSequence.statesWithMotions({
-    Phase.idle: (offset, Motion.none()),
-    Phase.clearing: (clearance, Motion.smoothSpring().subExtent(extent: .1)),
-    Phase.dismissing: (Offset.zero, Motion.smoothSpring()),
-  });
-}
-
-void onPanEnd(DragEndDetails d) {
-  phaseController.playSequence(
-    buildReturn(phaseController.value, d.velocity),
-    withVelocity: d.velocity.pixelsPerSecond,
-  );
-}
-''';
-
-  @override
-  Widget build(BuildContext context) {
-    return SingleContentSlideTemplate(
-      title: const Text('Putting it together: sequence + redirection'),
-      mainContent: Align(
-        alignment: Alignment.centerLeft,
-        child: CodeHighlight(
-          filename: 'card_flick_sequence.dart',
-          code: _code,
-        ),
-      ),
+        return ContentSlideTemplate(
+          insetSecondaryContent: true,
+          title: const Text(
+            'MotionBuilder - Declarative Animation',
+          ),
+          mainContent: Align(
+            alignment: Alignment.centerLeft,
+            child: CodeHighlight(
+              filename: 'motion_builder.dart',
+              code: getCode(target),
+            ),
+          ),
+          secondaryContent: InkWell(
+            onTap: () {
+              index.value++;
+            },
+            child: MotionBuilder(
+              value: target,
+              from: Alignment.center,
+              motion: CupertinoMotion.smooth(duration: 800.ms),
+              converter: AlignmentMotionConverter(),
+              builder: (context, value, child) => Align(
+                alignment: value,
+                child: child,
+              ),
+              child: FlutterLogo(
+                size: 120,
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 }

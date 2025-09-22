@@ -37,7 +37,7 @@ class Surface extends StatelessWidget {
         sequence: StepSequence.withMotions(
           [
             (1.0, Motion.interactiveSpring()),
-            (0.95, Motion.interactiveSpring().trimmed(endTrim: .8)),
+            (0.95, Motion.interactiveSpring().trimmed(fromEnd: .8)),
             (1.0, Motion.smoothSpring()),
           ],
         ),

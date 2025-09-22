@@ -31,12 +31,7 @@ Heroine(
   child: Cover(index: index),
 );
 
-// 3. Custom route with HeroinePageRouteMixin
-class MyRoute extends PageRoute with HeroinePageRouteMixin {
-  // Route implementation
-}
-
-// 4. Drag-to-dismiss functionality
+// 3. Drag-to-dismiss functionality
 DragDismissable(
   child: Heroine(
     tag: index,
@@ -44,7 +39,7 @@ DragDismissable(
   ),
 )
 
-// 5. React to dismiss gestures
+// 4. React to dismiss gestures
 ReactToHeroineDismiss(
   builder: (context, progress, offset, child) {
     return BackdropFilter(
@@ -105,10 +100,12 @@ class HeroineDeviceDemo extends StatelessWidget {
 // Global motion notifiers for dynamic configuration
 final springNotifier = ValueNotifier<Motion>(CupertinoMotion.smooth());
 final flightShuttleNotifier = ValueNotifier<HeroineShuttleBuilder?>(
-  const FadeShuttleBuilder().chain(const FlipShuttleBuilder(
-    axis: Axis.vertical,
-    halfFlips: 1,
-  )),
+  const FadeShuttleBuilder().chain(
+    const FlipShuttleBuilder(
+      axis: Axis.vertical,
+      halfFlips: 1,
+    ),
+  ),
 );
 final detailsPageAspectRatio = ValueNotifier<double>(1);
 
@@ -162,8 +159,12 @@ class MyCustomRoute<T> extends PageRoute<T> with HeroinePageRouteMixin {
   }
 
   @override
-  Widget buildTransitions(BuildContext context, Animation<double> animation,
-      Animation<double> secondaryAnimation, Widget child) {
+  Widget buildTransitions(
+    BuildContext context,
+    Animation<double> animation,
+    Animation<double> secondaryAnimation,
+    Widget child,
+  ) {
     return child;
   }
 }
@@ -177,15 +178,16 @@ class ImageGridExample extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ValueListenableBuilder<double>(
-      valueListenable: ModalRoute.of(context)?.secondaryAnimation ??
+      valueListenable:
+          ModalRoute.of(context)?.secondaryAnimation ??
           const AlwaysStoppedAnimation(0),
       builder: (context, value, child) {
         final easedValue = Easing.standard.flipped.transform(value);
         return ColorFiltered(
           colorFilter: ColorFilter.mode(
-            CupertinoTheme.of(context)
-                .barBackgroundColor
-                .withValues(alpha: .5 * easedValue),
+            CupertinoTheme.of(
+              context,
+            ).barBackgroundColor.withValues(alpha: .5 * easedValue),
             BlendMode.srcOver,
           ),
           child: child!,
@@ -276,18 +278,20 @@ class Cover extends StatelessWidget {
     final shape = RoundedRectangleBorder(
       borderRadius: BorderRadius.circular(32),
     );
-    
+
     final gradientColors = _gradients[index % _gradients.length];
-    
+
     return FilledButton(
       style: FilledButton.styleFrom(
         splashFactory: NoSplash.splashFactory,
         padding: const EdgeInsets.all(32),
         shape: shape,
-        backgroundColor:
-            !isFlipped ? Colors.transparent : CupertinoColors.systemGrey4,
-        foregroundColor:
-            !isFlipped ? CupertinoColors.white : CupertinoColors.black,
+        backgroundColor: !isFlipped
+            ? Colors.transparent
+            : CupertinoColors.systemGrey4,
+        foregroundColor: !isFlipped
+            ? CupertinoColors.white
+            : CupertinoColors.black,
         shadowColor: Colors.brown.withValues(alpha: .3),
         elevation: isFlipped ? 24 : 8,
         backgroundBuilder: (context, states, child) => DecoratedBox(
@@ -345,12 +349,14 @@ class DetailsPage extends StatelessWidget {
         final opacity = 1 - progress;
         return ClipRect(
           child: BackdropFilter(
-            filter:
-                ImageFilter.blur(sigmaX: opacity * 20, sigmaY: opacity * 20),
+            filter: ImageFilter.blur(
+              sigmaX: opacity * 20,
+              sigmaY: opacity * 20,
+            ),
             child: CupertinoPageScaffold(
-              backgroundColor: CupertinoTheme.of(context)
-                  .scaffoldBackgroundColor
-                  .withValues(alpha: opacity),
+              backgroundColor: CupertinoTheme.of(
+                context,
+              ).scaffoldBackgroundColor.withValues(alpha: opacity),
               child: child!,
             ),
           ),
@@ -441,7 +447,7 @@ class DetailsPage extends StatelessWidget {
                 ),
               ),
             ),
-          )
+          ),
         ],
       ),
     );
