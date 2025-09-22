@@ -22,6 +22,7 @@ import 'package:physical_ui/slides/motor_card_stack_slide.dart';
 import 'package:physical_ui/slides/motor_title_slide.dart';
 import 'package:physical_ui/slides/simulation_vs_curve_slides.dart';
 import 'package:physical_ui/slides/summary_surface_slide.dart';
+import 'package:physical_ui/slides/thanks_slide.dart';
 import 'package:physical_ui/slides/title_slide.dart';
 import 'package:wnma_talk/big_quote_template.dart';
 import 'package:wnma_talk/wnma_talk.dart';
@@ -93,6 +94,7 @@ class PhysicalUiTalk extends StatelessWidget {
             MotorTitleSlide(),
 
             MotorCardStackSlide(),
+            ThanksSlide(),
           ],
           themeMode: ThemeMode.light,
         ),

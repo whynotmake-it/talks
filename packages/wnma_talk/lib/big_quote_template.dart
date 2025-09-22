@@ -28,7 +28,7 @@ class BigQuoteTemplate extends FlutterDeckSlideWidget {
             fit: StackFit.expand,
             children: [
               Padding(
-                padding: const EdgeInsets.all(100),
+                padding: const EdgeInsets.all(72),
                 child: Align(
                   child: DefaultTextStyle.merge(
                     style: theme.textTheme.title.copyWith(
@@ -43,6 +43,7 @@ class BigQuoteTemplate extends FlutterDeckSlideWidget {
                   ),
                 ),
               ),
+              Align(alignment: Alignment.bottomCenter,child: footer,)
             ],
           ),
         ),
