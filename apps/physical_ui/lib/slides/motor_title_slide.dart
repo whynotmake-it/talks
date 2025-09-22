@@ -1,16 +1,64 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:motor/motor.dart';
-import 'package:wnma_talk/big_quote_template.dart';
+import 'package:wnma_talk/bullet_point.dart';
+import 'package:wnma_talk/content_slide_template.dart';
+import 'package:wnma_talk/slide_number.dart';
 import 'package:wnma_talk/wnma_talk.dart';
 
 class MotorTitleSlide extends FlutterDeckSlideWidget {
-  const MotorTitleSlide({super.key});
+  MotorTitleSlide({super.key})
+    : super(
+        configuration: FlutterDeckSlideConfiguration(
+          route: '/motor_title',
+          title: 'Motor',
+          // Step 1: Logo only
+          // Step 2: Tagline
+          // Step 3: Motion
+          // Step 4: MotionController
+          // Step 5: MotionConverter
+          // Step 6: MotionBuilder
+          steps: 6,
+          speakerNotes: timSlideNotesHeader,
+        ),
+      );
 
   @override
   Widget build(BuildContext context) {
-    return BigQuoteTemplate(
-      title: const _Logo(),
+    return FlutterDeckSlideStepsBuilder(
+      builder: (context, stepNumber) => ContentSlideTemplate(
+        title: const _Logo(),
+        mainContent: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            BulletPoint(
+              text: const Text('The missing animation primitives for Flutter'),
+              visible: stepNumber > 1,
+            ),
+            BulletPoint(
+              text: const Text('Motion: curves + spring / physics unified'),
+              visible: stepNumber > 2,
+            ),
+            BulletPoint(
+              text: const Text(
+                'MotionController: multi‑dimensional, velocity aware',
+              ),
+              visible: stepNumber > 3,
+            ),
+            BulletPoint(
+              text: const Text('MotionConverter: animate any data type'),
+              visible: stepNumber > 4,
+            ),
+            BulletPoint(
+              text: const Text(
+                'MotionBuilder: declarative redirection & composition',
+              ),
+              visible: stepNumber > 5,
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
@@ -28,6 +76,7 @@ class _Logo extends StatelessWidget {
             textTheme: CupertinoTheme.of(context).textTheme.copyWith(
               textStyle: TextStyle(
                 fontFamily: 'Archivo',
+                fontSize: DefaultTextStyle.of(context).style.fontSize,
                 color: Theme.of(context).colorScheme.onPrimaryContainer,
                 letterSpacing: 1,
                 fontVariations: const [
@@ -37,14 +86,7 @@ class _Logo extends StatelessWidget {
               ),
             ),
           ),
-      child: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: const [
-            MotorLogo('Motor'),
-          ],
-        ),
-      ),
+      child: MotorLogo('Motor'),
     );
   }
 }
@@ -120,7 +162,8 @@ class _LetterState extends State<_Letter> {
 
     final initialStyle = CupertinoTheme.of(context).textTheme.textStyle
         .copyWith(
-          fontSize: 64,
+          fontSize: DefaultTextStyle.of(context).style.fontSize,
+
           fontVariations: [FontVariation.weight(100), FontVariation.width(50)],
         );
     return MouseRegion(
@@ -131,7 +174,7 @@ class _LetterState extends State<_Letter> {
         from: initialStyle,
         value: widget.visible
             ? initialStyle.copyWith(
-                fontSize: widget.visible ? 64 : 0,
+                fontSize: DefaultTextStyle.of(context).style.fontSize,
                 fontVariations: [
                   FontVariation.weight(_hovered ? 900 : 700),
                   FontVariation.width(110),
