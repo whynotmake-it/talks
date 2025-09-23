@@ -76,7 +76,6 @@ class Surface extends StatelessWidget {
     // Calculate shadow offsets based on light direction and elevation
     final closeDistance = state.elevation * .5;
     final farDistance = state.elevation * 2;
-
     final closeShadowOffset = Offset(
       sin(lightDirection + pi) * closeDistance,
       -cos(lightDirection + pi) * closeDistance,

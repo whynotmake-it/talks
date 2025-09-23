@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:motor/motor.dart';
@@ -22,7 +24,7 @@ class SummarySurfaceSlide extends FlutterDeckSlideWidget {
     final theme = Theme.of(context);
     return HookBuilder(
       builder: (context) {
-        final pressed = useState(1);
+        final pressed = useState(false);
         return FlutterDeckSlideStepsBuilder(
           builder: (context, stepNumber) => ContentSlideTemplate(
             insetSecondaryContent: true,
@@ -50,16 +52,30 @@ class SummarySurfaceSlide extends FlutterDeckSlideWidget {
               ],
             ),
             secondaryContent: InkWell(
-              onTapDown: (details) => pressed.value = 0,
-              onTapUp: (details) => pressed.value = 1,
+              onTapDown: (details) => pressed.value = true,
+              onTapCancel: () => pressed.value = false,
+              onTapUp: (details) => pressed.value = false,
               child: MotionBuilder<SurfaceState>(
+                motion: pressed.value
+                    ? CupertinoMotion.interactive()
+                    : CupertinoMotion.snappy(),
                 converter: surfaceStateConverter,
-                builder: (context, value, child) => Surface(
-                  state: value,
-                  phase: 0,
+                builder: (context, value, child) => Transform.scale(
+                  transformHitTests: false,
+                  scale: lerpDouble(.95, 1, value.gradientOpacity),
+                  child: Surface(
+                    state: value,
+                    phase: 0,
+                  ),
                 ),
-                value: pressed.value == 1
+                value: pressed.value
                     ? SurfaceState(
+                        radius: 48,
+                        noiseOpacity: 1,
+                        color: theme.colorScheme.secondary,
+                        rotateLight: true,
+                      )
+                    : SurfaceState(
                         radius: 48,
                         noiseOpacity: 1,
                         color: theme.colorScheme.secondary,
@@ -67,14 +83,7 @@ class SummarySurfaceSlide extends FlutterDeckSlideWidget {
                         gradientOpacity: 1,
                         borderOpacity: 1,
                         rotateLight: true,
-                      )
-                    : SurfaceState(
-                        radius: 48,
-                        noiseOpacity: 1,
-                        color: theme.colorScheme.secondary,
-                        gradientOpacity: 1,
                       ),
-                motion: CupertinoMotion.smooth(),
               ),
             ),
           ),
