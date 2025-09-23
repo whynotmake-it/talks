@@ -36,7 +36,7 @@ Motion gives elements context and meaning.
 ''',
     ),
     motion: CurvedMotion(0.5.seconds),
-    speakerNotes: jesperSlideNotesHeader,
+    speakerNotes: timSlideNotesHeader,
   ),
   MotionSlideTemplate(
     title: 'Curves and Easing',
@@ -47,7 +47,7 @@ and responsive...
 ''',
     ),
     motion: CurvedMotion(0.8.seconds, Curves.ease),
-    speakerNotes: timSlideNotesHeader,
+    speakerNotes: jesperSlideNotesHeader,
   ),
 
   MotionSlideTemplate(
