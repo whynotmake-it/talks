@@ -22,7 +22,7 @@ class SummarySurfaceSlide extends FlutterDeckSlideWidget {
     final theme = Theme.of(context);
     return HookBuilder(
       builder: (context) {
-        final pressed = useState(0);
+        final pressed = useState(1);
         return FlutterDeckSlideStepsBuilder(
           builder: (context, stepNumber) => ContentSlideTemplate(
             insetSecondaryContent: true,
