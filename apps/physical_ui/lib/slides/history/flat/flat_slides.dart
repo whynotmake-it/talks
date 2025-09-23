@@ -27,8 +27,10 @@ class FlatDesignSlide extends FlutterDeckSlideWidget {
             flex: 0,
             child: FittedBox(
               child: AnimatedVisibility(
-                from: Offset(-500, -500),
-                child: Video(assetKey: 'assets/windows_phone.mp4'),
+                child: Video(
+                  assetKey: 'assets/windows_phone.mp4',
+                  assumedSize: Size(934, 1694),
+                ),
               ),
             ),
           ),
@@ -36,7 +38,6 @@ class FlatDesignSlide extends FlutterDeckSlideWidget {
             flex: 0,
             child: FittedBox(
               child: AnimatedVisibility(
-                from: Offset(-500, -500),
                 child: Image.asset('assets/ios_7.webp'),
               ),
             ),
@@ -49,7 +50,6 @@ class FlatDesignSlide extends FlutterDeckSlideWidget {
                 Expanded(
                   child: AnimatedVisibility(
                     stagger: 3,
-                    from: Offset(100, -500),
                     child: FittedBox(
                       clipBehavior: Clip.hardEdge,
                       child: Image.asset('assets/flat_layout.png'),
@@ -59,7 +59,6 @@ class FlatDesignSlide extends FlutterDeckSlideWidget {
                 Expanded(
                   child: AnimatedVisibility(
                     stagger: 3,
-                    from: Offset(100, -500),
                     child: FittedBox(
                       clipBehavior: Clip.hardEdge,
                       child: Image.asset('assets/flat_layers.png'),

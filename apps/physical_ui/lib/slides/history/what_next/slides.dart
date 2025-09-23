@@ -97,7 +97,10 @@ class ReturnToSkeumorphismSlide extends FlutterDeckSlideWidget {
         child: ClipRRect(
           borderRadius: BorderRadius.circular(64),
           child: FittedBox(
-            child: Video(assetKey: 'assets/arc_summarize.mp4'),
+            child: Video(
+              assetKey: 'assets/arc_summarize.mp4',
+              assumedSize: Size(792, 1720),
+            ),
           ),
         ),
       ),
@@ -111,7 +114,10 @@ class ReturnToSkeumorphismSlide extends FlutterDeckSlideWidget {
               child: FittedBox(
                 clipBehavior: Clip.hardEdge,
                 fit: BoxFit.cover,
-                child: Video(assetKey: 'assets/dynamic_island.mp4'),
+                child: Video(
+                  assetKey: 'assets/dynamic_island.mp4',
+                  assumedSize: Size(1918, 1074),
+                ),
               ),
             ),
           ),
@@ -159,6 +165,7 @@ class UiAsFunctionSlide extends FlutterDeckSlideWidget {
               fit: BoxFit.cover,
               child: Video(
                 assetKey: 'assets/material_you_colors.mp4',
+                assumedSize: Size(1918, 1018),
               ),
             ),
           ),
