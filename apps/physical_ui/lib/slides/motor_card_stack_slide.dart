@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:motor/motor.dart';
 import 'package:wnma_talk/code_highlight.dart';
 import 'package:wnma_talk/content_slide_template.dart';
-import 'package:wnma_talk/single_content_slide_template.dart';
+import 'package:wnma_talk/slide_number.dart';
 import 'package:wnma_talk/wnma_talk.dart';
 
 class MotorCardStackSlide extends FlutterDeckSlideWidget {
@@ -11,6 +11,7 @@ class MotorCardStackSlide extends FlutterDeckSlideWidget {
         configuration: const FlutterDeckSlideConfiguration(
           title: 'Motor Card Stack',
           route: '/motor-card-stack',
+          speakerNotes: timSlideNotesHeader
         ),
       );
 

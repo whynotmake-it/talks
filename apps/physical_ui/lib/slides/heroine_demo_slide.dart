@@ -5,6 +5,7 @@ import 'package:heroine/heroine.dart';
 import 'package:motor/motor.dart';
 import 'package:wnma_talk/code_highlight.dart';
 import 'package:wnma_talk/single_content_slide_template.dart';
+import 'package:wnma_talk/slide_number.dart';
 import 'package:wnma_talk/wnma_talk.dart';
 
 class HeroineDemoSlide extends FlutterDeckSlideWidget {
@@ -13,6 +14,7 @@ class HeroineDemoSlide extends FlutterDeckSlideWidget {
         configuration: const FlutterDeckSlideConfiguration(
           title: 'Heroine Demo',
           route: '/heroine-demo',
+          speakerNotes: timSlideNotesHeader,
         ),
       );
 

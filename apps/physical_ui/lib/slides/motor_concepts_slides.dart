@@ -7,6 +7,7 @@ import 'package:physical_ui/slides/dimensionality_slides.dart';
 import 'package:wnma_talk/code_highlight.dart';
 import 'package:wnma_talk/content_slide_template.dart';
 import 'package:wnma_talk/single_content_slide_template.dart';
+import 'package:wnma_talk/slide_number.dart';
 import 'package:wnma_talk/wnma_talk.dart';
 
 /// A group of slides that walk through the core Motor concepts.
@@ -23,6 +24,7 @@ class _MotionSlide extends FlutterDeckSlideWidget {
         configuration: const FlutterDeckSlideConfiguration(
           route: '/motor-motion',
           title: 'Motion',
+          speakerNotes: timSlideNotesHeader
         ),
       );
 
@@ -69,6 +71,7 @@ class _MotionControllerSlide extends FlutterDeckSlideWidget {
         configuration: const FlutterDeckSlideConfiguration(
           route: '/motor-motion-controller',
           title: 'MotionController',
+          speakerNotes: jesperSlideNotesHeader,
         ),
       );
 
@@ -139,6 +142,7 @@ class _MotionConverterSlide extends FlutterDeckSlideWidget {
         configuration: const FlutterDeckSlideConfiguration(
           route: '/motor-motion-converter',
           title: 'MotionConverter',
+          speakerNotes: timSlideNotesHeader,
         ),
       );
 
@@ -189,6 +193,7 @@ class _MotionBuilderSlide extends FlutterDeckSlideWidget {
         configuration: const FlutterDeckSlideConfiguration(
           route: '/motor-motion-builder',
           title: 'MotionBuilder',
+          speakerNotes: jesperSlideNotesHeader,
         ),
       );
 
