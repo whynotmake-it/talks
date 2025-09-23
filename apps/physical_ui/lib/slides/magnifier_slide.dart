@@ -59,7 +59,7 @@ class Magnifier extends RenderBox {
   @override
   Widget build(BuildContext context) {
     return SingleContentSlideTemplate(
-      title: const Text('Magnifier'),
+      title: const Text('RenderObjects'),
       mainContent: const Row(
         children: [
           // Left Column: Interactive Demo

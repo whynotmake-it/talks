@@ -88,7 +88,6 @@ class PhysicalUiTalk extends StatelessWidget {
 
             BigQuoteTemplate(title: Text("Part 4: Motion")),
             ...motionSlides,
-            MotionCharacterSlide(),
 
             BigQuoteTemplate(title: Text("Well, it's settled then!")),
             ...dimensionalitySlides,

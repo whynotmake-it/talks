@@ -9,6 +9,7 @@ import 'package:physical_ui/slides/motion/motion_example_app.dart';
 import 'package:physical_ui/slides/motion/motion_graph.dart';
 import 'package:physical_ui/slides/motion/spring_code_visualizer.dart';
 import 'package:physical_ui/slides/motion/spring_visualizer.dart';
+import 'package:physical_ui/slides/motion_character_slide.dart';
 import 'package:rivership/rivership.dart';
 import 'package:wnma_talk/code_highlight.dart';
 import 'package:wnma_talk/content_slide_template.dart';
@@ -35,7 +36,7 @@ Motion gives elements context and meaning.
 ''',
     ),
     motion: CurvedMotion(0.5.seconds),
-    speakerNotes: timSlideNotesHeader,
+    speakerNotes: jesperSlideNotesHeader,
   ),
   MotionSlideTemplate(
     title: 'Curves and Easing',
@@ -90,6 +91,7 @@ natural movement.
     speakerNotes: jesperSlideNotesHeader,
   ),
   SpringVisualisationSlide(),
+  MotionCharacterSlide(),
   CodeSlide(),
 ];
 
