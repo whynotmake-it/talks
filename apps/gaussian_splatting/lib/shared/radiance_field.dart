@@ -65,7 +65,8 @@ class _RadianceFieldScreenState extends State<RadianceFieldScreen> {
   static const double voxelSize = 1;
   static const double fieldHalf = (nx * voxelSize) / 2.0; // half-extent
   static const double rayStep = 1; // march step in world units
-  static const double densityScale = 1.2; // scales sigma
+  static const double densityScale = 2.0; // scales sigma
+  static const double exposure = 2.5; // exposure multiplier for brightness
   static const double earlyStopT = 0; // early termination if T < this
 
   // volume data (density/color grid)
@@ -271,7 +272,7 @@ class _RadianceFieldScreenState extends State<RadianceFieldScreen> {
         lightColor: Colors.white,
         darkColor: Colors.white,
       ),
-      0.75,
+      1.1, // Increased ambient light for better visibility
     );
 
     threeJs.scene.add(amb);
@@ -328,14 +329,14 @@ class _RadianceFieldScreenState extends State<RadianceFieldScreen> {
       Blob(
         center: three.Vector3(-3.5, -1.5, -2),
         sigma: 1.1,
-        density: 2,
-        color: const [1, 0, 0],
+        density: 3.0,
+        color: const [1.2, 0.2, 0.2],
       ),
       Blob(
         center: three.Vector3(3.5, 1.5, 2),
         sigma: 1.6,
-        density: 1.8,
-        color: const [0, 1, 0],
+        density: 2.8,
+        color: const [0.2, 1.2, 0.2],
       ),
     ];
 
@@ -360,16 +361,16 @@ class _RadianceFieldScreenState extends State<RadianceFieldScreen> {
           // Slanted "sheet"
           final s = world.x + world.y * 0.6 - 1.5;
           final slab = math.exp(-(s * s) / (2 * 0.7 * 0.7));
-          sig += 1.8 * slab;
-          r += 0.85 * slab;
-          g += 0.85 * slab;
-          b += 0.85 * slab;
+          sig += 2.2 * slab;
+          r += 1.0 * slab;
+          g += 1.0 * slab;
+          b += 1.0 * slab;
 
           final idx = _idx(i, j, k);
           sigmaGrid[idx] = sig.clamp(0.0, 8.0);
-          colorR[idx] = (r / 2.0).clamp(0.0, 1.0);
-          colorG[idx] = (g / 2.0).clamp(0.0, 1.0);
-          colorB[idx] = (b / 2.0).clamp(0.0, 1.0);
+          colorR[idx] = r.clamp(0.0, 1.0);
+          colorG[idx] = g.clamp(0.0, 1.0);
+          colorB[idx] = b.clamp(0.0, 1.0);
         }
       }
     }
@@ -502,11 +503,21 @@ class _RadianceFieldScreenState extends State<RadianceFieldScreen> {
             hit.t1,
             collect: true,
           );
+          // Apply exposure and gamma correction
+          final exposedR = (res.r * exposure).clamp(0.0, 1.0);
+          final exposedG = (res.g * exposure).clamp(0.0, 1.0);
+          final exposedB = (res.b * exposure).clamp(0.0, 1.0);
+          
+          // Gamma correction (1/2.2)
+          final gammaR = math.pow(exposedR, 1.0 / 2.2);
+          final gammaG = math.pow(exposedG, 1.0 / 2.2);
+          final gammaB = math.pow(exposedB, 1.0 / 2.2);
+          
           c = Color.fromARGB(
             0xFF,
-            (res.r.clamp(0.0, 1.0) * 255).toInt(),
-            (res.g.clamp(0.0, 1.0) * 255).toInt(),
-            (res.b.clamp(0.0, 1.0) * 255).toInt(),
+            (gammaR * 255).toInt(),
+            (gammaG * 255).toInt(),
+            (gammaB * 255).toInt(),
           );
 
           // Store samples for all rays
@@ -722,8 +733,8 @@ class _RadianceFieldScreenState extends State<RadianceFieldScreen> {
         darkColor: Colors.grey.shade400,
       ),
       "transparent": true,
-      "opacity": 0.15,
-      "linewidth": 1, // platform dependent
+      "opacity": 0.4, // Increased opacity for better visibility
+      "linewidth": 2, // Thicker lines
     });
 
     raysLines = three.LineSegments(raysGeom, raysMat);
@@ -749,7 +760,7 @@ class _RadianceFieldScreenState extends State<RadianceFieldScreen> {
         darkColor: Colors.orange.shade400,
       ),
       "transparent": false,
-      "linewidth": 3, // Thicker line
+      "linewidth": 4, // Even thicker line for selected ray
     });
 
     selectedRayLine = three.LineSegments(selectedRayGeom, selectedRayMat);
@@ -774,7 +785,7 @@ class _RadianceFieldScreenState extends State<RadianceFieldScreen> {
     samplePointsMat = three.PointsMaterial.fromMap({
       "vertexColors": true, // Use per-vertex colors
       "sizeAttenuation": false, // Keep consistent size regardless of distance
-      "size": 8.0, // Smaller point size for many points
+      "size": 14.0, // Larger point size for better visibility
       "transparent": true, // Enable transparency
     });
 
@@ -900,7 +911,7 @@ class _RadianceFieldScreenState extends State<RadianceFieldScreen> {
         // Color with proper alpha transparency
         final color = sample.color;
         final alpha =
-            sample.alpha * 0.6; // Reduce alpha since we have many more points
+            sample.alpha * 0.9; // Higher alpha for better visibility
         colors[pointIndex * 4 + 0] = color.red / 255.0; // R
         colors[pointIndex * 4 + 1] = color.green / 255.0; // G
         colors[pointIndex * 4 + 2] = color.blue / 255.0; // B
