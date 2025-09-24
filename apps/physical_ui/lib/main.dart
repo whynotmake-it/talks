@@ -86,7 +86,7 @@ class PhysicalUiTalk extends StatelessWidget {
             HapticSlide(),
             HapticStudioSlide(),
 
-            BigQuoteTemplate(title: Text("Part 4: Motion")),
+            BigQuoteTemplate(title: Text("Part 3: Motion")),
             ...motionSlides,
 
             BigQuoteTemplate(title: Text("Well, it's settled then!")),

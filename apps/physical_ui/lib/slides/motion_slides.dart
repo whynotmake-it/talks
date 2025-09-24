@@ -223,7 +223,6 @@ class SpringVisualisationSlide extends FlutterDeckSlideWidget {
         configuration: FlutterDeckSlideConfiguration(
           title: 'What is a Spring Simulation?',
           route: '/what-is-a-spring-simulation',
-          steps: 2,
           speakerNotes: timSlideNotesHeader,
         ),
       );
@@ -240,7 +239,7 @@ class SpringVisualisationSlide extends FlutterDeckSlideWidget {
             mainContent: SpringVisualizer(
               duration: duration.value,
               bounce: bounce.value,
-              showSpring: stepNumber == 1,
+              showSpring: true,
             ),
             secondaryContent: SpringCodeVisualizer(
               duration: duration,

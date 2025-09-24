@@ -81,7 +81,7 @@ class _SheetContent extends HookWidget {
   Widget build(BuildContext context) {
     return CupertinoPageScaffold(
       child: Center(
-        child: CupertinoButton.tinted(
+        child: CupertinoButton.filled(
           child: const Text('Go Back'),
           onPressed: () => Navigator.pop(context),
         ),
