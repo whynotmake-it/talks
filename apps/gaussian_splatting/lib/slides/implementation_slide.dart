@@ -163,13 +163,13 @@ class _LimitationsList extends StatelessWidget {
           colorScheme: colorScheme,
         ),
         const SizedBox(height: 20),
-        // _LimitationItem(
-        //   icon: Icons.warning,
-        //   title: 'Fragment only',
-        //   description: '',
-        //   theme: theme,
-        //   colorScheme: colorScheme,
-        // ),
+        _LimitationItem(
+          icon: Icons.warning,
+          title: 'No direct access to the GPU',
+          description: '',
+          theme: theme,
+          colorScheme: colorScheme,
+        ),
         // const SizedBox(height: 20),
         // _LimitationItem(
         //   icon: Icons.speed,
