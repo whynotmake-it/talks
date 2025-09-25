@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:halofoil/halofoil.dart';
 import 'package:liquid_glass_renderer/liquid_glass_renderer.dart';
 import 'package:physical_ui/slides/1_surfaces/erasable_liquid_metal_logo.dart';
@@ -220,8 +221,8 @@ class Surface extends StatelessWidget {
                 stops: const [0.5, 1],
               ).createShader(bounds);
             },
-            child: Image.network(
-              'https://picsum.photos/id/106/2400/2400',
+            child: Image.asset(
+              'assets/flowers.jpg',
               fit: BoxFit.cover,
             ),
           ),
@@ -235,7 +236,7 @@ class Surface extends StatelessWidget {
           ),
           converter: SingleMotionConverter(),
           builder: (context, visibility, _, child) {
-            return LiquidGlass(
+            return LiquidGlassLayer(
               settings: LiquidGlassSettings(
                 lightAngle: lightDirection,
                 thickness: 80 * visibility,
@@ -244,12 +245,43 @@ class Surface extends StatelessWidget {
                 blur: 4 * visibility,
                 chromaticAberration: .2,
                 saturation: 1.2,
+                blend: 50,
                 glassColor: Colors.white.withValues(alpha: visibility * 0.2),
               ),
-              shape: LiquidRoundedSuperellipse(
-                borderRadius: Radius.circular(state.radius * 1.5),
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  SequenceMotionBuilder(
+                    sequence: StepSequence(
+                      const [
+                        Offset(-300, 150),
+                        Offset(300, -150),
+                      ],
+                      motion: CupertinoMotion.snappy(
+                        duration: Duration(seconds: 2),
+                        snapToEnd: true,
+                      ).trimmed(fromEnd: .5),
+                      loop: LoopMode.pingPong,
+                    ),
+                    converter: OffsetMotionConverter(),
+                    builder: (context, value, phase, child) =>
+                        Transform.translate(
+                          offset: value,
+                          child: child,
+                        ),
+                    child: LiquidGlass.inLayer(
+                      child: SizedBox.square(dimension: 100),
+                      shape: LiquidOval(),
+                    ),
+                  ),
+                  LiquidGlass.inLayer(
+                    shape: LiquidRoundedSuperellipse(
+                      borderRadius: Radius.circular(state.radius * 1.5),
+                    ),
+                    child: SizedBox.square(dimension: size),
+                  ),
+                ],
               ),
-              child: SizedBox.square(dimension: size),
             );
           },
         ),
