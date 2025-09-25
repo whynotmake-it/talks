@@ -2,7 +2,6 @@ import 'dart:math';
 
 import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_animate/flutter_animate.dart';
 import 'package:halofoil/halofoil.dart';
 import 'package:liquid_glass_renderer/liquid_glass_renderer.dart';
 import 'package:physical_ui/slides/1_surfaces/erasable_liquid_metal_logo.dart';
@@ -270,8 +269,8 @@ class Surface extends StatelessWidget {
                           child: child,
                         ),
                     child: LiquidGlass.inLayer(
-                      child: SizedBox.square(dimension: 100),
                       shape: LiquidOval(),
+                      child: SizedBox.square(dimension: 100),
                     ),
                   ),
                   LiquidGlass.inLayer(
