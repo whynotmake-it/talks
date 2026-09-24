@@ -82,8 +82,8 @@ void main() {
     await pumpFrames(tester);
 
     expect(find.text('GPU EXECUTES ↑'), findsOneWidget);
-    expect(find.text('RASTER THREAD ↑'), findsOneWidget);
-    expect(find.text('SYSTEM ↑'), findsOneWidget);
+    expect(find.text('UI → RASTER THREAD · same CPU'), findsOneWidget);
+    expect(find.text('PRESENT → SYSTEM COMPOSITOR'), findsOneWidget);
   });
 
   testWidgets('labels loop arcs with their rate, and cut ones', (tester) async {

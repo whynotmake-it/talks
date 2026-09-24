@@ -213,7 +213,7 @@ const uiHalfScript = [
   ),
   RenderStackStep(
     RenderStackView(
-      expanded: {3, 4},
+      expanded: {4},
       light: {4: TierLight.dim},
       emphasis: {'BackdropFilterLayer', 'OffsetLayer'},
     ),

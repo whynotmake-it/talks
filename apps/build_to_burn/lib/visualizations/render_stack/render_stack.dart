@@ -146,7 +146,7 @@ const _topMargin = 56.0;
 const _tierGap = 14.0;
 const _bandGap = 70.0;
 const _connectorGap = 44.0;
-const _expandGap = 150.0;
+const _expandGap = 190.0;
 const _capGap = 18.0;
 const _labelsLeft = 1010.0;
 const _labelsRight = 1580.0;
@@ -345,85 +345,75 @@ class _StackPicture extends StatelessWidget {
       double y,
       double t, {
       required bool bold,
-      required String above,
-      required String below,
-      Color? color,
-    }) {
-      final c = color ?? p.textSecondary;
-      return Positioned(
-        left: 40,
-        width: _labelsLeft - 70,
-        top: y - 40,
-        height: 80,
-        child: Opacity(
-          opacity: t,
-          child: Stack(
-            children: [
+      required Color color,
+      String above = '',
+      String below = '',
+    }) => Positioned(
+      left: 40,
+      width: _labelsLeft - 70,
+      top: y - 40,
+      height: 80,
+      child: Opacity(
+        opacity: t,
+        child: Stack(
+          children: [
+            Positioned(
+              left: 0,
+              right: 0,
+              top: 39,
+              height: bold ? 4 : 2,
+              child: _Dashes(color: color),
+            ),
+            if (above.isNotEmpty)
               Positioned(
                 left: 0,
-                right: 0,
-                top: 39,
-                height: bold ? 4 : 2,
-                child: _Dashes(color: c),
+                top: 10,
+                child: Text(above, style: mono(17, weight: 600, color: color)),
               ),
+            if (below.isNotEmpty)
               Positioned(
                 left: 0,
-                top: 8,
-                child: Text(above, style: mono(17, weight: 600, color: c)),
+                top: 48,
+                child: Text(below, style: mono(17, weight: 600, color: color)),
               ),
-              Positioned(
-                left: 0,
-                top: 50,
-                child: Text(below, style: mono(17, weight: 600, color: c)),
-              ),
-            ],
-          ),
+          ],
         ),
-      );
-    }
+      ),
+    );
 
-    final result = <Widget>[];
     double between(int a, int b) =>
         (layout.center(layout.indexOf(a)) + layout.center(layout.indexOf(b))) /
         2;
     final thread = borders[StackBorder.thread]!.clamp(0.0, 1.0);
-    if (thread > .01 && layout.indexOf(5) >= 0 && layout.indexOf(6) >= 0) {
-      result.add(
+    final gpu = borders[StackBorder.gpu]!.clamp(0.0, 1.0);
+    final present = borders[StackBorder.present]!.clamp(0.0, 1.0);
+    return [
+      if (thread > .01 && layout.indexOf(5) >= 0 && layout.indexOf(6) >= 0)
         line(
           between(5, 6),
           thread,
           bold: false,
-          above: 'RASTER THREAD ↑',
-          below: 'UI THREAD ↓  · same CPU',
+          color: p.textSecondary,
+          below: 'UI → RASTER THREAD · same CPU',
         ),
-      );
-    }
-    final gpu = borders[StackBorder.gpu]!.clamp(0.0, 1.0);
-    if (gpu > .01 && layout.indexOf(7) >= 0) {
-      result.add(
+      if (gpu > .01 && layout.indexOf(7) >= 0)
         line(
           layout.center(layout.indexOf(7)),
           gpu,
           bold: true,
           color: heat,
           above: 'GPU EXECUTES ↑',
-          below: 'CPU ENCODES ↓  · commit',
+          below: thread > .01 ? '' : 'CPU ENCODES ↓ · commit',
         ),
-      );
-    }
-    final present = borders[StackBorder.present]!.clamp(0.0, 1.0);
-    if (present > .01 && layout.indexOf(8) >= 0 && layout.indexOf(9) >= 0) {
-      result.add(
+      if (present > .01 && layout.indexOf(8) >= 0 && layout.indexOf(9) >= 0)
         line(
           between(8, 9),
           present,
           bold: false,
-          above: 'SYSTEM ↑',
-          below: 'FLUTTER ↓  · present',
+          color: p.textSecondary,
+          above: 'PRESENT → SYSTEM COMPOSITOR',
         ),
-      );
-    }
-    return result;
+    ];
   }
 
   Widget _token(Palette p, _Layout layout) {
