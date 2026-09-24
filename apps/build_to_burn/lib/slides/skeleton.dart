@@ -47,43 +47,6 @@ class SkeletonSlide extends FlutterDeckSlideWidget {
   }
 }
 
-const hookSlide = SkeletonSlide(
-  section: '1',
-  title: 'Hook: the search sheet',
-  configuration: FlutterDeckSlideConfiguration(
-    route: '/hook',
-    title: 'Hook',
-    speakerNotes:
-        '''
-$jesperSlideNotesHeader
-Key message: a search sheet over the app drove the GPU to its limit and never let it rest. Pose it as a vote and leave it open.
-- Vote: A) the blur, B) the list underneath, C) the blinking cursor, D) the keyboard.
-- The sheet is a frosted BackdropFilter blur over a busy page, with a focused field.
-- Show one real measurement with a footer: device + SoC, OS, Flutter version, --profile, 60/120 Hz, thermal state, duration, runs, metric source (Guide 9.2). No bare "GPU %".
-- Answer comes in section 3: C makes the frames, A makes each one expensive.
-- Get ClickUp's sign-off and facts (Flutter version, sheet widget, cursorOpacityAnimates, platform views?) before telling it (Guide 14).''',
-  ),
-);
-
-const blurCostSlide = SkeletonSlide(
-  section: '4',
-  title: 'Why an everyday blur costs so much',
-  configuration: FlutterDeckSlideConfiguration(
-    route: '/blur-cost',
-    title: 'Why blur costs',
-    speakerNotes:
-        '''
-$jesperSlideNotesHeader
-Key message: BackdropFilter blur is everywhere and shockingly expensive for how common it is, paid every frame.
-- A stock CupertinoNavigationBar and CupertinoTabBar each blur by default (their default background isn't opaque): two backdrop blurs you never wrote.
-- Mobile GPUs render in on-chip tiles. A backdrop read forces the pass to resolve and store to DRAM; the next pass is re-seeded with a full-screen redraw plus clips; 3 blur passes run (Guide 8).
-- DRAM costs roughly 10x more energy per byte than on-chip memory. Estimate (label it): ~12 MB full-screen texture, ~24-36 MB per blur per frame, ~3-4 GB/s at 120 Hz. Prefer measured Metal counters.
-- A GPU woken every vsync never clocks down or idles. No jank is not no cost; heat builds over minutes.
-- Sigma is a sawtooth: <= 4 full resolution, above that downsampled; the fixed cost stays.
-- One line on liquid glass: the Flutter team is officially building it; any liquid-glass look is built on the same backdrop reads, so all of this applies, multiplied.''',
-  ),
-);
-
 const fixesSlide = SkeletonSlide(
   section: '6',
   title: 'Fixes: idle screens and animating screens',

@@ -138,7 +138,11 @@ class LoopArc {
     required this.startTier,
     this.endTier = 9,
     this.perSecond = 0,
+    this.rateLabel,
     this.cutNote = '',
+    this.prominent = false,
+    this.activeFromTier,
+    this.origin = '',
   });
 
   /// The loop's letter from the spec, e.g. `C`.
@@ -151,6 +155,19 @@ class LoopArc {
   /// Real frequency. 0 draws the arc without pulses.
   final double perSecond;
 
+  /// Overrides the rate shown next to the arc, e.g. `≈8/s`.
+  final String? rateLabel;
+
+  /// Draws the arc bold, as the loop the slide is about. Others stay thin.
+  final bool prominent;
+
+  /// The arc runs dim below this tier (the tiers a frame passes through
+  /// without work) and full above it.
+  final int? activeFromTier;
+
+  /// What starts the loop, shown under it, e.g. `Ticker · every vsync`.
+  final String origin;
+
   /// Shown where the arc is cut short, e.g. `#192128`.
   final String cutNote;
 
@@ -162,11 +179,25 @@ class LoopArc {
       other.startTier == startTier &&
       other.endTier == endTier &&
       other.perSecond == perSecond &&
-      other.cutNote == cutNote;
+      other.rateLabel == rateLabel &&
+      other.cutNote == cutNote &&
+      other.prominent == prominent &&
+      other.activeFromTier == activeFromTier &&
+      other.origin == origin;
 
   @override
-  int get hashCode =>
-      Object.hash(id, label, startTier, endTier, perSecond, cutNote);
+  int get hashCode => Object.hash(
+    id,
+    label,
+    startTier,
+    endTier,
+    perSecond,
+    rateLabel,
+    cutNote,
+    prominent,
+    activeFromTier,
+    origin,
+  );
 }
 
 /// A profiling tool as a light cone on the tiers it can see.
@@ -196,6 +227,38 @@ class ToolSpotlight {
   int get hashCode => Object.hash(tool, shows, Object.hashAll(tiers.keys));
 }
 
+/// The hook: the demo on a phone in front of the dimmed stack, with a vote.
+@immutable
+class HookPhone {
+  const HookPhone({required this.question, required this.options});
+
+  final String question;
+
+  /// The vote's answers, e.g. `A  The blur`.
+  final List<String> options;
+
+  @override
+  bool operator ==(Object other) =>
+      other is HookPhone &&
+      other.question == question &&
+      listEquals(other.options, options);
+
+  @override
+  int get hashCode => Object.hash(question, Object.hashAll(options));
+}
+
+/// What the GPU tier's tile memory is doing, for why a blur costs.
+enum TilePhase {
+  /// Tiles render on-chip; memoryless attachments never reach DRAM.
+  fill,
+
+  /// The backdrop ends the pass: the frame so far is stored to DRAM (T0).
+  flush,
+
+  /// The resumed pass is re-seeded from DRAM with a full-screen redraw.
+  reseed,
+}
+
 /// Everything `RenderStack` shows at one moment. Changing the view animates
 /// from the previous one.
 @immutable
@@ -211,6 +274,9 @@ class RenderStackView {
     this.arcs = const [],
     this.arcSlowdown = 10,
     this.spotlight,
+    this.phone,
+    this.tiles,
+    this.feedback = false,
   });
 
   /// Sentinel for "every band".
@@ -243,6 +309,16 @@ class RenderStackView {
 
   final ToolSpotlight? spotlight;
 
+  /// When set, the stack dims and the hook's phone comes forward.
+  final HookPhone? phone;
+
+  /// When set, the GPU tier shows its tile memory in this phase.
+  final TilePhase? tiles;
+
+  /// Whether to draw the back-pressure and completion arrows that cross the
+  /// CPU/GPU border downward.
+  final bool feedback;
+
   bool showsBand(String id) => bands.contains('*') || bands.contains(id);
 
   @override
@@ -257,7 +333,10 @@ class RenderStackView {
       other.showPixels == showPixels &&
       listEquals(other.arcs, arcs) &&
       other.arcSlowdown == arcSlowdown &&
-      other.spotlight == spotlight;
+      other.spotlight == spotlight &&
+      other.phone == phone &&
+      other.tiles == tiles &&
+      other.feedback == feedback;
 
   @override
   int get hashCode => Object.hash(
@@ -273,6 +352,9 @@ class RenderStackView {
     Object.hashAll(arcs),
     arcSlowdown,
     spotlight,
+    phone,
+    tiles,
+    feedback,
   );
 }
 

@@ -50,9 +50,18 @@ class _RenderStackState extends State<RenderStack> {
   };
   final _pixels = Track<double>(.single, initial: 0, debugLabel: 'Pixels');
   final _token = Track<double>(.single, initial: 0, debugLabel: 'Token');
+  final _dim = Track<double>(.single, initial: 0, debugLabel: 'Hook phone');
+  final _tiles = Track<double>(.single, initial: 0, debugLabel: 'Tiles');
+  final _dram = Track<double>(.single, initial: 0, debugLabel: 'DRAM');
+  final _feedback = Track<double>(.single, initial: 0, debugLabel: 'Feedback');
+
+  /// The last phone and tile phase shown, kept so they can fade out.
+  HookPhone? _lastPhone;
+  TilePhase? _lastTiles;
 
   static const _motion = Motion.smoothSpring();
   static const _tokenRun = Motion.linear(Duration(milliseconds: 3200));
+  static const _tileRun = Motion.linear(Duration(milliseconds: 1400));
 
   Track<double> _presenceOf(String band) => _bandPresence.putIfAbsent(
     band,
@@ -72,6 +81,8 @@ class _RenderStackState extends State<RenderStack> {
   @override
   Widget build(BuildContext context) {
     final view = widget.view;
+    _lastPhone = view.phone ?? _lastPhone;
+    _lastTiles = view.tiles ?? _lastTiles;
     final light = {...view.light, ...?view.spotlight?.tiers};
     final bandOrder = [
       for (final band in widget.bands)
@@ -105,6 +116,13 @@ class _RenderStackState extends State<RenderStack> {
               track.to(view.borders.contains(border) ? 1 : 0, motion: _motion),
             _pixels.to(view.showPixels ? 1 : 0, motion: _motion),
             _token.to(view.token ? 1 : 0, motion: _tokenRun),
+            _dim.to(view.phone != null ? 1 : 0, motion: _motion),
+            _tiles.to(view.tiles != null ? 1 : 0, motion: _tileRun),
+            _dram.to(
+              view.tiles == null || view.tiles == TilePhase.fill ? 0 : 1,
+              motion: _motion,
+            ),
+            _feedback.to(view.feedback ? 1 : 0, motion: _motion),
           ],
           builder: (context, value, _) => _StackPicture(
             tiers: widget.tiers,
@@ -128,6 +146,12 @@ class _RenderStackState extends State<RenderStack> {
             },
             pixels: value(_pixels),
             token: value(_token),
+            dim: value(_dim),
+            tiles: value(_tiles),
+            dram: value(_dram),
+            feedback: value(_feedback),
+            phone: _lastPhone,
+            tilePhase: view.tiles ?? _lastTiles,
             caption: widget.caption,
           ),
         ),
@@ -234,6 +258,12 @@ class _StackPicture extends StatelessWidget {
     required this.borders,
     required this.pixels,
     required this.token,
+    required this.dim,
+    required this.tiles,
+    required this.dram,
+    required this.feedback,
+    required this.phone,
+    required this.tilePhase,
     required this.caption,
   });
 
@@ -246,6 +276,12 @@ class _StackPicture extends StatelessWidget {
   final Map<StackBorder, double> borders;
   final double pixels;
   final double token;
+  final double dim;
+  final double tiles;
+  final double dram;
+  final double feedback;
+  final HookPhone? phone;
+  final TilePhase? tilePhase;
   final String? caption;
 
   StackBand _band(String id) => bands.firstWhere((band) => band.id == id);
@@ -259,47 +295,23 @@ class _StackPicture extends StatelessWidget {
         if (expand[tier.number]! > .05) index,
     ].fold<int?>(null, (lowest, index) => lowest ?? index);
 
+    final stackOpacity = 1 - .82 * dim.clamp(0.0, 1.0);
     return DefaultTextStyle(
       style: archivo(22, color: p.textSecondary),
       child: Stack(
         clipBehavior: Clip.none,
         children: [
-          if (view.spotlight case final spotlight?)
-            _Spotlight(spotlight: spotlight, layout: layout),
-          for (final (index, tier) in tiers.indexed)
-            if (layout._presenceOf(tier) > .005)
-              _TierPlane(
-                tier: tier,
-                band: _band(tier.band),
-                top: layout.top(index),
-                presence: layout._presenceOf(tier),
-                expand: expand[tier.number]!.clamp(0.0, 1.0),
-                light: light[tier.number]!.clamp(0.0, 1.0),
-                translucent: lowestExpanded != null && index > lowestExpanded,
-                emphasis: view.emphasis,
-                pixels: _pixelsFor(tier),
+          Positioned.fill(
+            child: Opacity(
+              opacity: stackOpacity,
+              child: Stack(
+                clipBehavior: Clip.none,
+                children: _stackChildren(p, layout, lowestExpanded),
               ),
-          if (tiers.isNotEmpty) _cap(p, layout),
-          ..._borders(p, layout),
-          _Labels(
-            tiers: tiers,
-            bands: bands,
-            layout: layout,
-            expand: expand,
-            light: light,
+            ),
           ),
-          for (final (index, arc) in view.arcs.indexed)
-            if (layout.indexOf(arc.startTier) >= 0 &&
-                layout.indexOf(arc.endTier) >= 0)
-              _ArcOverlay(
-                key: ValueKey(arc.id),
-                arc: arc,
-                slot: index,
-                fromY: layout.center(layout.indexOf(arc.startTier)),
-                toY: layout.center(layout.indexOf(arc.endTier)),
-                slowdown: view.arcSlowdown,
-              ),
-          if (token > .001 && token < .999) _token(p, layout),
+          if (dim > .01 && phone != null)
+            _HookPhoneOverlay(phone: phone!, presence: dim.clamp(0.0, 1.0)),
           if (caption case final caption?)
             Positioned(
               left: 60,
@@ -314,6 +326,70 @@ class _StackPicture extends StatelessWidget {
       ),
     );
   }
+
+  List<Widget> _stackChildren(
+    Palette p,
+    _Layout layout,
+    int? lowestExpanded,
+  ) => [
+    if (view.spotlight case final spotlight?)
+      _Spotlight(spotlight: spotlight, layout: layout),
+    for (final (index, tier) in tiers.indexed)
+      if (layout._presenceOf(tier) > .005)
+        _TierPlane(
+          tier: tier,
+          band: _band(tier.band),
+          top: layout.top(index),
+          presence: layout._presenceOf(tier),
+          expand: expand[tier.number]!.clamp(0.0, 1.0),
+          light: light[tier.number]!.clamp(0.0, 1.0),
+          translucent: lowestExpanded != null && index > lowestExpanded,
+          emphasis: view.emphasis,
+          pixels: _pixelsFor(tier),
+          tiles: tier.number == 8 ? tiles.clamp(0.0, 1.0) : 0,
+          tilePhase: tilePhase,
+        ),
+    if (tiers.isNotEmpty) _cap(p, layout),
+    ..._borders(p, layout),
+    _Labels(
+      tiers: tiers,
+      bands: bands,
+      layout: layout,
+      expand: expand,
+      light: light,
+    ),
+    for (final (index, arc) in view.arcs.indexed)
+      if (layout.indexOf(arc.startTier) >= 0 &&
+          layout.indexOf(arc.endTier) >= 0)
+        _ArcOverlay(
+          key: ValueKey(arc.id),
+          arc: arc,
+          slot: index,
+          fromY: layout.center(layout.indexOf(arc.startTier)),
+          toY: layout.center(layout.indexOf(arc.endTier)),
+          slowdown: view.arcSlowdown,
+          activeY: switch (arc.activeFromTier) {
+            final tier? when layout.indexOf(tier) >= 0 => layout.center(
+              layout.indexOf(tier),
+            ),
+            _ => null,
+          },
+        ),
+    if (token > .001 && token < .999) _token(p, layout),
+    if (dram > .01 && tilePhase != null && layout.indexOf(8) >= 0)
+      _DramOverlay(
+        phase: tilePhase!,
+        presence: dram.clamp(0.0, 1.0),
+        tierCenter: layout.center(layout.indexOf(8)),
+      ),
+    if (feedback > .01 && layout.indexOf(6) >= 0 && layout.indexOf(8) >= 0)
+      _FeedbackArrows(
+        presence: feedback.clamp(0.0, 1.0),
+        gpuY: layout.center(layout.indexOf(8)),
+        rasterY: layout.center(layout.indexOf(6)),
+        encodeY: layout.center(layout.indexOf(7)),
+      ),
+  ];
 
   /// The demo screen fades in once the token has arrived, or with [pixels].
   double _pixelsFor(StackTier tier) {
@@ -403,7 +479,7 @@ class _StackPicture extends StatelessWidget {
           bold: true,
           color: heat,
           above: 'GPU EXECUTES ↑',
-          below: thread > .01 ? '' : 'CPU ENCODES ↓ · commit',
+          below: thread > .01 || feedback > .01 ? '' : 'CPU ENCODES ↓ · commit',
         ),
       if (present > .01 && layout.indexOf(8) >= 0 && layout.indexOf(9) >= 0)
         line(
@@ -458,6 +534,8 @@ class _TierPlane extends StatelessWidget {
     required this.translucent,
     required this.emphasis,
     required this.pixels,
+    required this.tiles,
+    required this.tilePhase,
   });
 
   final StackTier tier;
@@ -469,6 +547,8 @@ class _TierPlane extends StatelessWidget {
   final bool translucent;
   final Set<String> emphasis;
   final double pixels;
+  final double tiles;
+  final TilePhase? tilePhase;
 
   @override
   Widget build(BuildContext context) {
@@ -487,7 +567,7 @@ class _TierPlane extends StatelessWidget {
             dimension: _plane,
             child: DecoratedBox(
               decoration: BoxDecoration(
-                color: fill.withValues(alpha: translucent ? .5 : .95),
+                color: fill.withValues(alpha: translucent ? .3 : .95),
                 border: Border.all(
                   color: colors.edge,
                   width: lerpDouble(2, 4, light)!,
@@ -502,6 +582,14 @@ class _TierPlane extends StatelessWidget {
               child: Stack(
                 fit: StackFit.expand,
                 children: [
+                  if (tiles > .001)
+                    CustomPaint(
+                      painter: _TilePainter(
+                        progress: tiles,
+                        color: tilePhase == TilePhase.flush ? heat : p.accent,
+                        empty: p.control,
+                      ),
+                    ),
                   if (tier.detail is ScreenDetail && pixels > .01)
                     Opacity(opacity: pixels, child: const _DemoScreen()),
                   if (expand > .01 && tier.detail is! ScreenDetail)
@@ -561,9 +649,9 @@ class _Detail extends StatelessWidget {
   Widget build(BuildContext context) {
     final p = Palette.of(context);
     TextStyle line(String text) => mono(
-      15,
-      weight: _emphasized(text) ? 700 : 450,
-      height: 1.5,
+      16,
+      weight: _emphasized(text) ? 700 : 500,
+      height: 1.65,
       color: _emphasized(text) ? heat : p.text,
     );
     return switch (detail) {
@@ -870,6 +958,7 @@ class _ArcOverlay extends StatefulWidget {
     required this.fromY,
     required this.toY,
     required this.slowdown,
+    this.activeY,
     super.key,
   });
 
@@ -878,6 +967,9 @@ class _ArcOverlay extends StatefulWidget {
   final double fromY;
   final double toY;
   final double slowdown;
+
+  /// Where the arc turns from dim to full, if it has a dim part.
+  final double? activeY;
 
   @override
   State<_ArcOverlay> createState() => _ArcOverlayState();
@@ -892,39 +984,60 @@ class _ArcOverlayState extends State<_ArcOverlay> {
   Widget build(BuildContext context) {
     final p = Palette.of(context);
     final arc = widget.arc;
-    final x = _centerX - _halfWidth - 44 - widget.slot * 46;
+    final prominent = arc.prominent;
+    final width = prominent ? 8.0 : 3.0;
+    final x = _centerX - _halfWidth - 50 - widget.slot * 52;
     final top = widget.toY;
     final bottom = widget.fromY;
+    final activeY = widget.activeY ?? bottom;
     final color = arc.endTier >= 6 ? heat : p.accent;
     final interval = arc.perSecond > 0
         ? Duration(
             microseconds: (widget.slowdown * 1000000 / arc.perSecond).round(),
           )
         : Duration.zero;
-
-    final rate = arc.perSecond == 0
-        ? ''
-        : '${arc.perSecond % 1 == 0 ? arc.perSecond.toInt() : arc.perSecond}/s';
+    final rate =
+        arc.rateLabel ??
+        (arc.perSecond == 0
+            ? ''
+            : '${arc.perSecond % 1 == 0 ? arc.perSecond.toInt() : arc.perSecond}/s');
+    final labelStyle = mono(
+      prominent ? 20 : 15,
+      weight: prominent ? 700 : 500,
+      height: 1.3,
+      color: prominent ? color : color.withValues(alpha: .8),
+    );
 
     return Positioned.fill(
       child: IgnorePointer(
         child: Stack(
           clipBehavior: Clip.none,
           children: [
+            // Below activeY the frame passes through with nothing dirty.
+            if (activeY < bottom)
+              Positioned(
+                left: x + width / 2 - 1.5,
+                top: activeY,
+                width: 3,
+                height: bottom - activeY,
+                child: ColoredBox(color: color.withValues(alpha: .25)),
+              ),
             Positioned(
               left: x,
               top: top,
-              width: 4,
-              height: math.max(bottom - top, 0),
-              child: ColoredBox(color: color.withValues(alpha: .55)),
+              width: width,
+              height: math.max(activeY - top, 0),
+              child: ColoredBox(color: color.withValues(alpha: .6)),
             ),
-            for (final y in [top, bottom])
+            for (final y in [top, if (activeY < bottom) activeY, bottom])
               Positioned(
                 left: x,
-                top: y - 2,
+                top: y - width / 2,
                 width: _centerX - _halfWidth * .5 - x,
-                height: 4,
-                child: ColoredBox(color: color.withValues(alpha: .35)),
+                height: math.min(width, 4),
+                child: ColoredBox(
+                  color: color.withValues(alpha: y == bottom ? .2 : .35),
+                ),
               ),
             if (interval > Duration.zero)
               TrackBuilder(
@@ -939,35 +1052,41 @@ class _ArcOverlayState extends State<_ArcOverlay> {
                 builder: (context, value, _) => CustomPaint(
                   size: RenderStack.designSize,
                   painter: _PulsePainter(
-                    x: x + 2,
+                    x: x + width / 2,
                     bottom: bottom,
                     top: top,
+                    activeY: activeY,
                     phase: value(_phase).clamp(0.0, 1.0),
                     interval: interval,
                     travel: _travel,
                     color: color,
+                    radius: prominent ? 10 : 5,
                   ),
                 ),
               ),
             Positioned(
-              left: x - 210,
-              width: 200,
-              top: bottom - 20,
+              left: x - 250,
+              width: 240,
+              top: bottom - (prominent ? 26 : 18),
               child: Text(
-                '${arc.id} · ${arc.label}\n$rate',
+                [
+                  '${arc.id} · ${arc.label}',
+                  if (rate.isNotEmpty) rate,
+                  if (arc.origin.isNotEmpty) arc.origin,
+                ].join('\n'),
                 textAlign: TextAlign.right,
-                style: mono(16, weight: 600, height: 1.3, color: color),
+                style: labelStyle,
               ),
             ),
             if (arc.cutNote.isNotEmpty)
               Positioned(
-                left: x - 210,
-                width: 200,
-                top: top - 48,
+                left: x - 250,
+                width: 240,
+                top: top - 52,
                 child: Text(
                   '✂ ${arc.cutNote}',
                   textAlign: TextAlign.right,
-                  style: mono(16, weight: 600, color: p.text),
+                  style: mono(17, weight: 700, color: p.text),
                 ),
               ),
           ],
@@ -982,30 +1101,38 @@ class _PulsePainter extends CustomPainter {
     required this.x,
     required this.bottom,
     required this.top,
+    required this.activeY,
     required this.phase,
     required this.interval,
     required this.travel,
     required this.color,
+    required this.radius,
   });
 
   final double x;
   final double bottom;
   final double top;
+  final double activeY;
   final double phase;
   final Duration interval;
   final Duration travel;
   final Color color;
+  final double radius;
 
   @override
   void paint(Canvas canvas, Size size) {
     final ratio = interval.inMicroseconds / travel.inMicroseconds;
     final count = (1 / ratio).ceil() + 1;
-    final paint = Paint()..color = color;
     for (var k = 0; k < count; k++) {
       final progress = (phase + k) * ratio;
       if (progress > 1) continue;
       final y = lerpDouble(bottom, top, progress)!;
-      canvas.drawCircle(Offset(x, y), 7, paint);
+      final active = y <= activeY + .5;
+      canvas.drawCircle(
+        Offset(x, y),
+        active ? radius : radius * .6,
+        Paint()..color = color.withValues(alpha: active ? 1 : .35),
+      );
     }
   }
 
@@ -1014,6 +1141,7 @@ class _PulsePainter extends CustomPainter {
       phase != oldDelegate.phase ||
       bottom != oldDelegate.bottom ||
       top != oldDelegate.top ||
+      activeY != oldDelegate.activeY ||
       color != oldDelegate.color;
 }
 
@@ -1226,4 +1354,442 @@ class _DashPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(_DashPainter oldDelegate) => color != oldDelegate.color;
+}
+
+/// The hook: the demo on a phone in front of the dimmed stack, with a vote.
+class _HookPhoneOverlay extends StatelessWidget {
+  const _HookPhoneOverlay({required this.phone, required this.presence});
+
+  final HookPhone phone;
+  final double presence;
+
+  @override
+  Widget build(BuildContext context) {
+    final p = Palette.of(context);
+    return Positioned.fill(
+      child: Opacity(
+        opacity: presence,
+        child: Transform.translate(
+          offset: Offset(0, (1 - presence) * 40),
+          child: Stack(
+            children: [
+              Positioned(
+                left: _centerX - 180,
+                top: 70,
+                width: 360,
+                height: 760,
+                child: DecoratedBox(
+                  position: DecorationPosition.foreground,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(52),
+                    border: Border.all(color: p.text, width: 10),
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(52),
+                    child: const _HookScreen(),
+                  ),
+                ),
+              ),
+              Positioned(
+                left: _centerX + 260,
+                top: 250,
+                width: 560,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      phone.question,
+                      style: archivo(40, weight: 500, color: p.text),
+                    ),
+                    const SizedBox(height: 28),
+                    for (final option in phone.options)
+                      Container(
+                        margin: const EdgeInsets.only(bottom: 14),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 20,
+                          vertical: 12,
+                        ),
+                        decoration: BoxDecoration(
+                          color: p.surface,
+                          border: Border.all(color: p.border, width: 2),
+                        ),
+                        child: Text(
+                          option,
+                          style: archivo(28, color: p.text),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// The spec's demo at phone size: a blue page, a frosted card with a white
+/// field and hairline border, and a fading iOS caret.
+class _HookScreen extends StatelessWidget {
+  const _HookScreen();
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        const ColoredBox(color: Color(0xFF2563EB)),
+        for (final (left, top, size) in [
+          (40.0, 170.0, 150.0),
+          (200.0, 470.0, 120.0),
+        ])
+          Positioned(
+            left: left,
+            top: top,
+            child: Container(
+              width: size,
+              height: size,
+              decoration: const BoxDecoration(
+                color: Color(0xFF93C5FD),
+                shape: BoxShape.circle,
+              ),
+            ),
+          ),
+        Center(
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(20),
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 8.4, sigmaY: 8.4),
+              child: Container(
+                width: 252,
+                height: 101,
+                color: const Color(0x33FFFFFF),
+                alignment: Alignment.center,
+                child: Container(
+                  height: 28,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(4),
+                    border: Border.all(
+                      color: const Color(0x33000000),
+                      width: .5,
+                    ),
+                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: 6),
+                  alignment: Alignment.centerLeft,
+                  child: const _FadingCaret(),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// An iOS-style caret: holds, fades out, holds, fades in, once a second.
+class _FadingCaret extends StatelessWidget {
+  const _FadingCaret();
+
+  static final _opacity = Track<double>(
+    .single,
+    initial: 1,
+    debugLabel: 'Hook caret',
+  );
+
+  static const _fade = Motion.linear(Duration(milliseconds: 150));
+
+  @override
+  Widget build(BuildContext context) => TrackBuilder(
+    debugLabel: 'Hook caret',
+    loop: .loop,
+    animations: [
+      _opacity(const [
+        .hold(Duration(milliseconds: 500)),
+        .to(0, motion: _fade),
+        .hold(Duration(milliseconds: 200)),
+        .to(1, motion: _fade),
+      ]),
+    ],
+    builder: (context, value, child) =>
+        Opacity(opacity: value(_opacity).clamp(0, 1), child: child),
+    child: Container(width: 2, height: 17, color: const Color(0xFF007AFF)),
+  );
+}
+
+/// The GPU tier's tile memory: tiles light up as the pass renders.
+class _TilePainter extends CustomPainter {
+  _TilePainter({
+    required this.progress,
+    required this.color,
+    required this.empty,
+  });
+
+  final double progress;
+  final Color color;
+  final Color empty;
+
+  static const _grid = 7;
+  static const _margin = 14.0;
+  static const _gap = 6.0;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final tile = (size.width - 2 * _margin - (_grid - 1) * _gap) / _grid;
+    final lit = (progress * _grid * _grid).floor();
+    for (var row = 0; row < _grid; row++) {
+      for (var column = 0; column < _grid; column++) {
+        final index = row * _grid + column;
+        canvas.drawRect(
+          Rect.fromLTWH(
+            _margin + column * (tile + _gap),
+            _margin + row * (tile + _gap),
+            tile,
+            tile,
+          ),
+          Paint()
+            ..color = index < lit
+                ? color.withValues(alpha: .85)
+                : empty.withValues(alpha: .6),
+        );
+      }
+    }
+  }
+
+  @override
+  bool shouldRepaint(_TilePainter oldDelegate) =>
+      progress != oldDelegate.progress ||
+      color != oldDelegate.color ||
+      empty != oldDelegate.empty;
+}
+
+/// DRAM next to the GPU band, with the frame streaming out (flush) or back
+/// in (re-seed).
+class _DramOverlay extends StatefulWidget {
+  const _DramOverlay({
+    required this.phase,
+    required this.presence,
+    required this.tierCenter,
+  });
+
+  final TilePhase phase;
+  final double presence;
+  final double tierCenter;
+
+  @override
+  State<_DramOverlay> createState() => _DramOverlayState();
+}
+
+class _DramOverlayState extends State<_DramOverlay> {
+  final _flow = Track<double>(.single, initial: 0, debugLabel: 'DRAM flow');
+
+  @override
+  Widget build(BuildContext context) {
+    final p = Palette.of(context);
+    final box = Rect.fromLTWH(70, widget.tierCenter - 240, 320, 140);
+    final plane = Offset(_centerX - _halfWidth, widget.tierCenter);
+    final port = Offset(box.right, box.bottom - 20);
+    final outward = widget.phase == TilePhase.flush;
+    return Positioned.fill(
+      child: IgnorePointer(
+        child: Opacity(
+          opacity: widget.presence,
+          child: Stack(
+            children: [
+              TrackBuilder(
+                debugLabel: 'DRAM flow',
+                loop: .loop,
+                animations: [
+                  _flow(const [
+                    .to(0, motion: .linear(Duration(milliseconds: 1))),
+                    .to(1, motion: .linear(Duration(milliseconds: 700))),
+                  ]),
+                ],
+                builder: (context, value, _) => CustomPaint(
+                  size: RenderStack.designSize,
+                  painter: _FlowPainter(
+                    from: outward ? plane : port,
+                    to: outward ? port : plane,
+                    phase: value(_flow).clamp(0.0, 1.0),
+                    color: heat,
+                  ),
+                ),
+              ),
+              Positioned.fromRect(
+                rect: box,
+                child: Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: p.surface,
+                    border: Border.all(color: heat, width: 2),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('DRAM', style: mono(22, weight: 700, color: heat)),
+                      const SizedBox(height: 6),
+                      Text(
+                        outward
+                            ? 'store T0: 1179×2556 RGBA8 ≈ 12 MB'
+                            : 're-seed: full-screen redraw from T0',
+                        style: archivo(17, height: 1.3, color: p.text),
+                      ),
+                      Text(
+                        '× 120/s ≈ 3–4 GB/s [estimate]',
+                        style: mono(14, color: p.textSecondary),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _FlowPainter extends CustomPainter {
+  _FlowPainter({
+    required this.from,
+    required this.to,
+    required this.phase,
+    required this.color,
+  });
+
+  final Offset from;
+  final Offset to;
+  final double phase;
+  final Color color;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    canvas.drawLine(
+      from,
+      to,
+      Paint()
+        ..color = color.withValues(alpha: .35)
+        ..strokeWidth = 3,
+    );
+    final dot = Paint()..color = color;
+    for (var k = 0; k < 4; k++) {
+      final t = (phase + k / 4) % 1;
+      canvas.drawRect(
+        Rect.fromCenter(
+          center: Offset.lerp(from, to, t)!,
+          width: 14,
+          height: 14,
+        ),
+        dot,
+      );
+    }
+  }
+
+  @override
+  bool shouldRepaint(_FlowPainter oldDelegate) =>
+      phase != oldDelegate.phase ||
+      from != oldDelegate.from ||
+      to != oldDelegate.to ||
+      color != oldDelegate.color;
+}
+
+/// The two arrows that cross the CPU/GPU border downward: back-pressure
+/// (the raster thread waits for a drawable) and completion.
+class _FeedbackArrows extends StatelessWidget {
+  const _FeedbackArrows({
+    required this.presence,
+    required this.gpuY,
+    required this.rasterY,
+    required this.encodeY,
+  });
+
+  final double presence;
+  final double gpuY;
+  final double rasterY;
+  final double encodeY;
+
+  @override
+  Widget build(BuildContext context) {
+    final p = Palette.of(context);
+    const completionX = _centerX - _halfWidth - 40;
+    const pressureX = _centerX - _halfWidth - 90;
+    Widget label(String title, String body, Color color, double top) =>
+        Positioned(
+          left: 40,
+          width: pressureX - 54,
+          top: top,
+          child: Text(
+            '$title\n$body',
+            textAlign: TextAlign.right,
+            style: mono(15, weight: 600, height: 1.35, color: color),
+          ),
+        );
+    return Positioned.fill(
+      child: IgnorePointer(
+        child: Opacity(
+          opacity: presence,
+          child: Stack(
+            children: [
+              CustomPaint(
+                size: RenderStack.designSize,
+                painter: _ArrowsPainter([
+                  (Offset(pressureX, gpuY), Offset(pressureX, rasterY), heat),
+                  (
+                    Offset(completionX, gpuY),
+                    Offset(completionX, encodeY),
+                    p.accent,
+                  ),
+                ]),
+              ),
+              label(
+                'BACK-PRESSURE',
+                '3 drawables in flight:\nraster waits for one',
+                heat,
+                rasterY + 8,
+              ),
+              label(
+                'COMPLETION',
+                'frees resources,\nfeeds FrameTimeMS',
+                p.accent,
+                gpuY - 84,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _ArrowsPainter extends CustomPainter {
+  _ArrowsPainter(this.arrows);
+
+  final List<(Offset, Offset, Color)> arrows;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    for (final (from, to, color) in arrows) {
+      final paint = Paint()
+        ..color = color
+        ..strokeWidth = 4
+        ..style = PaintingStyle.stroke
+        ..strokeCap = StrokeCap.round;
+      canvas
+        ..drawLine(from, to, paint)
+        ..drawPath(
+          Path()
+            ..moveTo(to.dx - 10, to.dy - 14)
+            ..lineTo(to.dx, to.dy)
+            ..lineTo(to.dx + 10, to.dy - 14),
+          paint,
+        )
+        ..drawCircle(from, 6, Paint()..color = color);
+    }
+  }
+
+  @override
+  bool shouldRepaint(_ArrowsPainter oldDelegate) => true;
 }

@@ -4,7 +4,10 @@ import 'package:build_to_burn/visualizations/render_stack/render_stack_model.dar
 // are for its demo tree (a frosted card with a focused CupertinoTextField over
 // a blue page) on an iPhone 15 Pro, Flutter 3.47.5, --profile, Impeller Metal.
 // Items marked [verify] or [estimate] there are unverified; keep them off
-// final slides until they're ticked.
+// final slides until they're ticked. Tiers 2-5 and the caret counts follow the
+// real dumps in internal/demo-tree-dumps.md (widget test, 3.47.5); the planes
+// show the curated app-less subset (no route boundaries, barrier or
+// FollowerLayer).
 
 const renderStackBands = [
   StackBand(id: 'code', title: 'Your code'),
@@ -40,9 +43,10 @@ const renderStackTiers = [
     where: 'UI thread · layout',
     token: 'RenderObject',
     detail: ChipsDetail([
-      'RenderColoredBox',
+      'RenderColoredBox · page',
       'RenderClipRRect',
       'RenderBackdropFilter',
+      'RenderDecoratedBox · field',
       'RenderEditable',
       'caret painter · boundary',
     ]),
@@ -61,12 +65,14 @@ const renderStackTiers = [
     detail: LinesDetail([
       '① drawRect  page',
       '② drawRect  frost',
+      '   drawRRect  field',
+      '   drawRRect  border',
       '③ drawParagraph  text',
       '④ drawRRect  caret',
     ]),
     note:
-        'Painting records a tape. Nothing is drawn yet. A caret tick '
-        're-records only ④.',
+        'Painting records a tape. Nothing is drawn yet. ② holds the frost '
+        'and the white field with its hairline border.',
   ),
   StackTier(
     number: 4,
@@ -77,17 +83,18 @@ const renderStackTiers = [
     where: 'UI thread',
     token: 'Layer',
     detail: LinesDetail([
-      'TransformLayer  root',
-      '├ Picture ①',
-      '└ ClipRRectLayer',
-      '  └ BackdropFilterLayer',
-      '    ├ Pictures ② ③',
-      '    └ OffsetLayer  caret',
-      '      └ Picture ④',
+      'Transform  root',
+      '├ app shell ▸',
+      '│ ├ Picture ①  page',
+      '│ └ ClipRRect',
+      '│   └ BackdropFilter',
+      '│     ├ Picture ②',
+      '│     └ field ▸ ③  caret ④',
+      '└ Follower',
     ]),
     note:
-        'Layers are folders for tapes and effects. The caret has its own '
-        'repaint boundary.',
+        'Layers are folders for tapes and effects. ▸ collapses the app '
+        "shell and the text field's helper layers.",
   ),
   StackTier(
     number: 5,
@@ -115,8 +122,8 @@ const renderStackTiers = [
       'DrawDisplayList ①',
       'ClipRRect 24',
       'SaveLayer  backdrop σ 30 px',
-      'DrawDisplayList ② ③',
-      'DrawDisplayList ④',
+      'DrawDisplayList ②',
+      'DrawDisplayList ③ ④',
       'Restore',
     ]),
     note:
@@ -137,11 +144,11 @@ const renderStackTiers = [
       StackPass('P3', 'blur ↕', drawCalls: 1, hot: true),
       StackPass('P4', 'blur ↔', drawCalls: 1, hot: true),
       StackPass('P5', 'MSAA backdrop', drawCalls: 3, hot: true),
-      StackPass('P6', 'subpass', drawCalls: 4),
+      StackPass('P6', 'subpass', drawCalls: 6),
     ]),
     note:
         'The backdrop ends P1, runs 3 blur passes, then re-seeds P5 with a '
-        'full-screen redraw. Pass list and ~10 draw calls: [estimate].',
+        'full-screen redraw. Pass list and ~12 draw calls: [estimate].',
   ),
   StackTier(
     number: 8,
@@ -177,15 +184,47 @@ Map<int, double> _lit(Iterable<int> tiers, double light) => {
   for (final tier in tiers) tier: light,
 };
 
-/// Section 5's lighting for a caret tick: 1-2 off, 3-5 dim, 6-9 hot.
-final caretTickLight = {
-  ..._lit([3, 4, 5], TierLight.dim),
+/// Lighting for a ticker frame (spec section 5): tiers 1-4 off (nothing is
+/// dirty), 5 dim, 6-9 hot.
+final tickerFrameLight = {
+  5: TierLight.dim,
   ..._lit([6, 7, 8, 9], TierLight.hot),
 };
 
 const _rebuild = LoopArc(id: 'A', label: 'Rebuild', startTier: 1);
 const _repaint = LoopArc(id: 'C', label: 'Repaint', startTier: 3);
-const _sceneOnly = LoopArc(id: 'E', label: 'Scene only', startTier: 5);
+
+/// The talk's aha: a running Ticker requests a frame every vsync, and every
+/// frame runs Scene, raster and GPU, whether or not anything repainted.
+const _tickerFrame = LoopArc(
+  id: 'T',
+  label: 'Ticker frame',
+  startTier: 1,
+  activeFromTier: 5,
+  prominent: true,
+  origin: 'Ticker · every vsync',
+);
+
+const _tickerFrameRunning = LoopArc(
+  id: 'T',
+  label: 'Ticker frame',
+  startTier: 1,
+  activeFromTier: 5,
+  prominent: true,
+  origin: 'Ticker · every vsync',
+  perSecond: 119,
+  rateLabel: '≈119 frames/s\n≈111 repaint nothing',
+);
+
+/// Measured for the demo's caret: 8 repainting ticks per 1.017 s blink cycle
+/// (internal/demo-tree-dumps.md).
+const _caretRepaint = LoopArc(
+  id: 'C',
+  label: 'Repaint',
+  startTier: 3,
+  perSecond: 7.9,
+  rateLabel: '≈8/s',
+);
 
 /// Build-up step 1 (cold open): the bands rise, then one frame travels up.
 const coldOpenScript = [
@@ -256,73 +295,130 @@ const rasterHalfScript = [
         'Impeller encodes render passes; the GPU executes them after commit. '
         'The blur breaks the pass: 3 blur passes and a full-screen re-seed.',
   ),
+  RenderStackStep(
+    RenderStackView(
+      light: {6: TierLight.dim, 7: TierLight.dim, 8: TierLight.hot},
+      borders: {StackBorder.gpu},
+      feedback: true,
+    ),
+    caption:
+        'Two signals come back down. When the GPU falls behind, the raster '
+        'thread waits for a drawable, and DevTools counts it as raster time.',
+  ),
 ];
 
-/// Build-up step 5 (3, the aha): loops, the caret tick, the myth, #192128.
+/// Build-up step 2 (1, the hook): the stack dims and the demo comes forward.
+const hookScript = [
+  RenderStackStep(
+    RenderStackView(
+      phone: HookPhone(
+        question: 'What keeps the GPU busy?',
+        options: [
+          'A  The blur',
+          'B  The list underneath',
+          'C  The blinking cursor',
+          'D  The keyboard',
+        ],
+      ),
+    ),
+    caption:
+        'A search sheet over the app drove the GPU to its limit and never let '
+        'it rest. Vote now; we come back to it.',
+  ),
+];
+
+/// Build-up step 7 (4, why a blur costs): the GPU tier's tile memory.
+const blurCostScript = [
+  RenderStackStep(
+    RenderStackView(
+      light: {8: TierLight.dim},
+      tiles: TilePhase.fill,
+      borders: {StackBorder.gpu},
+    ),
+    caption:
+        'Mobile GPUs render in on-chip tiles. MSAA color and depth are '
+        'memoryless: they never leave the chip.',
+  ),
+  RenderStackStep(
+    RenderStackView(
+      light: {8: TierLight.hot},
+      tiles: TilePhase.flush,
+      borders: {StackBorder.gpu},
+    ),
+    caption:
+        'The backdrop blur needs pixels already drawn. The pass snaps: the '
+        'frame so far is stored to DRAM as T0, then blurred.',
+  ),
+  RenderStackStep(
+    RenderStackView(
+      light: {8: TierLight.hot},
+      tiles: TilePhase.reseed,
+      borders: {StackBorder.gpu},
+    ),
+    caption:
+        'The resumed pass is re-seeded from DRAM with a full-screen redraw. '
+        'Every frame, 120 times a second.',
+  ),
+];
+
+/// Build-up step 5 (3, the aha): a running Ticker means a full frame every
+/// vsync; the RepaintBoundary myth; #192128.
 final ahaScript = [
   const RenderStackStep(
     RenderStackView(
-      arcs: [_rebuild, _repaint, _sceneOnly],
+      arcs: [_rebuild, _repaint, _tickerFrame],
       borders: {StackBorder.gpu},
     ),
     caption:
-        'Every loop starts at a tier and runs to the top. Rebuild starts at '
-        'your code, repaint at paint, Scene only at the handoff.',
+        'Loops run from where work starts up to the top. A rebuild starts at '
+        'your code, a repaint at paint. A ticker frame starts at the vsync.',
+  ),
+  RenderStackStep(
+    RenderStackView(
+      arcs: const [_tickerFrameRunning, _caretRepaint],
+      light: tickerFrameLight,
+      borders: const {StackBorder.gpu},
+    ),
+    caption:
+        'A running Ticker means a full frame every vsync: about 119 a second, '
+        '111 of them with nothing repainted. Scene, raster and GPU run anyway.',
+  ),
+  RenderStackStep(
+    RenderStackView(
+      arcs: const [_tickerFrameRunning],
+      light: tickerFrameLight,
+      borders: const {StackBorder.gpu},
+    ),
+    caption:
+        "RepaintBoundary can't help: nothing is repainting. The Ticker still "
+        'asks for a frame every vsync, and tiers 5 to 9 stay hot.',
   ),
   RenderStackStep(
     RenderStackView(
       arcs: const [
-        _rebuild,
-        LoopArc(id: 'C', label: 'Repaint', startTier: 3, perSecond: 120),
-        LoopArc(id: 'E', label: 'Scene only', startTier: 5, perSecond: 120),
-      ],
-      light: caretTickLight,
-      borders: const {StackBorder.gpu},
-    ),
-    caption:
-        'The caret ticks 120 times a second. Its loops are tiny at the '
-        'bottom, but the top lights up as brightly as a rebuild.',
-  ),
-  RenderStackStep(
-    RenderStackView(
-      arcs: const [
-        LoopArc(id: 'C', label: 'Repaint', startTier: 3, perSecond: 120),
-        LoopArc(id: 'E', label: 'Scene only', startTier: 5, perSecond: 120),
-      ],
-      light: {...caretTickLight, 3: .25},
-      borders: const {StackBorder.gpu},
-    ),
-    caption:
-        'Wrap it in a RepaintBoundary: only the paint tier gets thinner. '
-        'Tiers 6 to 9 stay hot.',
-  ),
-  const RenderStackStep(
-    RenderStackView(
-      arcs: [
-        LoopArc(id: 'C', label: 'Repaint', startTier: 3, perSecond: 8),
         LoopArc(
-          id: 'E',
-          label: 'Scene only',
-          startTier: 5,
+          id: 'T',
+          label: 'Ticker frame',
+          startTier: 1,
           endTier: 5,
-          perSecond: 120,
+          activeFromTier: 5,
+          prominent: true,
+          origin: 'Ticker · every vsync',
+          perSecond: 119,
+          rateLabel: '≈111 frames/s stop here',
           cutNote: '#192128',
         ),
+        _caretRepaint,
       ],
       light: {
-        3: TierLight.dim,
-        4: TierLight.dim,
-        5: TierLight.dim,
-        6: .7,
-        7: .7,
-        8: .7,
-        9: .7,
+        ..._lit([3, 4, 5], .2),
+        ..._lit([6, 7, 8, 9], .5),
       },
-      borders: {StackBorder.gpu},
+      borders: const {StackBorder.gpu},
     ),
     caption:
-        'With #192128 (master), ticks where nothing repainted stop at the '
-        'handoff. Only the ~8 repainting ticks per second render [verify].',
+        'With #192128 (master), a ticker frame with nothing dirty stops before '
+        'the handoff: ≈8 rendered frames per second instead of ≈119.',
   ),
 ];
 

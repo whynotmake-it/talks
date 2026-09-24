@@ -3,7 +3,7 @@ import 'package:build_to_burn/visualizations/render_stack/render_stack_content.d
 import 'package:wnma_talk/slide_number.dart';
 
 // The slides that show the render stack, one per build-up step of
-// docs/render-stack-visualization.md that has shipped (1, 3, 4, 5, 8).
+// docs/render-stack-visualization.md that has shipped (1-5, 7, 8).
 
 final coldOpenSlide = RenderStackSlide(
   route: '/cold-open',
@@ -65,15 +65,16 @@ final ahaSlide = RenderStackSlide(
   speakerNotes:
       '''
 $timSlideNotesHeader
-Key message: answer to the vote: C makes the frames, A makes each one expensive. GPU work = how often you draw x how hard each frame is.
-- iOS: TextField defaults cursorOpacityAnimates to true; the caret is an AnimationController whose ticker asks for a frame every vsync (60 or 120/s) while focused. Android default: a 500 ms timer, 2 frames/s (Guide 7.2).
-- The caret sits in its own repaint boundary: a tick re-records one rect, and nothing during the hold phases.
-- On stable, every tick still sends a new Scene, and the raster thread re-renders the whole screen with the blur: pass break + 3 blur passes, up to 120 times a second.
+Key message: answer to the vote: C makes the frames, A makes each one expensive. A running Ticker means a full frame every vsync, whether or not anything repaints. GPU work = how often you draw x how hard each frame is.
+- The focused iOS field's caret runs on an AnimationController. While its Ticker runs, it requests a frame every vsync: 120 a second at ProMotion (measured ~119 Scenes/s in the demo's widget test; one vsync per 1.017 s blink cycle has no frame scheduled).
+- Every one of those frames builds a new Scene, and the raster thread and GPU re-render the whole screen with the blur: pass break + 3 blur passes (stable 3.47.5).
+- Repaints are the small part: the caret's pixels change on ~8 frames per second (8 per blink cycle, measured). The other ~111 frames per second repaint nothing and still cost the full raster + GPU work.
 - Each frame fits the budget, so no jank; the GPU just never idles. Heat builds, then throttling causes jank.
-- Myth-buster: RepaintBoundary and const save UI-thread work, not GPU work, under Impeller.
-- "A frame requested is not a frame rendered": flutter/flutter#192128 (master) skips ticks where nothing repainted. Helps the caret during holds, not spinners. Name it as coming unless it has reached stable.
+- Myth-buster: RepaintBoundary and const save UI-thread paint work, not frames, and not GPU work under Impeller.
+- "A frame requested is not a frame rendered": flutter/flutter#192128 (master) skips rendering when nothing repainted, so the ~111 idle frames stop at the handoff. The Ticker still wakes the UI thread every vsync, and spinners (which really repaint) are not helped. Name it as coming unless it has reached stable.
 - It's a defaults problem, not "your code is wrong".
-- On the stack: arcs A (Rebuild), C (Repaint), E (Scene only). Caret tick lighting: tiers 1-2 off, 3-5 dim, 6-9 hot (spec section 5). Arcs pulse at the real rate slowed x10.''',
+- On the stack: loop T (Ticker frame) is the bold arc from the vsync, dim through tiers 1-4 (nothing dirty) and hot from the Scene up, with the counter "≈119 frames/s, ≈111 repaint nothing". The repaint loop C (≈8/s) is a thin side branch. Pulses run slowed x10.
+''',
 );
 
 final profilingSlide = RenderStackSlide(
@@ -91,4 +92,39 @@ Key message: DevTools shows the symptom; platform tools show the cost.
 - Step 3 (live): Xcode Metal frame capture, scope "Impeller Frame", Profile config. Dependencies graph: "EntityPass" passes, "MSAA backdrop", "Gaussian Blur Filter". Capture timings are replay timings: structure, not cost (Guide 9.5).
 - Fallbacks: a .gputrace from the same iPhone, then a video. Never capture the macOS deck.
 - Android: Perfetto + AGI/APA; stock-engine passes are unlabeled; the trigger there is a spinner or a blur, not the caret (Android caret: 2 frames/s).''',
+);
+
+final hookSlide = RenderStackSlide(
+  route: '/hook',
+  title: 'Hook',
+  section: '1',
+  script: hookScript,
+  speakerNotes:
+      '''
+$jesperSlideNotesHeader
+Key message: a search sheet over the app drove the GPU to its limit and never let it rest. Pose it as a vote and leave it open.
+- Vote: A) the blur, B) the list underneath, C) the blinking cursor, D) the keyboard.
+- The sheet is a frosted BackdropFilter blur over a busy page, with a focused field.
+- Show one real measurement with a footer: device + SoC, OS, Flutter version, --profile, 60/120 Hz, thermal state, duration, runs, metric source (Guide 9.2). No bare "GPU %".
+- On the stack: the stack dims and the demo comes forward on a phone (real BackdropFilter, fading caret) with the vote.
+- Answer comes in section 3: C makes the frames, A makes each one expensive.
+- Get ClickUp's sign-off and facts (Flutter version, sheet widget, cursorOpacityAnimates, platform views?) before telling it (Guide 14).''',
+);
+
+final blurCostSlide = RenderStackSlide(
+  route: '/blur-cost',
+  title: 'Why blur costs',
+  section: '4',
+  script: blurCostScript,
+  speakerNotes:
+      '''
+$jesperSlideNotesHeader
+Key message: BackdropFilter blur is everywhere and shockingly expensive for how common it is, paid every frame.
+- A stock CupertinoNavigationBar and CupertinoTabBar each blur by default (their default background isn't opaque): two backdrop blurs you never wrote.
+- Mobile GPUs render in on-chip tiles. A backdrop read forces the pass to resolve and store to DRAM; the next pass is re-seeded with a full-screen redraw plus clips; 3 blur passes run (Guide 8).
+- DRAM costs roughly 10x more energy per byte than on-chip memory. Estimate (label it): ~12 MB full-screen texture, ~24-36 MB per blur per frame, ~3-4 GB/s at 120 Hz. Prefer measured Metal counters.
+- A GPU woken every vsync never clocks down or idles. No jank is not no cost; heat builds over minutes.
+- Sigma is a sawtooth: <= 4 full resolution, above that downsampled; the fixed cost stays.
+- On the stack: the GPU tier's tiles fill on-chip, the pass snaps and T0 streams to DRAM, then the resumed pass is re-seeded from it (spec step 7; the camera dolly is not built).
+- One line on liquid glass: the Flutter team is officially building it; any liquid-glass look is built on the same backdrop reads, so all of this applies, multiplied.''',
 );

@@ -45,9 +45,11 @@ void main() {
     // 10 slide changes plus the render stack slides' extra steps.
     final extraSteps = [
       coldOpenScript,
+      hookScript,
       uiHalfScript,
       rasterHalfScript,
       ahaScript,
+      blurCostScript,
       profilingScript,
     ].fold(0, (sum, script) => sum + script.length - 1);
     expect(advances, 10 + extraSteps);

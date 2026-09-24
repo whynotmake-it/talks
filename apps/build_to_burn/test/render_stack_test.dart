@@ -28,9 +28,11 @@ void main() {
 
   final scripts = {
     'cold open': coldOpenScript,
+    'hook': hookScript,
     'UI half': uiHalfScript,
     'raster half': rasterHalfScript,
     'aha': ahaScript,
+    'blur cost': blurCostScript,
     'profiling': profilingScript,
   };
 
@@ -70,7 +72,7 @@ void main() {
     await tester.pumpWidget(host(const RenderStackView(expanded: {4, 7})));
     await pumpFrames(tester);
 
-    expect(find.text('  └ BackdropFilterLayer'), findsOneWidget);
+    expect(find.text('│   └ BackdropFilter'), findsOneWidget);
     expect(find.text('MSAA backdrop'), findsOneWidget);
     expect(find.textContaining('Layers are folders'), findsOneWidget);
   });
@@ -90,8 +92,13 @@ void main() {
     await tester.pumpWidget(host(ahaScript.last.view));
     await pumpFrames(tester);
 
-    expect(find.text('C · Repaint\n8/s'), findsOneWidget);
-    expect(find.text('E · Scene only\n120/s'), findsOneWidget);
+    expect(find.text('C · Repaint\n≈8/s'), findsOneWidget);
+    expect(
+      find.text(
+        'T · Ticker frame\n≈111 frames/s stop here\nTicker · every vsync',
+      ),
+      findsOneWidget,
+    );
     expect(find.text('✂ #192128'), findsOneWidget);
   });
 
@@ -115,5 +122,37 @@ void main() {
     await pumpFrames(tester);
 
     expect(find.text('DevTools Performance'), findsOneWidget);
+  });
+
+  testWidgets('the hook brings the phone and the vote forward', (
+    tester,
+  ) async {
+    await tester.pumpWidget(host(hookScript.first.view));
+    await pumpFrames(tester);
+
+    expect(find.text('What keeps the GPU busy?'), findsOneWidget);
+    expect(find.text('C  The blinking cursor'), findsOneWidget);
+  });
+
+  testWidgets('tiles flush to DRAM and re-seed from it', (tester) async {
+    await tester.pumpWidget(host(blurCostScript.first.view));
+    await pumpFrames(tester);
+    expect(find.text('DRAM'), findsNothing);
+
+    await tester.pumpWidget(host(blurCostScript[1].view));
+    await pumpFrames(tester);
+    expect(find.text('store T0: 1179×2556 RGBA8 ≈ 12 MB'), findsOneWidget);
+
+    await tester.pumpWidget(host(blurCostScript[2].view));
+    await pumpFrames(tester);
+    expect(find.text('re-seed: full-screen redraw from T0'), findsOneWidget);
+  });
+
+  testWidgets('shows back-pressure and completion arrows', (tester) async {
+    await tester.pumpWidget(host(rasterHalfScript.last.view));
+    await pumpFrames(tester);
+
+    expect(find.textContaining('BACK-PRESSURE'), findsOneWidget);
+    expect(find.textContaining('COMPLETION'), findsOneWidget);
   });
 }
