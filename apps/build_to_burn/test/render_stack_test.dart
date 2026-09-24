@@ -68,13 +68,21 @@ void main() {
     expect(find.text('9  Pixels'), findsNothing);
   });
 
-  testWidgets('expanded tiers show their detail and key fact', (tester) async {
-    await tester.pumpWidget(host(const RenderStackView(expanded: {4, 7})));
+  testWidgets('an expanded tier shows its detail card and key fact', (
+    tester,
+  ) async {
+    await tester.pumpWidget(host(const RenderStackView(expanded: {4})));
     await pumpFrames(tester);
 
+    expect(find.text('4  LAYER TREE'), findsOneWidget);
     expect(find.text('│   └ BackdropFilter'), findsOneWidget);
-    expect(find.text('MSAA backdrop'), findsOneWidget);
     expect(find.textContaining('Layers are folders'), findsOneWidget);
+
+    await tester.pumpWidget(host(const RenderStackView(expanded: {7})));
+    await pumpFrames(tester);
+
+    expect(find.text('MSAA backdrop'), findsOneWidget);
+    expect(find.text('│   └ BackdropFilter'), findsNothing);
   });
 
   testWidgets('draws the borders with their labels', (tester) async {

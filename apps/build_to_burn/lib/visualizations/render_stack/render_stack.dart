@@ -376,6 +376,17 @@ class _StackPicture extends StatelessWidget {
           },
         ),
     if (token > .001 && token < .999) _token(p, layout),
+    if (_cardTier() case final index?)
+      _DetailCard(
+        tier: tiers[index],
+        emphasis: view.emphasis,
+        presence: expand[tiers[index].number]!.clamp(0.0, 1.0),
+        anchor: Offset(_centerX - _halfWidth, layout.center(index)),
+        color: _lightColors(
+          p,
+          math.max(light[tiers[index].number]!, TierLight.dim),
+        ).text,
+      ),
     if (dram > .01 && tilePhase != null && layout.indexOf(8) >= 0)
       _DramOverlay(
         phase: tilePhase!,
@@ -390,6 +401,19 @@ class _StackPicture extends StatelessWidget {
         encodeY: layout.center(layout.indexOf(7)),
       ),
   ];
+
+  /// The expanded tier whose detail card is shown: the most expanded one
+  /// with a text detail.
+  int? _cardTier() {
+    int? best;
+    for (final (index, tier) in tiers.indexed) {
+      if (tier.detail == null || tier.detail is ScreenDetail) continue;
+      final value = expand[tier.number]!;
+      if (value < .01) continue;
+      if (best == null || value > expand[tiers[best].number]!) best = index;
+    }
+    return best;
+  }
 
   /// The demo screen fades in once the token has arrived, or with [pixels].
   double _pixelsFor(StackTier tier) {
@@ -596,8 +620,8 @@ class _TierPlane extends StatelessWidget {
                     Opacity(
                       opacity: expand,
                       child: Padding(
-                        padding: const EdgeInsets.all(16),
-                        child: _Detail(
+                        padding: const EdgeInsets.all(20),
+                        child: _Schematic(
                           detail: tier.detail,
                           emphasis: emphasis,
                           color: colors.text,
@@ -632,6 +656,173 @@ class _TierPlane extends StatelessWidget {
   );
 }
 
+/// What an expanded plane shows in 3D: the shape of its detail, not its text.
+/// The readable text is in [_DetailCard].
+class _Schematic extends StatelessWidget {
+  const _Schematic({
+    required this.detail,
+    required this.emphasis,
+    required this.color,
+  });
+
+  final TierDetail? detail;
+  final Set<String> emphasis;
+  final Color color;
+
+  bool _emphasized(String text) => emphasis.any(text.contains);
+
+  @override
+  Widget build(BuildContext context) {
+    final p = Palette.of(context);
+    Widget bar(String text, {double height = 14}) => Container(
+      width: (text.trim().length * 8.0).clamp(40.0, 220.0),
+      height: height,
+      margin: EdgeInsets.only(
+        left: (text.length - text.trimLeft().length) * 7.0,
+        bottom: 10,
+      ),
+      color: _emphasized(text) ? heat : color.withValues(alpha: .55),
+    );
+    return switch (detail) {
+      null || ScreenDetail() => const SizedBox.shrink(),
+      LinesDetail(:final lines) => Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [for (final line in lines) bar(line)],
+      ),
+      ChipsDetail(:final items) => Wrap(
+        spacing: 10,
+        runSpacing: 10,
+        children: [
+          for (final item in items)
+            Container(
+              width: (item.length * 6.0).clamp(50.0, 150.0),
+              height: 34,
+              decoration: BoxDecoration(
+                color: p.inset,
+                border: Border.all(
+                  color: _emphasized(item) ? heat : color,
+                  width: 2,
+                ),
+              ),
+            ),
+        ],
+      ),
+      TrayDetail(:final slots) => Row(
+        children: [
+          for (var slot = 0; slot < slots; slot++)
+            Container(
+              width: 100,
+              height: 100,
+              margin: const EdgeInsets.only(right: 16),
+              decoration: BoxDecoration(
+                color: slot == 0 ? color.withValues(alpha: .3) : p.surface,
+                border: Border.all(color: color, width: 3),
+              ),
+            ),
+        ],
+      ),
+      PassesDetail(:final passes) => Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          for (final pass in passes)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: Row(
+                children: [
+                  Container(
+                    width: 110,
+                    height: 24,
+                    color: (pass.hot ? heat : color).withValues(alpha: .6),
+                  ),
+                  const SizedBox(width: 8),
+                  for (var call = 0; call < pass.drawCalls; call++)
+                    Container(
+                      width: 9,
+                      height: 24,
+                      margin: const EdgeInsets.only(right: 4),
+                      color: pass.hot ? heat : p.accent,
+                    ),
+                ],
+              ),
+            ),
+        ],
+      ),
+    };
+  }
+}
+
+/// The readable version of an expanded tier's detail, flat at the bottom
+/// left, with a leader line to its plane.
+class _DetailCard extends StatelessWidget {
+  const _DetailCard({
+    required this.tier,
+    required this.emphasis,
+    required this.presence,
+    required this.anchor,
+    required this.color,
+  });
+
+  final StackTier tier;
+  final Set<String> emphasis;
+  final double presence;
+  final Offset anchor;
+  final Color color;
+
+  static const rect = Rect.fromLTWH(50, 540, 400, 330);
+
+  @override
+  Widget build(BuildContext context) {
+    final p = Palette.of(context);
+    return Positioned.fill(
+      child: IgnorePointer(
+        child: Opacity(
+          opacity: presence,
+          child: Stack(
+            children: [
+              CustomPaint(
+                size: RenderStack.designSize,
+                painter: _LeaderPainter(
+                  from: anchor,
+                  to: Offset(rect.right + 30, rect.top + 24),
+                  color: color,
+                ),
+              ),
+              Positioned(
+                left: rect.left,
+                width: rect.width,
+                bottom: RenderStack.designSize.height - rect.bottom,
+                child: Container(
+                  padding: const EdgeInsets.fromLTRB(20, 16, 20, 18),
+                  decoration: BoxDecoration(
+                    color: p.surface,
+                    border: Border.all(color: color, width: 2),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        '${tier.number}  ${tier.title}'.toUpperCase(),
+                        style: mono(15, weight: 700, color: color),
+                      ),
+                      const SizedBox(height: 10),
+                      _Detail(
+                        detail: tier.detail,
+                        emphasis: emphasis,
+                        color: color,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class _Detail extends StatelessWidget {
   const _Detail({
     required this.detail,
@@ -649,9 +840,9 @@ class _Detail extends StatelessWidget {
   Widget build(BuildContext context) {
     final p = Palette.of(context);
     TextStyle line(String text) => mono(
-      16,
-      weight: _emphasized(text) ? 700 : 500,
-      height: 1.65,
+      18,
+      weight: _emphasized(text) ? 700 : 450,
+      height: 1.4,
       color: _emphasized(text) ? heat : p.text,
     );
     return switch (detail) {
@@ -1588,7 +1779,7 @@ class _DramOverlayState extends State<_DramOverlay> {
   @override
   Widget build(BuildContext context) {
     final p = Palette.of(context);
-    final box = Rect.fromLTWH(70, widget.tierCenter - 240, 320, 140);
+    final box = Rect.fromLTWH(60, widget.tierCenter - 240, 370, 140);
     final plane = Offset(_centerX - _halfWidth, widget.tierCenter);
     final port = Offset(box.right, box.bottom - 20);
     final outward = widget.phase == TilePhase.flush;
