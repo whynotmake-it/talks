@@ -1,6 +1,10 @@
 {
   "folders": [
     {
+      "name": "Build to Burn App",
+      "path": "./apps/build_to_burn"
+    },
+    {
       "name": "Physical UI App",
       "path": "./apps/physical_ui"
     },
