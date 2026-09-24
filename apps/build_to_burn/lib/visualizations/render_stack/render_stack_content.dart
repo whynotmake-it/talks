@@ -1,189 +1,390 @@
 import 'package:build_to_burn/visualizations/render_stack/render_stack_model.dart';
 
-// Placeholder content until docs/render-stack-visualization.md exists. Swap
-// the text here; the mechanics in render_stack.dart don't need to change.
+// Content from docs/render-stack-visualization.md (the spec). Example values
+// are for its demo tree (a frosted card with a focused CupertinoTextField over
+// a blue page) on an iPhone 15 Pro, Flutter 3.47.5, --profile, Impeller Metal.
+// Items marked [verify] or [estimate] there are unverified; keep them off
+// final slides until they're ticked.
 
-/// The planes, bottom (widget code) to top (pixels).
-const renderStackPlanes = [
-  StackPlane(
-    id: 'widgets',
-    title: 'Widgets',
-    subtitle: 'your code',
-    side: StackSide.cpu,
-    inputs: 'app state',
-    outputs: 'widget tree',
-    items: ['Container', 'BackdropFilter', 'ColoredBox'],
+const renderStackBands = [
+  StackBand(id: 'code', title: 'Your code'),
+  StackBand(id: 'ui', title: 'UI thread', subtitle: 'platform main thread'),
+  StackBand(id: 'handoff', title: 'Handoff', connector: true),
+  StackBand(id: 'raster', title: 'Raster thread', subtitle: 'CPU'),
+  StackBand(id: 'gpu', title: 'GPU and display'),
+];
+
+const renderStackTiers = [
+  StackTier(
+    number: 1,
+    band: 'code',
+    title: 'Widget code',
+    inputs: 'build() + state',
+    outputs: 'element tree',
+    where: 'UI thread',
+    token: 'Widget',
+    detail: ChipsDetail([
+      'Stack',
+      'ClipRRect(r: 24)',
+      'BackdropFilter(σ 10)',
+      'Container(300×120)',
+      'CupertinoTextField',
+    ]),
   ),
-  StackPlane(
-    id: 'render-objects',
+  StackTier(
+    number: 2,
+    band: 'ui',
     title: 'Render objects',
-    subtitle: 'UI thread · layout + paint',
-    side: StackSide.cpu,
-    inputs: 'widget tree',
-    outputs: 'paint() calls',
-    items: ['RenderDecoratedBox', 'RenderBackdropFilter', 'RenderColoredBox'],
+    inputs: 'elements, constraints',
+    outputs: 'sizes, offsets, needsCompositing',
+    where: 'UI thread · layout',
+    token: 'RenderObject',
+    detail: ChipsDetail([
+      'RenderColoredBox',
+      'RenderClipRRect',
+      'RenderBackdropFilter',
+      'RenderEditable',
+      'caret painter · boundary',
+    ]),
+    note:
+        'needsCompositing spreads upward: the blur turns the clip into a '
+        'real layer.',
   ),
-  StackPlane(
-    id: 'layers',
-    title: 'Layers + pictures',
-    subtitle: 'UI thread · recorded, not drawn',
-    side: StackSide.cpu,
-    inputs: 'paint() calls',
-    outputs: 'layer tree',
-    items: ['OffsetLayer', 'BackdropFilterLayer', 'PictureLayer'],
+  StackTier(
+    number: 3,
+    band: 'ui',
+    title: 'Paint calls',
+    inputs: 'dirty repaint boundaries',
+    outputs: 'Pictures (DisplayLists)',
+    where: 'UI thread · PictureRecorder',
+    token: 'Picture',
+    detail: LinesDetail([
+      '① drawRect  page',
+      '② drawRect  frost',
+      '③ drawParagraph  text',
+      '④ drawRRect  caret',
+    ]),
+    note:
+        'Painting records a tape. Nothing is drawn yet. A caret tick '
+        're-records only ④.',
   ),
-  StackPlane(
-    id: 'scene',
-    title: 'Engine handoff',
-    subtitle: 'UI thread · SceneBuilder',
-    side: StackSide.cpu,
+  StackTier(
+    number: 4,
+    band: 'ui',
+    title: 'Layer tree',
+    inputs: 'paint output',
+    outputs: 'retained layers + pictures',
+    where: 'UI thread',
+    token: 'Layer',
+    detail: LinesDetail([
+      'TransformLayer  root',
+      '├ Picture ①',
+      '└ ClipRRectLayer',
+      '  └ BackdropFilterLayer',
+      '    ├ Pictures ② ③',
+      '    └ OffsetLayer  caret',
+      '      └ Picture ④',
+    ]),
+    note:
+        'Layers are folders for tapes and effects. The caret has its own '
+        'repaint boundary.',
+  ),
+  StackTier(
+    number: 5,
+    band: 'handoff',
+    title: 'Scene handoff',
     inputs: 'layer tree',
-    outputs: 'Scene',
-    items: ['Scene'],
+    outputs: 'one single-use Scene',
+    where: 'UI builds it · pipeline carries it',
+    token: 'Scene',
+    detail: TrayDetail(slots: 2, label: 'frame pipeline · 2 slots'),
+    note:
+        'Retained subtrees save UI work only. A new Scene ships every '
+        'frame on stable.',
   ),
-  StackPlane(
-    id: 'raster',
-    title: 'Raster',
-    subtitle: 'raster thread · one DisplayList',
-    side: StackSide.cpu,
-    inputs: 'Scene',
-    outputs: 'GPU commands',
-    items: ['DisplayList', 'Impeller Canvas'],
+  StackTier(
+    number: 6,
+    band: 'raster',
+    title: 'One DisplayList',
+    inputs: 'LayerTree',
+    outputs: 'one frame DisplayList',
+    where: 'raster thread · preroll + paint',
+    token: 'DisplayList',
+    detail: LinesDetail([
+      'Transform 3×',
+      'DrawDisplayList ①',
+      'ClipRRect 24',
+      'SaveLayer  backdrop σ 30 px',
+      'DrawDisplayList ② ③',
+      'DrawDisplayList ④',
+      'Restore',
+    ]),
+    note:
+        'Layers melt into one list, replayed in full every frame. No raster '
+        'cache, no partial repaint on mobile Impeller.',
   ),
-  StackPlane(
-    id: 'draw-calls',
-    title: 'Draw calls + shaders',
-    subtitle: 'GPU · render passes',
-    side: StackSide.gpu,
-    inputs: 'GPU commands',
-    outputs: 'tiles',
-    items: ['Pass 1', 'Blur × 3', 'Pass 2'],
+  StackTier(
+    number: 7,
+    band: 'raster',
+    title: 'Impeller passes',
+    inputs: 'frame DisplayList',
+    outputs: 'committed command buffers',
+    where: 'raster thread encodes · GPU executes',
+    token: 'Pass',
+    detail: PassesDetail([
+      StackPass('P1', 'offscreen · clear'),
+      StackPass('P2', 'blur ↓', drawCalls: 1, hot: true),
+      StackPass('P3', 'blur ↕', drawCalls: 1, hot: true),
+      StackPass('P4', 'blur ↔', drawCalls: 1, hot: true),
+      StackPass('P5', 'MSAA backdrop', drawCalls: 3, hot: true),
+      StackPass('P6', 'subpass', drawCalls: 4),
+    ]),
+    note:
+        'The backdrop ends P1, runs 3 blur passes, then re-seeds P5 with a '
+        'full-screen redraw. Pass list and ~10 draw calls: [estimate].',
   ),
-  StackPlane(
-    id: 'pixels',
+  StackTier(
+    number: 8,
+    band: 'gpu',
+    title: 'GPU execution',
+    inputs: 'command buffers',
+    outputs: 'resolved drawable',
+    where: 'GPU · tile memory + DRAM',
+    token: 'Tile',
+    detail: ChipsDetail([
+      'tiles: memoryless MSAA',
+      'T0 ≈ 12 MB to DRAM',
+      'blur textures at ⅛',
+    ]),
+  ),
+  StackTier(
+    number: 9,
+    band: 'gpu',
     title: 'Pixels',
-    subtitle: 'display · next vsync',
-    side: StackSide.gpu,
-    inputs: 'tiles',
-    outputs: 'the screen',
+    inputs: 'drawable',
+    outputs: 'the frame on screen',
+    where: 'FlutterMetalLayer · 3 drawables',
+    token: 'Pixel',
+    detail: ScreenDetail(),
   ),
 ];
 
-/// The id of the first GPU plane; the CPU/GPU border sits below it.
-final firstGpuPlane = renderStackPlanes
-    .firstWhere((plane) => plane.side == StackSide.gpu)
-    .id;
+/// The thin cap above the pixels: the system still composites Flutter's
+/// surface.
+const systemCompositorLabel = 'System compositor · iOS render server';
 
-Set<String> _upTo(String id) => {
-  for (final plane in renderStackPlanes.take(
-    renderStackPlanes.indexWhere((plane) => plane.id == id) + 1,
-  ))
-    plane.id,
+Map<int, double> _lit(Iterable<int> tiers, double light) => {
+  for (final tier in tiers) tier: light,
 };
 
-final _all = _upTo('pixels');
+/// Section 5's lighting for a caret tick: 1-2 off, 3-5 dim, 6-9 hot.
+final caretTickLight = {
+  ..._lit([3, 4, 5], TierLight.dim),
+  ..._lit([6, 7, 8, 9], TierLight.hot),
+};
 
-const _repaintLoop = LoopPulse(
-  from: 'render-objects',
-  to: 'layers',
-  label: 'repaint',
-);
+const _rebuild = LoopArc(id: 'A', label: 'Rebuild', startTier: 1);
+const _repaint = LoopArc(id: 'C', label: 'Repaint', startTier: 3);
+const _sceneOnly = LoopArc(id: 'E', label: 'Scene only', startTier: 5);
 
-const _frameLoop = LoopPulse(
-  from: 'scene',
-  to: 'pixels',
-  label: 'every frame',
-  period: Duration(milliseconds: 900),
-  tone: StackTone.hot,
-);
+/// Build-up step 1 (cold open): the bands rise, then one frame travels up.
+const coldOpenScript = [
+  RenderStackStep(
+    RenderStackView(showPixels: false),
+    caption:
+        'One frame of one small widget tree, from your code at the bottom '
+        'to pixels at the top.',
+  ),
+  RenderStackStep(
+    RenderStackView(token: true),
+    caption:
+        'Each tier hands its output up: widget, render object, picture, '
+        'layer, Scene, DisplayList, pass, tile, pixel.',
+  ),
+];
 
-/// A build-up that exercises every mechanic. Placeholder captions.
-final renderStackIntro = [
+/// Build-up step 3 (2a, UI half): expand paint calls and the layer tree.
+const uiHalfScript = [
   RenderStackStep(
-    RenderStackView(visible: _upTo('widgets'), open: const {'widgets'}),
-    caption: '[placeholder] Widget code at the bottom.',
+    RenderStackView(expanded: {3}, light: {3: TierLight.dim}),
+    caption:
+        'Paint records a tape per picture. Nothing is drawn yet: ① page, '
+        '② frost, ③ text, ④ caret.',
   ),
   RenderStackStep(
     RenderStackView(
-      visible: _upTo('render-objects'),
-      open: const {'render-objects'},
-      highlighted: const {'render-objects'},
+      expanded: {3, 4},
+      light: {4: TierLight.dim},
+      emphasis: {'BackdropFilterLayer', 'OffsetLayer'},
     ),
-    caption: '[placeholder] Render objects lay out and paint.',
+    caption:
+        'Layers are folders for tapes and effects. The blur is a layer; the '
+        'caret has its own repaint boundary.',
   ),
+];
+
+/// Build-up step 4 (2b, raster half): the handoff, one list, the passes.
+const rasterHalfScript = [
   RenderStackStep(
     RenderStackView(
-      visible: _upTo('layers'),
-      open: const {'layers'},
-      highlighted: const {'layers'},
+      expanded: {5},
+      light: {5: TierLight.dim},
+      borders: {StackBorder.thread},
     ),
-    caption: '[placeholder] Paint records pictures into layers.',
+    caption:
+        'The Scene crosses to the raster thread through a queue with two '
+        'slots. Same CPU, another thread.',
   ),
   RenderStackStep(
     RenderStackView(
-      visible: _upTo('scene'),
-      open: const {'scene'},
-      highlighted: const {'scene'},
+      expanded: {6},
+      light: {6: TierLight.dim},
+      borders: {StackBorder.thread},
     ),
-    caption: '[placeholder] The layer tree is handed to the engine.',
+    caption:
+        'The raster thread melts the layers into one DisplayList and replays '
+        'all of it, every frame.',
   ),
   RenderStackStep(
     RenderStackView(
-      visible: _upTo('raster'),
-      open: const {'raster'},
-      highlighted: const {'raster'},
+      expanded: {7},
+      light: {7: TierLight.hot},
+      emphasis: {'blur', 'MSAA'},
+      borders: {StackBorder.thread, StackBorder.gpu, StackBorder.present},
     ),
-    caption: '[placeholder] The raster thread flattens it into one list.',
+    caption:
+        'Impeller encodes render passes; the GPU executes them after commit. '
+        'The blur breaks the pass: 3 blur passes and a full-screen re-seed.',
   ),
-  RenderStackStep(
+];
+
+/// Build-up step 5 (3, the aha): loops, the caret tick, the myth, #192128.
+final ahaScript = [
+  const RenderStackStep(
     RenderStackView(
-      visible: _upTo('draw-calls'),
-      open: const {'draw-calls'},
-      hot: const {'draw-calls'},
-      showBorder: true,
+      arcs: [_rebuild, _repaint, _sceneOnly],
+      borders: {StackBorder.gpu},
     ),
-    caption: '[placeholder] Work crosses from CPU to GPU: draw calls.',
-  ),
-  RenderStackStep(
-    RenderStackView(visible: _all, showBorder: true),
-    caption: '[placeholder] Pixels on screen.',
-  ),
-  RenderStackStep(
-    RenderStackView(visible: _all, showBorder: true, showInputsOutputs: true),
-    caption: '[placeholder] Every plane has inputs and outputs.',
+    caption:
+        'Every loop starts at a tier and runs to the top. Rebuild starts at '
+        'your code, repaint at paint, Scene only at the handoff.',
   ),
   RenderStackStep(
     RenderStackView(
-      visible: _all,
-      showBorder: true,
-      highlighted: const {'render-objects', 'layers'},
-      pulses: const [_repaintLoop],
+      arcs: const [
+        _rebuild,
+        LoopArc(id: 'C', label: 'Repaint', startTier: 3, perSecond: 120),
+        LoopArc(id: 'E', label: 'Scene only', startTier: 5, perSecond: 120),
+      ],
+      light: caretTickLight,
+      borders: const {StackBorder.gpu},
     ),
-    caption: '[placeholder] A repaint reruns only the lower loop.',
+    caption:
+        'The caret ticks 120 times a second. Its loops are tiny at the '
+        'bottom, but the top lights up as brightly as a rebuild.',
   ),
   RenderStackStep(
     RenderStackView(
-      visible: _all,
-      showBorder: true,
-      hot: const {'raster', 'draw-calls', 'pixels'},
-      pulses: const [_repaintLoop, _frameLoop],
+      arcs: const [
+        LoopArc(id: 'C', label: 'Repaint', startTier: 3, perSecond: 120),
+        LoopArc(id: 'E', label: 'Scene only', startTier: 5, perSecond: 120),
+      ],
+      light: {...caretTickLight, 3: .25},
+      borders: const {StackBorder.gpu},
     ),
-    caption: '[placeholder] Every frame reruns everything above the handoff.',
+    caption:
+        'Wrap it in a RepaintBoundary: only the paint tier gets thinner. '
+        'Tiers 6 to 9 stay hot.',
   ),
-  RenderStackStep(
-    RenderStackView(visible: _all, spread: 0, showBorder: true),
-    caption: '[placeholder] Collapsed: one stack, one frame.',
+  const RenderStackStep(
+    RenderStackView(
+      arcs: [
+        LoopArc(id: 'C', label: 'Repaint', startTier: 3, perSecond: 8),
+        LoopArc(
+          id: 'E',
+          label: 'Scene only',
+          startTier: 5,
+          endTier: 5,
+          perSecond: 120,
+          cutNote: '#192128',
+        ),
+      ],
+      light: {
+        3: TierLight.dim,
+        4: TierLight.dim,
+        5: TierLight.dim,
+        6: .7,
+        7: .7,
+        8: .7,
+        9: .7,
+      },
+      borders: {StackBorder.gpu},
+    ),
+    caption:
+        'With #192128 (master), ticks where nothing repainted stop at the '
+        'handoff. Only the ~8 repainting ticks per second render [verify].',
   ),
+];
+
+/// Build-up step 8 (5, profiling): each tool lights the tiers it can see.
+const profilingScript = [
   RenderStackStep(
     RenderStackView(
-      visible: _all,
-      spread: .55,
-      showBorder: true,
-      pipeline: PipelineView(
-        current: const {'draw-calls', 'pixels'},
-        next: _upTo('raster'),
+      spotlight: ToolSpotlight(
+        tool: 'Highlight repaints',
+        tiers: {3: TierLight.dim},
+        shows: 'which boundaries repaint',
       ),
     ),
-    caption: '[placeholder] Frame N+1 is prepared while frame N draws.',
+    caption: 'Highlight repaints sees the paint tier only.',
+  ),
+  RenderStackStep(
+    RenderStackView(
+      spotlight: ToolSpotlight(
+        tool: 'DevTools Performance',
+        tiers: {1: .5, 2: .5, 3: .5, 4: .5, 5: .5, 6: .3, 7: .3},
+        shows: 'UI and raster CPU time; raster includes waiting for a drawable',
+      ),
+      borders: {StackBorder.gpu},
+    ),
+    caption:
+        'DevTools sees the UI thread and the CPU half of the raster thread. '
+        'The raster bar is CPU time, not GPU time.',
+  ),
+  RenderStackStep(
+    RenderStackView(
+      spotlight: ToolSpotlight(
+        tool: 'Metal System Trace',
+        tiers: {6: .5, 7: .5, 8: .5},
+        shows: 'GPU work every vsync, over time',
+      ),
+      borders: {StackBorder.gpu},
+    ),
+    caption: 'Instruments Metal System Trace shows GPU work every vsync.',
+  ),
+  RenderStackStep(
+    RenderStackView(
+      expanded: {7},
+      spotlight: ToolSpotlight(
+        tool: 'Metal frame capture',
+        tiers: {7: .5, 8: .5},
+        shows: 'passes, draw calls, textures: structure, not cost',
+      ),
+      borders: {StackBorder.gpu},
+    ),
+    caption:
+        'An Xcode Metal frame capture shows one frame: its passes, draw calls '
+        'and textures.',
+  ),
+  RenderStackStep(
+    RenderStackView(
+      spotlight: ToolSpotlight(
+        tool: 'Power Profiler',
+        tiers: {8: .5, 9: .5},
+        shows: 'power impact and thermal state',
+      ),
+      borders: {StackBorder.gpu},
+    ),
+    caption: 'Power Profiler shows what it costs in power and heat.',
   ),
 ];

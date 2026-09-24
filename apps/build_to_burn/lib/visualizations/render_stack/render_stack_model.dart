@@ -1,106 +1,199 @@
 import 'package:flutter/foundation.dart';
 
-/// Which processor does a plane's work.
-enum StackSide { cpu, gpu }
-
-/// One level of the render stack, drawn as an isometric plane.
+/// A group of tiers drawn close together, e.g. everything on the UI thread.
 @immutable
-class StackPlane {
-  const StackPlane({
+class StackBand {
+  const StackBand({
     required this.id,
     required this.title,
-    required this.side,
     this.subtitle = '',
-    this.inputs = '',
-    this.outputs = '',
-    this.items = const [],
+    this.connector = false,
   });
 
-  /// A stable key that views refer to, e.g. `'layers'`.
   final String id;
-
   final String title;
-
-  /// A short technical label, e.g. the thread it runs on.
   final String subtitle;
 
-  final StackSide side;
+  /// Drawn as a thin tray between its neighbors instead of a full band, like
+  /// the Scene handoff.
+  final bool connector;
+}
 
-  /// What the plane consumes, shown while inputs and outputs are visible.
-  final String inputs;
+/// What an expanded tier shows on its plane.
+sealed class TierDetail {
+  const TierDetail();
+}
 
-  /// What the plane produces.
-  final String outputs;
-
-  /// Contents drawn on the plane while it is open, e.g. the render objects.
+/// Labelled chips, e.g. render objects.
+class ChipsDetail extends TierDetail {
+  const ChipsDetail(this.items);
   final List<String> items;
 }
 
-/// Tone for highlights and pulses.
-enum StackTone {
-  /// The accent color: normal work.
-  work,
-
-  /// The heat color: the expensive part.
-  hot,
+/// Lines of a recording or tree, drawn in a monospaced font.
+class LinesDetail extends TierDetail {
+  const LinesDetail(this.lines);
+  final List<String> lines;
 }
 
-/// A pulse that travels up the stack from [from] to [to] and repeats, to show
-/// which planes rerun, e.g. on every repaint or every frame.
+/// A queue with a fixed number of slots, like the frame pipeline.
+class TrayDetail extends TierDetail {
+  const TrayDetail({required this.slots, required this.label});
+  final int slots;
+  final String label;
+}
+
+/// One render pass in [PassesDetail].
 @immutable
-class LoopPulse {
-  const LoopPulse({
-    required this.from,
-    required this.to,
-    required this.label,
-    this.period = const Duration(milliseconds: 1400),
-    this.tone = StackTone.work,
+class StackPass {
+  const StackPass(
+    this.name,
+    this.label, {
+    this.drawCalls = 0,
+    this.hot = false,
+  });
+  final String name;
+  final String label;
+  final int drawCalls;
+  final bool hot;
+}
+
+/// A strip of render passes with draw-call ticks.
+class PassesDetail extends TierDetail {
+  const PassesDetail(this.passes);
+  final List<StackPass> passes;
+}
+
+/// The demo screen itself: the pixels.
+class ScreenDetail extends TierDetail {
+  const ScreenDetail();
+}
+
+/// One level of the render stack, drawn as an isometric plane.
+@immutable
+class StackTier {
+  const StackTier({
+    required this.number,
+    required this.band,
+    required this.title,
+    required this.inputs,
+    required this.outputs,
+    required this.token,
+    this.where = '',
+    this.detail,
+    this.note = '',
   });
 
-  /// Plane ids, bottom and top of the loop.
-  final String from;
-  final String to;
+  /// 1 (widget code) to 9 (pixels).
+  final int number;
 
-  final String label;
-  final Duration period;
-  final StackTone tone;
+  /// The [StackBand.id] it belongs to.
+  final String band;
 
-  @override
-  bool operator ==(Object other) =>
-      other is LoopPulse &&
-      other.from == from &&
-      other.to == to &&
-      other.label == label &&
-      other.period == period &&
-      other.tone == tone;
+  final String title;
+  final String inputs;
+  final String outputs;
 
-  @override
-  int get hashCode => Object.hash(from, to, label, period, tone);
+  /// The thread or place it runs, e.g. `UI thread`.
+  final String where;
+
+  /// The output chip the traveling frame token shows at this tier.
+  final String token;
+
+  /// What the plane shows when expanded.
+  final TierDetail? detail;
+
+  /// A key fact shown next to the expanded tier.
+  final String note;
 }
 
-/// Two frames in flight: frame N+1 is being prepared on some planes while
-/// frame N is still being drawn on others.
+/// How brightly a tier is lit: [off], [dim] (ran, small) or [hot] (ran over
+/// the full screen). Values in between are fine.
+abstract final class TierLight {
+  static const off = 0.0;
+  static const dim = .5;
+  static const hot = 1.0;
+}
+
+/// The borders the stack can draw.
+enum StackBorder {
+  /// Thin, between the handoff and the raster thread: same CPU, another
+  /// thread.
+  thread,
+
+  /// Bold, through the Impeller tier at command-buffer commit.
+  gpu,
+
+  /// Thin, between GPU execution and pixels: the frame leaves Flutter.
+  present,
+}
+
+/// A loop drawn as an arc on the left of the stack, from [startTier] up to
+/// [endTier], pulsing at [perSecond].
 @immutable
-class PipelineView {
-  const PipelineView({required this.current, required this.next});
+class LoopArc {
+  const LoopArc({
+    required this.id,
+    required this.label,
+    required this.startTier,
+    this.endTier = 9,
+    this.perSecond = 0,
+    this.cutNote = '',
+  });
 
-  /// Planes busy with frame N.
-  final Set<String> current;
+  /// The loop's letter from the spec, e.g. `C`.
+  final String id;
 
-  /// Planes busy with frame N+1.
-  final Set<String> next;
+  final String label;
+  final int startTier;
+  final int endTier;
+
+  /// Real frequency. 0 draws the arc without pulses.
+  final double perSecond;
+
+  /// Shown where the arc is cut short, e.g. `#192128`.
+  final String cutNote;
 
   @override
   bool operator ==(Object other) =>
-      other is PipelineView &&
-      setEquals(other.current, current) &&
-      setEquals(other.next, next);
+      other is LoopArc &&
+      other.id == id &&
+      other.label == label &&
+      other.startTier == startTier &&
+      other.endTier == endTier &&
+      other.perSecond == perSecond &&
+      other.cutNote == cutNote;
 
   @override
-  int get hashCode => Object.hash(
-    Object.hashAllUnordered(current),
-    Object.hashAllUnordered(next),
-  );
+  int get hashCode =>
+      Object.hash(id, label, startTier, endTier, perSecond, cutNote);
+}
+
+/// A profiling tool as a light cone on the tiers it can see.
+@immutable
+class ToolSpotlight {
+  const ToolSpotlight({
+    required this.tool,
+    required this.tiers,
+    required this.shows,
+  });
+
+  final String tool;
+
+  /// Lit tiers and how brightly (see [TierLight]).
+  final Map<int, double> tiers;
+
+  final String shows;
+
+  @override
+  bool operator ==(Object other) =>
+      other is ToolSpotlight &&
+      other.tool == tool &&
+      mapEquals(other.tiers, tiers) &&
+      other.shows == shows;
+
+  @override
+  int get hashCode => Object.hash(tool, shows, Object.hashAll(tiers.keys));
 }
 
 /// Everything `RenderStack` shows at one moment. Changing the view animates
@@ -108,90 +201,78 @@ class PipelineView {
 @immutable
 class RenderStackView {
   const RenderStackView({
-    this.visible = const {},
-    this.open = const {},
-    this.highlighted = const {},
-    this.hot = const {},
-    this.spread = 1,
-    this.showBorder = false,
-    this.showInputsOutputs = false,
-    this.pulses = const [],
-    this.pipeline,
+    this.bands = allBands,
+    this.expanded = const {},
+    this.light = const {},
+    this.emphasis = const {},
+    this.borders = const {},
+    this.token = false,
+    this.showPixels = true,
+    this.arcs = const [],
+    this.arcSlowdown = 10,
+    this.spotlight,
   });
 
-  /// Planes that are built up so far.
-  final Set<String> visible;
+  /// Sentinel for "every band".
+  static const allBands = {'*'};
 
-  /// Planes that show their [StackPlane.items].
-  final Set<String> open;
+  /// Visible bands, rising in stack order. [allBands] shows all.
+  final Set<String> bands;
 
-  /// Planes drawn in the accent color.
-  final Set<String> highlighted;
+  /// Tier numbers that show their [StackTier.detail].
+  final Set<int> expanded;
 
-  /// Planes drawn in the heat color. Wins over [highlighted].
-  final Set<String> hot;
+  /// Tier lighting, see [TierLight]. Missing tiers are off.
+  final Map<int, double> light;
 
-  /// 0 stacks the planes tightly, 1 explodes them.
-  final double spread;
+  /// Detail items to emphasize, matched by substring, e.g. `'④'`.
+  final Set<String> emphasis;
 
-  /// Whether to draw the CPU/GPU border.
-  final bool showBorder;
+  final Set<StackBorder> borders;
 
-  /// Whether each plane's label shows its inputs and outputs.
-  final bool showInputsOutputs;
+  /// Whether one frame travels up the stack as a token.
+  final bool token;
 
-  final List<LoopPulse> pulses;
+  /// Whether the pixels tier shows the demo screen.
+  final bool showPixels;
 
-  /// When set, a second stack shows frame N+1 next to frame N.
-  final PipelineView? pipeline;
+  final List<LoopArc> arcs;
 
-  RenderStackView copyWith({
-    Set<String>? visible,
-    Set<String>? open,
-    Set<String>? highlighted,
-    Set<String>? hot,
-    double? spread,
-    bool? showBorder,
-    bool? showInputsOutputs,
-    List<LoopPulse>? pulses,
-    PipelineView? pipeline,
-    bool clearPipeline = false,
-  }) => RenderStackView(
-    visible: visible ?? this.visible,
-    open: open ?? this.open,
-    highlighted: highlighted ?? this.highlighted,
-    hot: hot ?? this.hot,
-    spread: spread ?? this.spread,
-    showBorder: showBorder ?? this.showBorder,
-    showInputsOutputs: showInputsOutputs ?? this.showInputsOutputs,
-    pulses: pulses ?? this.pulses,
-    pipeline: clearPipeline ? null : pipeline ?? this.pipeline,
-  );
+  /// How much slower than real time the arcs pulse.
+  final double arcSlowdown;
+
+  final ToolSpotlight? spotlight;
+
+  bool showsBand(String id) => bands.contains('*') || bands.contains(id);
 
   @override
   bool operator ==(Object other) =>
       other is RenderStackView &&
-      setEquals(other.visible, visible) &&
-      setEquals(other.open, open) &&
-      setEquals(other.highlighted, highlighted) &&
-      setEquals(other.hot, hot) &&
-      other.spread == spread &&
-      other.showBorder == showBorder &&
-      other.showInputsOutputs == showInputsOutputs &&
-      listEquals(other.pulses, pulses) &&
-      other.pipeline == pipeline;
+      setEquals(other.bands, bands) &&
+      setEquals(other.expanded, expanded) &&
+      mapEquals(other.light, light) &&
+      setEquals(other.emphasis, emphasis) &&
+      setEquals(other.borders, borders) &&
+      other.token == token &&
+      other.showPixels == showPixels &&
+      listEquals(other.arcs, arcs) &&
+      other.arcSlowdown == arcSlowdown &&
+      other.spotlight == spotlight;
 
   @override
   int get hashCode => Object.hash(
-    Object.hashAllUnordered(visible),
-    Object.hashAllUnordered(open),
-    Object.hashAllUnordered(highlighted),
-    Object.hashAllUnordered(hot),
-    spread,
-    showBorder,
-    showInputsOutputs,
-    Object.hashAll(pulses),
-    pipeline,
+    Object.hashAllUnordered(bands),
+    Object.hashAllUnordered(expanded),
+    Object.hashAllUnordered(
+      light.entries.map((e) => Object.hash(e.key, e.value)),
+    ),
+    Object.hashAllUnordered(emphasis),
+    Object.hashAllUnordered(borders),
+    token,
+    showPixels,
+    Object.hashAll(arcs),
+    arcSlowdown,
+    spotlight,
   );
 }
 

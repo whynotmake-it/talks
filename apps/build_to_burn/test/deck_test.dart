@@ -42,8 +42,15 @@ void main() {
     }
 
     expect(deck().slideNumber, 11);
-    // 10 slide changes plus the render stack's extra steps.
-    expect(advances, 10 + renderStackIntro.length - 1);
+    // 10 slide changes plus the render stack slides' extra steps.
+    final extraSteps = [
+      coldOpenScript,
+      uiHalfScript,
+      rasterHalfScript,
+      ahaScript,
+      profilingScript,
+    ].fold(0, (sum, script) => sum + script.length - 1);
+    expect(advances, 10 + extraSteps);
   });
 
   testWidgets('shows the speaker from the speaker notes', (tester) async {

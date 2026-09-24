@@ -65,65 +65,6 @@ Key message: a search sheet over the app drove the GPU to its limit and never le
   ),
 );
 
-const uiThreadSlide = SkeletonSlide(
-  section: '2a',
-  title: 'Pipeline: the UI thread',
-  configuration: FlutterDeckSlideConfiguration(
-    route: '/pipeline-ui',
-    title: 'Pipeline, UI half',
-    speakerNotes:
-        '''
-$timSlideNotesHeader
-Key message: painting records, layers group, and every scheduled frame sends a new Scene, even if nothing repainted (stable).
-- paint() records a Picture (a DisplayList), a tape of draw commands. Nothing is drawn yet (Guide 3.1).
-- Layers are containers for tapes and effects. Repaint boundaries keep their layer across frames; a BackdropFilter always gets a BackdropFilterLayer (Guide 3.2).
-- markNeedsPaint walks up to the nearest repaint boundary; that boundary re-records its subtree (Guide 3.3).
-- compositeFrame describes the layer tree to the engine as a new Scene, once per frame per view. Clean subtrees are addRetained. Cheap (Guide 3.4).
-- "Retained" saves UI-thread work only; the GPU still draws that subtree.
-- Planned visuals: exploded layer tree with the blur layer as a frosted pane; blast-radius toggle.''',
-  ),
-);
-
-const rasterSlide = SkeletonSlide(
-  section: '2b',
-  title: 'Pipeline: raster thread and GPU',
-  configuration: FlutterDeckSlideConfiguration(
-    route: '/pipeline-raster',
-    title: 'Pipeline, raster half',
-    speakerNotes:
-        '''
-$jesperSlideNotesHeader
-Key message: the raster thread flattens the tree into one DisplayList and replays all of it every frame. Draw calls are cheap, passes are costly. A BackdropFilter blur breaks the pass.
-- One DisplayList per view per frame (per slice with platform views). No raster cache under Impeller (Guide 5).
-- Partial repaint is off on mobile Impeller: never on Android, forced off on iOS by the external view embedder. Scope: "mobile Impeller, no platform views".
-- saveLayer (ShaderMask, ColorFiltered, non-peephole Opacity): +1 offscreen pass, pasted back as "Subpass" (Guide 6.2 B).
-- BackdropFilter blur: ends the parent pass, 3 blur passes (downsample, vertical, horizontal), restarts the pass with a full-screen "MSAA backdrop" redraw and replays clips. About 4-5 extra passes; count them in a capture (Guide 6.2 C).
-- BackdropGroup / BackdropFilter.grouped shares one capture (and one blur if equal) (Guide 6.2).
-- Planned visuals: layers melt into one list; render-pass strip plain -> Opacity -> ShaderMask -> BackdropFilter -> BackdropGroup.''',
-  ),
-);
-
-const paintVsCompositeSlide = SkeletonSlide(
-  section: '3',
-  title: 'Paint vs composite',
-  configuration: FlutterDeckSlideConfiguration(
-    route: '/paint-vs-composite',
-    title: 'Paint vs composite',
-    speakerNotes:
-        '''
-$timSlideNotesHeader
-Key message: answer to the vote: C makes the frames, A makes each one expensive. GPU work = how often you draw x how hard each frame is.
-- iOS: TextField defaults cursorOpacityAnimates to true; the caret is an AnimationController whose ticker asks for a frame every vsync (60 or 120/s) while focused. Android default: a 500 ms timer, 2 frames/s (Guide 7.2).
-- The caret sits in its own repaint boundary: a tick re-records one rect, and nothing during the hold phases.
-- On stable, every tick still sends a new Scene, and the raster thread re-renders the whole screen with the blur: pass break + 3 blur passes, up to 120 times a second.
-- Each frame fits the budget, so no jank; the GPU just never idles. Heat builds, then throttling causes jank.
-- Myth-buster: RepaintBoundary and const save UI-thread work, not GPU work, under Impeller.
-- "A frame requested is not a frame rendered": flutter/flutter#192128 (master) skips ticks where nothing repainted. Helps the caret during holds, not spinners. Name it as coming unless it has reached stable.
-- It's a defaults problem, not "your code is wrong".
-- Planned: the render stack again, with the repaint loop (lower planes) vs the every-frame loop (above the handoff).''',
-  ),
-);
-
 const blurCostSlide = SkeletonSlide(
   section: '4',
   title: 'Why an everyday blur costs so much',
@@ -140,25 +81,6 @@ Key message: BackdropFilter blur is everywhere and shockingly expensive for how 
 - A GPU woken every vsync never clocks down or idles. No jank is not no cost; heat builds over minutes.
 - Sigma is a sawtooth: <= 4 full resolution, above that downsampled; the fixed cost stays.
 - One line on liquid glass: the Flutter team is officially building it; any liquid-glass look is built on the same backdrop reads, so all of this applies, multiplied.''',
-  ),
-);
-
-const profilingSlide = SkeletonSlide(
-  section: '5',
-  title: 'Profiling: from DevTools to draw calls',
-  configuration: FlutterDeckSlideConfiguration(
-    route: '/profiling',
-    title: 'Profiling',
-    speakerNotes:
-        '''
-$timSlideNotesHeader
-Key message: DevTools shows the symptom; platform tools show the cost.
-- Step 1, no Xcode: DevTools bars that keep coming while idle, tiny UI bar, busy raster bar = the pipeline never sleeps. debugPrintScheduleFrameStacks names who asks for frames.
-- The DevTools raster bar is CPU time on the raster thread, not GPU time (Guide 9.1).
-- Step 2: Instruments Metal System Trace shows a GPU command buffer every vsync while idle; Power Profiler shows the power impact.
-- Step 3 (live): Xcode Metal frame capture, scope "Impeller Frame", Profile config. Dependencies graph: "EntityPass" passes, "MSAA backdrop", "Gaussian Blur Filter". Capture timings are replay timings: structure, not cost (Guide 9.5).
-- Fallbacks: a .gputrace from the same iPhone, then a video. Never capture the macOS deck.
-- Android: Perfetto + AGI/APA; stock-engine passes are unlabeled; the trigger there is a spinner or a blur, not the caret (Android caret: 2 frames/s).''',
   ),
 );
 

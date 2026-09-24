@@ -19,98 +19,101 @@ void main() {
     ),
   );
 
-  /// Pumps frames explicitly: loop pulses never settle.
-  Future<void> pumpFrames(WidgetTester tester) async {
-    for (var frame = 0; frame < 20; frame++) {
+  /// Pumps frames explicitly: loop arcs never settle.
+  Future<void> pumpFrames(WidgetTester tester, {int count = 30}) async {
+    for (var frame = 0; frame < count; frame++) {
       await tester.pump(const Duration(milliseconds: 100));
     }
   }
 
-  final allPlanes = {for (final plane in renderStackPlanes) plane.id};
+  final scripts = {
+    'cold open': coldOpenScript,
+    'UI half': uiHalfScript,
+    'raster half': rasterHalfScript,
+    'aha': ahaScript,
+    'profiling': profilingScript,
+  };
 
-  testWidgets('every intro step lays out, animating from the last', (
+  for (final MapEntry(key: name, value: script) in scripts.entries) {
+    testWidgets('every $name step lays out, animating from the last', (
+      tester,
+    ) async {
+      for (final step in script) {
+        await tester.pumpWidget(host(step.view, caption: step.caption));
+        await pumpFrames(tester);
+        expect(tester.takeException(), isNull);
+        expect(find.text(step.caption), findsOneWidget);
+      }
+    });
+  }
+
+  testWidgets('the default view shows all bands and tiers', (tester) async {
+    await tester.pumpWidget(host(const RenderStackView()));
+    await pumpFrames(tester);
+
+    for (final tier in renderStackTiers) {
+      expect(find.text('${tier.number}  ${tier.title}'), findsOneWidget);
+    }
+    expect(find.text('UI THREAD · PLATFORM MAIN THREAD'), findsOneWidget);
+    expect(find.text('GPU AND DISPLAY'), findsOneWidget);
+  });
+
+  testWidgets('shows only the visible bands', (tester) async {
+    await tester.pumpWidget(host(const RenderStackView(bands: {'code'})));
+    await pumpFrames(tester);
+
+    expect(find.text('1  Widget code'), findsOneWidget);
+    expect(find.text('9  Pixels'), findsNothing);
+  });
+
+  testWidgets('expanded tiers show their detail and key fact', (tester) async {
+    await tester.pumpWidget(host(const RenderStackView(expanded: {4, 7})));
+    await pumpFrames(tester);
+
+    expect(find.text('  └ BackdropFilterLayer'), findsOneWidget);
+    expect(find.text('MSAA backdrop'), findsOneWidget);
+    expect(find.textContaining('Layers are folders'), findsOneWidget);
+  });
+
+  testWidgets('draws the borders with their labels', (tester) async {
+    await tester.pumpWidget(
+      host(const RenderStackView(borders: {...StackBorder.values})),
+    );
+    await pumpFrames(tester);
+
+    expect(find.text('GPU EXECUTES ↑'), findsOneWidget);
+    expect(find.text('RASTER THREAD ↑'), findsOneWidget);
+    expect(find.text('SYSTEM ↑'), findsOneWidget);
+  });
+
+  testWidgets('labels loop arcs with their rate, and cut ones', (tester) async {
+    await tester.pumpWidget(host(ahaScript.last.view));
+    await pumpFrames(tester);
+
+    expect(find.text('C · Repaint\n8/s'), findsOneWidget);
+    expect(find.text('E · Scene only\n120/s'), findsOneWidget);
+    expect(find.text('✂ #192128'), findsOneWidget);
+  });
+
+  testWidgets('the token climbs the stack, then the pixels appear', (
     tester,
   ) async {
-    for (final step in renderStackIntro) {
-      await tester.pumpWidget(host(step.view, caption: step.caption));
-      await pumpFrames(tester);
-      expect(tester.takeException(), isNull);
-      expect(find.text(step.caption), findsOneWidget);
-    }
+    await tester.pumpWidget(host(coldOpenScript.first.view));
+    await pumpFrames(tester);
+    await tester.pumpWidget(host(coldOpenScript.last.view));
+    await pumpFrames(tester, count: 1);
+    expect(find.text('Widget'), findsOneWidget);
+
+    await pumpFrames(tester, count: 40);
+    expect(find.text('Widget'), findsNothing);
+    expect(find.text('Pixel'), findsNothing);
+    expect(tester.takeException(), isNull);
   });
 
-  testWidgets('labels only the visible planes', (tester) async {
-    await tester.pumpWidget(
-      host(const RenderStackView(visible: {'widgets', 'render-objects'})),
-    );
+  testWidgets('a spotlight names its tool', (tester) async {
+    await tester.pumpWidget(host(profilingScript[1].view));
     await pumpFrames(tester);
 
-    expect(find.text('Widgets'), findsOneWidget);
-    expect(find.text('Render objects'), findsOneWidget);
-    expect(find.text('Pixels'), findsNothing);
-  });
-
-  testWidgets('shows inputs and outputs on request', (tester) async {
-    await tester.pumpWidget(
-      host(RenderStackView(visible: allPlanes, showInputsOutputs: true)),
-    );
-    await pumpFrames(tester);
-
-    expect(find.text('in  app state  →  out  widget tree'), findsOneWidget);
-  });
-
-  testWidgets("shows open planes' items, the border and loop pulses", (
-    tester,
-  ) async {
-    await tester.pumpWidget(
-      host(
-        RenderStackView(
-          visible: allPlanes,
-          open: const {'layers'},
-          showBorder: true,
-          pulses: const [
-            LoopPulse(from: 'render-objects', to: 'layers', label: 'repaint'),
-          ],
-        ),
-      ),
-    );
-    await pumpFrames(tester);
-
-    expect(find.text('BackdropFilterLayer'), findsOneWidget);
-    expect(find.text('GPU ↑'), findsOneWidget);
-    expect(find.text('↻ repaint'), findsOneWidget);
-  });
-
-  testWidgets('shows frame N+1 next to frame N in a pipeline', (tester) async {
-    await tester.pumpWidget(
-      host(
-        RenderStackView(
-          visible: allPlanes,
-          pipeline: const PipelineView(
-            current: {'draw-calls', 'pixels'},
-            next: {'widgets', 'render-objects'},
-          ),
-        ),
-      ),
-    );
-    await pumpFrames(tester);
-
-    expect(find.text('FRAME N'), findsOneWidget);
-    expect(find.text('FRAME N+1'), findsOneWidget);
-
-    await tester.pumpWidget(host(RenderStackView(visible: allPlanes)));
-    await pumpFrames(tester);
-
-    expect(find.text('FRAME N+1'), findsNothing);
-  });
-
-  testWidgets('collapses and expands without errors', (tester) async {
-    for (final spread in [0.0, 1.0, 0.0]) {
-      await tester.pumpWidget(
-        host(RenderStackView(visible: allPlanes, spread: spread)),
-      );
-      await pumpFrames(tester);
-      expect(tester.takeException(), isNull);
-    }
+    expect(find.text('DevTools Performance'), findsOneWidget);
   });
 }
