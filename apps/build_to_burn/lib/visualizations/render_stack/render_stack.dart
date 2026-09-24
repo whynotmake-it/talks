@@ -1222,14 +1222,20 @@ class _ArcOverlayState extends State<_ArcOverlay> {
                 top: activeY,
                 width: 3,
                 height: bottom - activeY,
-                child: ColoredBox(color: color.withValues(alpha: .25)),
+                child: ColoredBox(
+                  key: ValueKey('arc-dim-${arc.id}'),
+                  color: color.withValues(alpha: .25),
+                ),
               ),
             Positioned(
               left: x,
               top: top,
               width: width,
               height: math.max(activeY - top, 0),
-              child: ColoredBox(color: color.withValues(alpha: .6)),
+              child: ColoredBox(
+                key: ValueKey('arc-line-${arc.id}'),
+                color: color.withValues(alpha: .6),
+              ),
             ),
             for (final y in [top, if (activeY < bottom) activeY, bottom])
               Positioned(
@@ -1267,8 +1273,8 @@ class _ArcOverlayState extends State<_ArcOverlay> {
                 ),
               ),
             Positioned(
-              left: labelRight - 250,
-              width: 250,
+              left: labelRight - 310,
+              width: 310,
               top: bottom - (prominent ? 26 : 18),
               child: Text(
                 [
@@ -1282,8 +1288,8 @@ class _ArcOverlayState extends State<_ArcOverlay> {
             ),
             if (arc.cutNote.isNotEmpty)
               Positioned(
-                left: labelRight - 250,
-                width: 250,
+                left: labelRight - 310,
+                width: 310,
                 top: top - 52,
                 child: Text(
                   '✂ ${arc.cutNote}',

@@ -163,4 +163,33 @@ void main() {
     expect(find.textContaining('BACK-PRESSURE'), findsOneWidget);
     expect(find.textContaining('COMPLETION'), findsOneWidget);
   });
+
+  testWidgets('arc labels stay clear of every arc line', (tester) async {
+    for (final step in ahaScript) {
+      await tester.pumpWidget(host(step.view));
+      await pumpFrames(tester);
+
+      final lines = [
+        for (final arc in step.view.arcs)
+          for (final kind in ['line', 'dim'])
+            if (find
+                .byKey(ValueKey('arc-$kind-${arc.id}'))
+                .evaluate()
+                .isNotEmpty)
+              tester.getRect(find.byKey(ValueKey('arc-$kind-${arc.id}'))),
+      ];
+      final labels = [
+        for (final arc in step.view.arcs) ...[
+          tester.getRect(find.textContaining('${arc.id} · ${arc.label}')),
+          if (arc.cutNote.isNotEmpty)
+            tester.getRect(find.text('✂ ${arc.cutNote}')),
+        ],
+      ];
+      for (final label in labels) {
+        for (final line in lines) {
+          expect(label.overlaps(line), isFalse, reason: '$label vs $line');
+        }
+      }
+    }
+  });
 }
