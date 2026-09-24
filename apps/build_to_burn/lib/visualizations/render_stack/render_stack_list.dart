@@ -295,7 +295,7 @@ class _Gutter extends StatelessWidget {
             from: 7.1,
             to: 9,
             color: heat,
-            label: 'GPU executes\n↓ commit at 7',
+            label: 'GPU executes ↑\ncommit at layer 7',
             labelRow: 8.2,
           ),
           gpu,
@@ -370,8 +370,7 @@ class _Gutter extends StatelessWidget {
           8.0,
           9.0,
           heat,
-          'frame N−1\n'
-              '${limits ? 'passes wait on each other' : 'GPU + display'}',
+          'frame N−1\n${limits ? 'dependent passes' : 'GPU + display'}',
         ),
       ]) {
         result.add((
@@ -391,10 +390,40 @@ class _Gutter extends StatelessWidget {
     return result;
   }
 
+  /// Brackets never reach past the highest layer on the stack.
+  List<(_Bracket, double)> _clamped(List<(_Bracket, double)> brackets) {
+    final visible = [
+      for (final tier in tiers)
+        if (values[tier.number]!.presence > .5) tier.number,
+    ];
+    if (visible.isEmpty) return brackets;
+    final ceiling = visible.reduce(math.max) + .45;
+    return [
+      for (final (b, presence) in brackets)
+        if (b.from < ceiling)
+          (
+            _Bracket(
+              slot: b.slot,
+              from: b.from,
+              to: math.min(b.to, ceiling),
+              color: b.color,
+              label: b.label,
+              labelRow: math.min(b.labelRow, math.min(b.to, ceiling) - .1),
+              prominent: b.prominent,
+              dimBelow: b.dimBelow,
+              perSecond: b.perSecond,
+              cutNote: b.cutNote,
+              id: b.id,
+            ),
+            presence,
+          ),
+    ];
+  }
+
   @override
   Widget build(BuildContext context) {
     final p = Palette.of(context);
-    final brackets = _brackets(p);
+    final brackets = _clamped(_brackets(p));
     final slots = brackets.fold<int>(
       feedback > .01 ? 1 : 0,
       (max, entry) => math.max(max, entry.$1.slot + 1),

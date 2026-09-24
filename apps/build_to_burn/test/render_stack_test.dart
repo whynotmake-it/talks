@@ -127,7 +127,7 @@ void main() {
     await pumpFrames(tester);
 
     expect(find.text('CPU encodes'), findsOneWidget);
-    expect(find.text('GPU executes\n↓ commit at 7'), findsOneWidget);
+    expect(find.text('GPU executes ↑\ncommit at layer 7'), findsOneWidget);
   });
 
   testWidgets('labels loop brackets with their rate, and cut ones', (
@@ -246,5 +246,21 @@ void main() {
 
     expect(find.textContaining('back-pressure'), findsOneWidget);
     expect(find.textContaining('completion'), findsOneWidget);
+  });
+
+  testWidgets('brackets stop at the highest layer on the stack', (
+    tester,
+  ) async {
+    final landing7 = rasterHalfScript.firstWhere(
+      (step) => step.view.focus == 7 && step.view.landed,
+    );
+    await tester.pumpWidget(host(landing7.view));
+    await pumpFrames(tester);
+
+    final label = tester.getRect(
+      find.text('GPU executes ↑\ncommit at layer 7'),
+    );
+    final row7 = tester.getRect(find.text('7  Impeller passes'));
+    expect((label.center.dy - row7.center.dy).abs(), lessThan(60));
   });
 }
