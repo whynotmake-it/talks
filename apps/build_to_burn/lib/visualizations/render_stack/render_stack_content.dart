@@ -400,13 +400,13 @@ final ahaScript = [
           id: 'T',
           label: 'Ticker frame',
           startTier: 1,
-          endTier: 5,
+          endTier: 4,
           activeFromTier: 5,
           prominent: true,
           origin: 'Ticker · every vsync',
           perSecond: 119,
-          rateLabel: '≈111 frames/s stop here',
-          cutNote: '#192128',
+          rateLabel: '≈111 frames/s: no Scene',
+          cutNote: '#192128 · drawFrame gate',
         ),
         _caretRepaint,
       ],
@@ -417,8 +417,8 @@ final ahaScript = [
       borders: const {StackBorder.gpu},
     ),
     caption:
-        'With #192128 (master), a ticker frame with nothing dirty stops before '
-        'the handoff: ≈8 rendered frames per second instead of ≈119.',
+        'With #192128 (master, expected in 3.50), drawFrame skips frames '
+        'with nothing repainted: no Scene. ≈119 → ≈7.9 Scenes per second.',
   ),
 ];
 

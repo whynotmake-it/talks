@@ -71,7 +71,7 @@ Key message: answer to the vote: C makes the frames, A makes each one expensive.
 - Repaints are the small part: the caret's pixels change on ~8 frames per second (8 per blink cycle, measured). The other ~111 frames per second repaint nothing and still cost the full raster + GPU work.
 - Each frame fits the budget, so no jank; the GPU just never idles. Heat builds, then throttling causes jank.
 - Myth-buster: RepaintBoundary and const save UI-thread paint work, not frames, and not GPU work under Impeller.
-- "A frame requested is not a frame rendered": flutter/flutter#192128 (master) skips rendering when nothing repainted, so the ~111 idle frames stop at the handoff. The Ticker still wakes the UI thread every vsync, and spinners (which really repaint) are not helped. Name it as coming unless it has reached stable.
+- "A frame requested is not a frame rendered": flutter/flutter#192128 is a framework-side skip: a gate in RendererBinding.drawFrame that only composites when something repainted (needsCompositeFrame). On no-repaint frames no Scene is built, so nothing reaches the engine: no raster, no GPU, no FrameTiming. Measured on master: the caret drops from ~119 to ~7.9 Scenes/s. The Ticker still wakes the UI thread every vsync, and spinners (which really repaint) are not helped. Merged to master 2026-09-24, after the 3.49 beta cut: expected in 3.50 stable (estimate). Name it as coming until it ships.
 - It's a defaults problem, not "your code is wrong".
 - On the stack: loop T (Ticker frame) is the bold arc from the vsync, dim through tiers 1-4 (nothing dirty) and hot from the Scene up, with the counter "≈119 frames/s, ≈111 repaint nothing". The repaint loop C (≈8/s) is a thin side branch. Pulses run slowed x10.
 ''',

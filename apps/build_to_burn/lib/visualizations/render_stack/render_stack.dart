@@ -1180,7 +1180,9 @@ class _ArcOverlayState extends State<_ArcOverlay> {
     final x = _centerX - _halfWidth - 50 - widget.slot * 52;
     final top = widget.toY;
     final bottom = widget.fromY;
-    final activeY = widget.activeY ?? bottom;
+    final activeY = (widget.activeY ?? bottom)
+        .clamp(math.min(top, bottom), math.max(top, bottom))
+        .toDouble();
     final color = arc.endTier >= 6 ? heat : p.accent;
     final interval = arc.perSecond > 0
         ? Duration(

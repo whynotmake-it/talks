@@ -103,11 +103,11 @@ void main() {
     expect(find.text('C · Repaint\n≈8/s'), findsOneWidget);
     expect(
       find.text(
-        'T · Ticker frame\n≈111 frames/s stop here\nTicker · every vsync',
+        'T · Ticker frame\n≈111 frames/s: no Scene\nTicker · every vsync',
       ),
       findsOneWidget,
     );
-    expect(find.text('✂ #192128'), findsOneWidget);
+    expect(find.text('✂ #192128 · drawFrame gate'), findsOneWidget);
   });
 
   testWidgets('the token climbs the stack, then the pixels appear', (
