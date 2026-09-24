@@ -92,8 +92,9 @@ class _RenderStackState extends State<RenderStack> {
   bool _first = true;
 
   static const _motion = Motion.smoothSpring();
-  static const _landing = Motion.cupertino(
-    duration: Duration(milliseconds: 1100),
+  static const _landing = Motion.curved(
+    Duration(milliseconds: 1400),
+    easeInOut,
   );
   static const _instant = Motion.linear(Duration(milliseconds: 1));
   static const _tileRun = Motion.linear(Duration(milliseconds: 1400));

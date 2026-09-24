@@ -30,6 +30,14 @@ class _StageCard extends StatelessWidget {
     final ex = (right - top) / size.width;
     final ey = (left - top) / size.height;
     final flat = Matrix4.translationValues(_cardRect.left, _cardRect.top, 0);
+    // Halfway, the slide is still flat, shrunk to the plane's width and
+    // centered on it; the second half tilts it into the rhombus.
+    final scale = 2 * _halfWidth / size.width;
+    final small = Matrix4.identity()
+      ..setEntry(0, 0, scale)
+      ..setEntry(1, 1, scale)
+      ..setEntry(0, 3, _centerX - _halfWidth)
+      ..setEntry(1, 3, planeTop + _plane / 2 - size.height * scale / 2);
     final iso = Matrix4(
       ex.dx,
       ex.dy,
@@ -49,9 +57,12 @@ class _StageCard extends StatelessWidget {
       1,
     );
     final t = morph.clamp(0.0, 1.0);
+    final (from, to, f) = t < .5
+        ? (flat, small, t / .5)
+        : (small, iso, (t - .5) / .5);
     final matrix = Matrix4.zero();
     for (var i = 0; i < 16; i++) {
-      matrix.storage[i] = lerpDouble(flat.storage[i], iso.storage[i], t)!;
+      matrix.storage[i] = lerpDouble(from.storage[i], to.storage[i], f)!;
     }
     final entrance = Curves.easeOut.transform(card);
     return Positioned(
@@ -71,7 +82,7 @@ class _StageCard extends StatelessWidget {
                     color: p.surface,
                     border: Border.all(
                       color: Color.lerp(p.border, p.accent, t)!,
-                      width: lerpDouble(2, 14, t)!,
+                      width: lerpDouble(2, 14, math.max(0, t - .5) * 2)!,
                     ),
                     boxShadow: [
                       BoxShadow(
@@ -82,7 +93,7 @@ class _StageCard extends StatelessWidget {
                     ],
                   ),
                   child: Opacity(
-                    opacity: (1 - t * 1.6).clamp(0.0, 1.0),
+                    opacity: (1 - (t - .5) / .4).clamp(0.0, 1.0),
                     child: tier.detail is CodeDetail
                         ? _CodeView(code: (tier.detail! as CodeDetail).code)
                         : _StageContent(tier: tier, previous: previous),
