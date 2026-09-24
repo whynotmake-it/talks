@@ -10,6 +10,7 @@ class _LabelList extends StatelessWidget {
     required this.view,
     required this.values,
     required this.layout,
+    required this.rows,
     required this.frames,
     required this.opacity,
   });
@@ -19,14 +20,11 @@ class _LabelList extends StatelessWidget {
   final RenderStackView view;
   final Map<int, _TierValues> values;
   final _Layout layout;
+  final _Rows rows;
   final double frames;
   final double opacity;
 
-  int? get _focused {
-    if (view.focus case final focus? when view.landed) return focus;
-    if (view.expanded.length == 1) return view.expanded.first;
-    return null;
-  }
+  int? get _focused => rows.focus;
 
   @override
   Widget build(BuildContext context) {
@@ -48,7 +46,7 @@ class _LabelList extends StatelessWidget {
               if (origins.isNotEmpty)
                 Positioned(
                   left: _rowsLeft,
-                  top: _rowY(0) - 14,
+                  top: rows.y(0) - 14,
                   child: Text(
                     '⏱  ${origins.first}',
                     style: mono(18, weight: 600, color: p.textSecondary),
@@ -63,7 +61,7 @@ class _LabelList extends StatelessWidget {
 
   List<Widget> _row(Palette p, int index, StackTier tier) {
     final v = values[tier.number]!;
-    final y = _rowY(tier.number.toDouble());
+    final y = rows.y(tier.number.toDouble());
     final focused = _focused == tier.number;
     final lit = _lightColors(p, v.light);
     final frameTint = switch (tier.number) {
@@ -127,21 +125,43 @@ class _LabelList extends StatelessWidget {
                       _chip(p, 'drawables ▣▣▢', frames),
                   ],
                 ),
-                if (focused) ...[
-                  const SizedBox(height: 4),
-                  Text(
-                    '${tier.inputs}  →  ${tier.outputs}',
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: mono(14, color: p.textSecondary),
+                if (focused && rows.extra > 1)
+                  SizedBox(
+                    height: rows.extra,
+                    child: ClipRect(
+                      child: OverflowBox(
+                        alignment: Alignment.topLeft,
+                        maxHeight: _focusDetails,
+                        child: Opacity(
+                          opacity: (rows.extra / _focusDetails).clamp(0.0, 1.0),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const SizedBox(height: 4),
+                              Text(
+                                '${tier.inputs} → ${tier.outputs}',
+                                maxLines: 2,
+                                overflow: TextOverflow.clip,
+                                style: archivo(19, height: 1.25, color: p.text),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                tier.where,
+                                maxLines: 2,
+                                overflow: TextOverflow.clip,
+                                style: mono(
+                                  15,
+                                  height: 1.3,
+                                  color: p.textSecondary,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
                   ),
-                  Text(
-                    tier.where.toUpperCase(),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: mono(12, color: p.textTertiary),
-                  ),
-                ],
               ],
             ),
           ),
@@ -199,6 +219,7 @@ class _Gutter extends StatelessWidget {
     required this.bands,
     required this.view,
     required this.values,
+    required this.rows,
     required this.borders,
     required this.feedback,
     required this.frames,
@@ -211,6 +232,7 @@ class _Gutter extends StatelessWidget {
   final List<StackBand> bands;
   final RenderStackView view;
   final Map<int, _TierValues> values;
+  final _Rows rows;
   final Map<StackBorder, double> borders;
   final double feedback;
   final double frames;
@@ -439,6 +461,7 @@ class _Gutter extends StatelessWidget {
               for (final (bracket, presence) in brackets)
                 _BracketView(
                   key: bracket.id == null ? null : ValueKey(bracket.id),
+                  rows: rows,
                   bracket: bracket,
                   presence: presence,
                   textLeft: textLeft,
@@ -446,6 +469,7 @@ class _Gutter extends StatelessWidget {
                 ),
               if (feedback > .01)
                 _FeedbackArrows(
+                  rows: rows,
                   presence: feedback,
                   slot: slots - 1,
                   textLeft: textLeft,
@@ -453,7 +477,7 @@ class _Gutter extends StatelessWidget {
               if (frames > .01 && (framesInFlight?.limits ?? false))
                 Positioned(
                   left: _rowsLeft - 14,
-                  top: _rowY(0) - 22,
+                  top: rows.y(0) - 22,
                   width: 1590 - _rowsLeft,
                   child: Opacity(
                     opacity: frames,
@@ -476,6 +500,7 @@ double _slotX(int slot) => _gutterLeft + slot * _slotWidth + 6;
 
 class _BracketView extends StatefulWidget {
   const _BracketView({
+    required this.rows,
     required this.bracket,
     required this.presence,
     required this.textLeft,
@@ -483,6 +508,7 @@ class _BracketView extends StatefulWidget {
     super.key,
   });
 
+  final _Rows rows;
   final _Bracket bracket;
   final double presence;
   final double textLeft;
@@ -503,13 +529,16 @@ class _BracketViewState extends State<_BracketView> {
     final b = widget.bracket;
     final x = _slotX(b.slot);
     final width = b.prominent ? 7.0 : 3.0;
-    final top = _rowY(b.to);
-    final bottom = _rowY(b.from);
+    final top = widget.rows.y(b.to);
+    final bottom = widget.rows.y(b.from);
     final activeY = b.dimBelow == null
         ? bottom
-        : _rowY(
-            b.dimBelow!,
-          ).clamp(math.min(top, bottom), math.max(top, bottom)).toDouble();
+        : widget.rows
+              .y(
+                b.dimBelow!,
+              )
+              .clamp(math.min(top, bottom), math.max(top, bottom))
+              .toDouble();
     final interval = b.perSecond > 0
         ? Duration(
             microseconds: (widget.slowdown * 1000000 / b.perSecond).round(),
@@ -579,7 +608,7 @@ class _BracketViewState extends State<_BracketView> {
             Positioned(
               left: widget.textLeft,
               width: textWidth,
-              top: _rowY(b.labelRow) - (b.prominent ? 22 : 16),
+              top: widget.rows.y(b.labelRow) - (b.prominent ? 22 : 16),
               child: Text(
                 b.label,
                 style: mono(
@@ -611,11 +640,13 @@ class _BracketViewState extends State<_BracketView> {
 /// row down to the raster rows.
 class _FeedbackArrows extends StatelessWidget {
   const _FeedbackArrows({
+    required this.rows,
     required this.presence,
     required this.slot,
     required this.textLeft,
   });
 
+  final _Rows rows;
   final double presence;
   final int slot;
   final double textLeft;
@@ -633,14 +664,18 @@ class _FeedbackArrows extends StatelessWidget {
             CustomPaint(
               size: RenderStack.designSize,
               painter: _ArrowsPainter([
-                (Offset(x, _rowY(8)), Offset(x, _rowY(6)), heat),
-                (Offset(x + 12, _rowY(8)), Offset(x + 12, _rowY(7)), p.accent),
+                (Offset(x, rows.y(8)), Offset(x, rows.y(6)), heat),
+                (
+                  Offset(x + 12, rows.y(8)),
+                  Offset(x + 12, rows.y(7)),
+                  p.accent,
+                ),
               ]),
             ),
             Positioned(
               left: textLeft + 12,
               width: 1596 - textLeft - 12,
-              top: _rowY(6) - 18,
+              top: rows.y(6) - 18,
               child: Text(
                 'back-pressure\n3 drawables in flight:\nraster waits',
                 style: mono(14, weight: 600, height: 1.3, color: heat),
@@ -649,7 +684,7 @@ class _FeedbackArrows extends StatelessWidget {
             Positioned(
               left: textLeft + 12,
               width: 1596 - textLeft - 12,
-              top: _rowY(8) - 30,
+              top: rows.y(8) - 30,
               child: Text(
                 'completion\nfrees resources',
                 style: mono(14, weight: 600, height: 1.3, color: p.accent),

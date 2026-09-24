@@ -68,7 +68,7 @@ void main() {
     expect(find.textContaining('class Demo extends'), findsNothing);
     expect(find.text('1  Widget code'), findsOneWidget);
     expect(
-      find.text('your build() methods  →  widget tree'),
+      find.text('your build() methods → widget tree'),
       findsOneWidget,
     );
   });
@@ -102,13 +102,13 @@ void main() {
     for (final tier in renderStackTiers) {
       expect(find.text('${tier.number}  ${tier.title}'), findsOneWidget);
     }
-    expect(find.textContaining('  →  '), findsNothing);
+    expect(find.textContaining(' → layer tree'), findsNothing);
 
     await tester.pumpWidget(
       host(const RenderStackView(focus: 4, landed: true)),
     );
     await pumpFrames(tester);
-    expect(find.text('pictures ①–④  →  layer tree'), findsOneWidget);
+    expect(find.text('pictures ①–④ → layer tree'), findsOneWidget);
     expect(find.text('9  Pixels'), findsNothing);
   });
 
@@ -276,5 +276,51 @@ void main() {
       findsOneWidget,
     );
     expect(find.byKey(const ValueKey('arc-line-S')), findsOneWidget);
+  });
+
+  testWidgets('frame pills sit on their own bands, level with brackets', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      host(const RenderStackView(frames: FramesInFlight())),
+    );
+    await pumpFrames(tester);
+
+    final pills = [
+      for (final name in ['N+1', 'N', 'N−1'])
+        tester.getRect(find.text('frame $name')),
+    ];
+    final brackets = [
+      for (final label in [
+        'frame N+1\nUI thread',
+        'frame N\nraster thread',
+        'frame N−1\nGPU + display',
+      ])
+        tester.getRect(find.text(label)),
+    ];
+    for (var i = 0; i < 3; i++) {
+      if (i > 0) {
+        expect(pills[i - 1].top - pills[i].bottom, greaterThan(40));
+      }
+      expect(
+        (pills[i].center.dy - brackets[i].center.dy).abs(),
+        lessThan(110),
+        reason: 'pill $i',
+      );
+    }
+  });
+
+  testWidgets('focus details wrap instead of cutting off', (tester) async {
+    await tester.pumpWidget(
+      host(const RenderStackView(focus: 5, landed: true)),
+    );
+    await pumpFrames(tester);
+
+    final where = tester.widget<Text>(
+      find.text('UI builds it · the frame pipeline carries it'),
+    );
+    expect(where.maxLines, greaterThan(1));
+    expect(where.overflow, isNot(TextOverflow.ellipsis));
+    expect(tester.takeException(), isNull);
   });
 }

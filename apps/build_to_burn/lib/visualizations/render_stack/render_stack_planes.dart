@@ -69,9 +69,10 @@ class _TierPlane extends StatelessWidget {
                     ),
                   if (tier.detail is ScreenDetail && pixels > .01)
                     Opacity(opacity: pixels, child: const _DemoScreen()),
-                  if (expand > .01 && tier.detail is! ScreenDetail)
+                  if (tier.detail != null && tier.detail is! ScreenDetail)
                     Opacity(
-                      opacity: expand,
+                      // Landed planes keep a faint trace of their stage.
+                      opacity: lerpDouble(.3, 1, expand)!,
                       child: Padding(
                         padding: const EdgeInsets.all(20),
                         child: _Schematic(

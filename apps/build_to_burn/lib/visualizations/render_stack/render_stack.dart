@@ -249,8 +249,30 @@ const _slotWidth = 24.0;
 /// The stage slide, flat.
 const _cardRect = Rect.fromLTWH(30, 10, 1540, 870);
 
-/// Center y of list row [row]: row 0 is the vsync, rows 1-9 the tiers.
+/// Center y of list row [row] with no focus: row 0 is the vsync, rows 1-9
+/// the tiers.
 double _rowY(double row) => 818 - row * 78;
+
+/// Height the focused row's details take below its title.
+const _focusDetails = 100.0;
+
+/// Where list rows sit this frame: rows below the focused row move down to
+/// make room for its details.
+@immutable
+class _Rows {
+  const _Rows({this.focus, this.extra = 0});
+
+  final int? focus;
+  final double extra;
+
+  double y(double row) {
+    final base = _rowY(row);
+    if (focus case final focus?) {
+      return base + extra * (focus - row).clamp(0.0, 1.0);
+    }
+    return base;
+  }
+}
 
 /// Maps a flat square onto an isometric rhombus with its top vertex at the
 /// origin.
@@ -275,14 +297,22 @@ final _isometric = Matrix4(
 
 /// Where every tier sits this frame.
 class _Layout {
-  _Layout(this.tiers, this.bands, this.presence, this.expand) {
+  _Layout(
+    this.tiers,
+    this.bands,
+    this.presence,
+    this.expand, {
+    this.spread = 1,
+  }) {
     var offset = 0.0;
     final raw = <double>[];
     for (final (index, tier) in tiers.indexed) {
       if (index > 0) {
         final below = tiers[index - 1];
         final gap = _gapBetween(below, tier);
-        offset += gap * _presenceOf(tier) + expand[below.number]! * _expandGap;
+        offset +=
+            gap * spread * _presenceOf(tier) +
+            expand[below.number]! * _expandGap;
       }
       raw.add(offset);
     }
@@ -297,6 +327,9 @@ class _Layout {
   final List<StackBand> bands;
   final Map<int, double> presence;
   final Map<int, double> expand;
+
+  /// Multiplies the gaps between planes, e.g. to give each band room.
+  final double spread;
 
   late final List<double> offsets;
   late final double cap;
@@ -364,6 +397,7 @@ class _StackPicture extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final p = Palette.of(context);
+    final spread = 1 + 1.6 * frames;
     final layout = _Layout(
       tiers,
       bands,
@@ -371,6 +405,7 @@ class _StackPicture extends StatelessWidget {
         for (final tier in tiers) tier.number: values[tier.number]!.presence,
       },
       {for (final tier in tiers) tier.number: values[tier.number]!.expand},
+      spread: spread,
     );
     // Where a landing slide goes: its plane, as if it were already there.
     final target = _Layout(
@@ -384,7 +419,10 @@ class _StackPicture extends StatelessWidget {
           ),
       },
       {for (final tier in tiers) tier.number: values[tier.number]!.expand},
+      spread: spread,
     );
+    final rows = _rowsFor();
+    final shift = _centering(layout, rows);
     final lowestExpanded = [
       for (final (index, tier) in tiers.indexed)
         if (values[tier.number]!.expand > .05) index,
@@ -397,80 +435,87 @@ class _StackPicture extends StatelessWidget {
         clipBehavior: Clip.none,
         children: [
           Positioned.fill(
-            child: Opacity(
-              opacity: stackOpacity,
-              child: Stack(
-                clipBehavior: Clip.none,
-                children: [
-                  for (final (index, tier) in tiers.indexed)
-                    if (_planeVisible(tier))
-                      _TierPlane(
-                        tier: tier,
-                        band: _band(tier.band),
-                        top: layout.top(index),
-                        presence: values[tier.number]!.presence,
-                        expand: values[tier.number]!.expand,
-                        light: values[tier.number]!.light,
-                        translucent:
-                            lowestExpanded != null && index > lowestExpanded,
-                        emphasis: view.emphasis,
-                        pixels: tier.detail is ScreenDetail ? pixels : 0,
-                        tiles: tier.number == 8 ? tiles : 0,
-                        tilePhase: tilePhase,
-                      ),
-                  if (values[tiers.last.number]!.presence > .01)
-                    _cap(p, layout, values[tiers.last.number]!.presence),
-                  if (frames > .01 && framesInFlight != null)
-                    _FrameTokens(
-                      layout: layout,
-                      presence: frames,
-                      frames: framesInFlight!,
-                    ),
-                  if (dram > .01 && tilePhase != null && layout.indexOf(8) >= 0)
-                    _DramOverlay(
-                      phase: tilePhase!,
-                      presence: dram,
-                      tierCenter: layout.center(layout.indexOf(8)),
-                    ),
-                  if (_detailCardTier() case final index?)
-                    _DetailCard(
-                      tier: tiers[index],
-                      emphasis: view.emphasis,
-                      presence: values[tiers[index].number]!.expand,
-                      anchor: Offset(
-                        _centerX - _halfWidth,
-                        layout.center(index),
-                      ),
-                      color: _lightColors(
-                        p,
-                        math.max(
-                          values[tiers[index].number]!.light,
-                          TierLight.dim,
+            child: Transform.translate(
+              offset: Offset(0, shift),
+              child: Opacity(
+                opacity: stackOpacity,
+                child: Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    for (final (index, tier) in tiers.indexed)
+                      if (_planeVisible(tier))
+                        _TierPlane(
+                          tier: tier,
+                          band: _band(tier.band),
+                          top: layout.top(index),
+                          presence: values[tier.number]!.presence,
+                          expand: values[tier.number]!.expand,
+                          light: values[tier.number]!.light,
+                          translucent:
+                              lowestExpanded != null && index > lowestExpanded,
+                          emphasis: view.emphasis,
+                          pixels: tier.detail is ScreenDetail ? pixels : 0,
+                          tiles: tier.number == 8 ? tiles : 0,
+                          tilePhase: tilePhase,
                         ),
-                      ).text,
+                    if (values[tiers.last.number]!.presence > .01)
+                      _cap(p, layout, values[tiers.last.number]!.presence),
+                    if (frames > .01 && framesInFlight != null)
+                      _FrameTokens(
+                        layout: layout,
+                        presence: frames,
+                        frames: framesInFlight!,
+                      ),
+                    if (dram > .01 &&
+                        tilePhase != null &&
+                        layout.indexOf(8) >= 0)
+                      _DramOverlay(
+                        phase: tilePhase!,
+                        presence: dram,
+                        tierCenter: layout.center(layout.indexOf(8)),
+                      ),
+                    if (_detailCardTier() case final index?)
+                      _DetailCard(
+                        tier: tiers[index],
+                        emphasis: view.emphasis,
+                        presence: values[tiers[index].number]!.expand,
+                        anchor: Offset(
+                          _centerX - _halfWidth,
+                          layout.center(index),
+                        ),
+                        color: _lightColors(
+                          p,
+                          math.max(
+                            values[tiers[index].number]!.light,
+                            TierLight.dim,
+                          ),
+                        ).text,
+                      ),
+                    _LabelList(
+                      tiers: tiers,
+                      bands: bands,
+                      view: view,
+                      values: values,
+                      layout: layout,
+                      rows: rows,
+                      frames: frames,
+                      opacity: 1 - dim,
                     ),
-                  _LabelList(
-                    tiers: tiers,
-                    bands: bands,
-                    view: view,
-                    values: values,
-                    layout: layout,
-                    frames: frames,
-                    opacity: 1 - dim,
-                  ),
-                  _Gutter(
-                    tiers: tiers,
-                    bands: bands,
-                    view: view,
-                    values: values,
-                    borders: borders,
-                    feedback: feedback,
-                    frames: frames,
-                    bandsSummary: bandsSummary,
-                    framesInFlight: framesInFlight,
-                    opacity: 1 - dim,
-                  ),
-                ],
+                    _Gutter(
+                      tiers: tiers,
+                      bands: bands,
+                      view: view,
+                      values: values,
+                      rows: rows,
+                      borders: borders,
+                      feedback: feedback,
+                      frames: frames,
+                      bandsSummary: bandsSummary,
+                      framesInFlight: framesInFlight,
+                      opacity: 1 - dim,
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
@@ -481,7 +526,7 @@ class _StackPicture extends StatelessWidget {
                 previous: index > 0 ? tiers[index - 1] : null,
                 card: values[tier.number]!.card,
                 morph: values[tier.number]!.morph,
-                planeTop: target.top(index),
+                planeTop: target.top(index) + shift,
               ),
           if (dim > .01 && phone != null)
             _HookPhoneOverlay(phone: phone!, presence: dim),
@@ -498,6 +543,52 @@ class _StackPicture extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  /// The focused row and how far its details push the rows below it.
+  _Rows _rowsFor() {
+    final focus = switch (view.focus) {
+      final focus? when view.landed => focus,
+      _ when view.expanded.length == 1 => view.expanded.first,
+      _ => null,
+    };
+    if (focus == null || values[focus] == null) return const _Rows();
+    final v = values[focus]!;
+    final amount = view.focus == focus ? v.morph * v.presence : v.expand;
+    return _Rows(focus: focus, extra: _focusDetails * amount);
+  }
+
+  /// Moves the stack and the list together so their visible extent is
+  /// centered vertically. Weighted by presence, so it glides as planes land.
+  double _centering(_Layout layout, _Rows rows) {
+    double? top;
+    double? bottom;
+    double? rowsTop;
+    for (final (index, tier) in tiers.indexed) {
+      final p = values[tier.number]!.presence;
+      if (p < .01) continue;
+      final planeTop = layout.top(index);
+      top = top == null ? planeTop : math.min(top, planeTop);
+      bottom = math.max(bottom ?? 0, planeTop + _plane);
+      final rowTop = rows.y(tier.number.toDouble()) - 30;
+      rowsTop = rowsTop == null
+          ? rowTop
+          : lerpDouble(rowsTop, math.min(rowsTop, rowTop), p);
+    }
+    if (top == null || bottom == null || rowsTop == null) return 0;
+    top = math.min(top, rowsTop);
+    final lowestRow = tiers.firstWhere(
+      (tier) => values[tier.number]!.presence > .01,
+    );
+    var rowsBottom = rows.y(lowestRow.number.toDouble()) + 30;
+    if (rows.focus == lowestRow.number) rowsBottom += rows.extra;
+    if (view.arcs.any((arc) => arc.origin.isNotEmpty)) {
+      rowsBottom = math.max(rowsBottom, rows.y(0) + 20);
+    }
+    bottom = math.max(bottom, rowsBottom);
+    final height = RenderStack.designSize.height;
+    final ideal = height / 2 - (top + bottom) / 2;
+    return ideal.clamp(20 - top, math.max(20 - top, height - 20 - bottom));
   }
 
   /// A stage slide covers its plane until it has landed.
