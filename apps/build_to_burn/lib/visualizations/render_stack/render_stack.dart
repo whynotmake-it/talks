@@ -1186,7 +1186,7 @@ class _ArcOverlayState extends State<_ArcOverlay> {
     final prominent = arc.prominent;
     final width = prominent ? 8.0 : 3.0;
     final x = _arcX(widget.slot);
-    final labelRight = _arcX(widget.slotCount - 1) - 12;
+    final labelRight = _arcX(widget.slotCount - 1) - 28;
     final top = widget.toY;
     final bottom = widget.fromY;
     final activeY = (widget.activeY ?? bottom)
