@@ -365,6 +365,7 @@ class _StackPicture extends StatelessWidget {
           key: ValueKey(arc.id),
           arc: arc,
           slot: index,
+          slotCount: view.arcs.length,
           fromY: layout.center(layout.indexOf(arc.startTier)),
           toY: layout.center(layout.indexOf(arc.endTier)),
           slowdown: view.arcSlowdown,
@@ -1141,6 +1142,9 @@ class _Labels extends StatelessWidget {
   }
 }
 
+/// The x of the arc in [slot], counted outward from the stack.
+double _arcX(int slot) => _centerX - _halfWidth - 50 - slot * 52;
+
 /// A loop as an arc on the left of the stack, pulsing upward at its rate.
 class _ArcOverlay extends StatefulWidget {
   const _ArcOverlay({
@@ -1149,12 +1153,16 @@ class _ArcOverlay extends StatefulWidget {
     required this.fromY,
     required this.toY,
     required this.slowdown,
+    required this.slotCount,
     this.activeY,
     super.key,
   });
 
   final LoopArc arc;
   final int slot;
+
+  /// How many arcs are drawn; labels sit left of the outermost one.
+  final int slotCount;
   final double fromY;
   final double toY;
   final double slowdown;
@@ -1177,7 +1185,8 @@ class _ArcOverlayState extends State<_ArcOverlay> {
     final arc = widget.arc;
     final prominent = arc.prominent;
     final width = prominent ? 8.0 : 3.0;
-    final x = _centerX - _halfWidth - 50 - widget.slot * 52;
+    final x = _arcX(widget.slot);
+    final labelRight = _arcX(widget.slotCount - 1) - 12;
     final top = widget.toY;
     final bottom = widget.fromY;
     final activeY = (widget.activeY ?? bottom)
@@ -1258,8 +1267,8 @@ class _ArcOverlayState extends State<_ArcOverlay> {
                 ),
               ),
             Positioned(
-              left: x - 250,
-              width: 240,
+              left: labelRight - 250,
+              width: 250,
               top: bottom - (prominent ? 26 : 18),
               child: Text(
                 [
@@ -1273,8 +1282,8 @@ class _ArcOverlayState extends State<_ArcOverlay> {
             ),
             if (arc.cutNote.isNotEmpty)
               Positioned(
-                left: x - 250,
-                width: 240,
+                left: labelRight - 250,
+                width: 250,
                 top: top - 52,
                 child: Text(
                   '✂ ${arc.cutNote}',
