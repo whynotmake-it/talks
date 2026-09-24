@@ -1,0 +1,45 @@
+name: build_to_burn
+description: "Fluttercon 2026 talk: following one Flutter frame from build to burn."
+publish_to: 'none'
+version: 0.1.0
+resolution: workspace
+
+environment:
+  sdk: ^3.10.0
+  flutter: ">=3.44.0"
+
+dependencies:
+  # Keep both refs in sync with the motor override in the root pubspec.yaml.
+  example_design:
+    git:
+      url: https://github.com/whynotmake-it/rivership.git
+      ref: e3fd207606651d1e4c033ffd38c7fde280df2592
+      path: packages/example_design
+  flutter:
+    sdk: flutter
+  # Motor 2.0, top of the rivership PR stack (motor-2/07-example-redesign,
+  # whynotmake-it/rivership#325). Its version is still 1.1.0 there; melos
+  # publishes it as 2.0.0-dev.0.
+  motor:
+    git:
+      url: https://github.com/whynotmake-it/rivership.git
+      ref: e3fd207606651d1e4c033ffd38c7fde280df2592
+      path: packages/motor
+  wnma_talk:
+    path: ../../packages/wnma_talk
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  lintervention: ^0.3.1
+
+flutter:
+  uses-material-design: true
+
+  fonts:
+    - family: Archivo
+      fonts:
+        - asset: assets/fonts/Archivo-VariableFont_wdth,wght.ttf
+    - family: JetBrains Mono
+      fonts:
+        - asset: assets/fonts/JetBrainsMono-VariableFont_wght.ttf

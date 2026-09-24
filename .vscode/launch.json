@@ -10,6 +10,26 @@
             "type": "dart"
         },
         {
+            "name": "build_to_burn",
+            "cwd": "apps/build_to_burn",
+            "request": "launch",
+            "type": "dart"
+        },
+        {
+            "name": "build_to_burn (profile mode)",
+            "cwd": "apps/build_to_burn",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "profile"
+        },
+        {
+            "name": "build_to_burn (release mode)",
+            "cwd": "apps/build_to_burn",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "release"
+        },
+        {
             "name": "gaussian_splatting",
             "cwd": "apps/gaussian_splatting",
             "request": "launch",

@@ -26,7 +26,6 @@ FlutterDeckThemeData buildTalkTheme() {
       textStyle: GoogleFonts.sourceCodePro(),
     ),
   );
-  ;
 }
 
 ColorScheme _buildColorScheme() {

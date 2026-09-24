@@ -15,8 +15,8 @@ dependencies:
   flutter_animate: ^4.5.2
   flutter_hooks: ^0.21.2
   halofoil: ^0.0.1
-  heroine: ^0.5.0-dev.12
-  hooks_riverpod: ^2.6.1
+  heroine: ^0.7.2
+  hooks_riverpod: ^3.0.0
   just_audio: ^0.10.5
   liquid_glass_renderer: 
     git: 
@@ -27,7 +27,7 @@ dependencies:
   paper_liquid_metal_logo:
     git: git@github.com:whynotmake-it/glibber.git
   motor: ^1.0.0-dev.10
-  rivership: ^0.3.0-dev.12
+  rivership: ^0.4.0
   stupid_simple_sheet: ^0.3.0+1
   value_notifier_tools: ^0.1.2
   wnma_talk: any
