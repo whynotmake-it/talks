@@ -85,6 +85,9 @@ enum Palette {
       Theme.of(context).brightness == Brightness.dark ? dark : light;
 }
 
+/// The spectrum red from example_design, reserved for GPU cost ("heat").
+const heat = Color(0xFFFA3D1D);
+
 /// Corner radius of surfaces and controls. Square: the rounded shapes are the
 /// things being animated.
 const radius = 0.0;
