@@ -1,69 +1,67 @@
 import 'package:build_to_burn/main.dart';
 import 'package:build_to_burn/shared/slide_frame.dart';
-import 'package:build_to_burn/shared/stage_slide_template.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import 'package:build_to_burn/slides/skeleton.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:wnma_talk/slide_number.dart';
 import 'package:wnma_talk/wnma_talk.dart';
 
+import 'fonts.dart';
+
 void main() {
-  setUpAll(() async {
-    // Lay out with the real fonts, not the test font's 1em-wide glyphs.
-    for (final (family, file) in [
-      ('Archivo', 'Archivo-VariableFont_wdth,wght.ttf'),
-      ('JetBrains Mono', 'JetBrainsMono-VariableFont_wght.ttf'),
-    ]) {
-      await (FontLoader(
-        family,
-      )..addFont(rootBundle.load('assets/fonts/$file'))).load();
+  setUpAll(loadDeckFonts);
+
+  /// Pumps frames explicitly: looping visualizations never settle.
+  Future<void> pumpFrames(WidgetTester tester) async {
+    for (var frame = 0; frame < 10; frame++) {
+      await tester.pump(const Duration(milliseconds: 100));
     }
-  });
+  }
 
   testWidgets('opens on the title slide', (tester) async {
     await tester.pumpWidget(const BuildToBurnTalk());
     await tester.pump(const Duration(seconds: 1));
 
     expect(find.text('From build\nto burn'), findsOneWidget);
-    expect(find.text('01 / 08'), findsOneWidget);
+    expect(find.text('01 / 11'), findsOneWidget);
   });
 
-  testWidgets('every slide lays out', (tester) async {
+  testWidgets('every slide and step lays out', (tester) async {
     await tester.pumpWidget(const BuildToBurnTalk());
-    await tester.pump(const Duration(seconds: 1));
+    await pumpFrames(tester);
 
-    for (var slide = 2; slide <= 8; slide++) {
-      FlutterDeck.of(tester.element(find.byType(SlideFrame).last)).next();
-      // The hook slide's caret never settles, so pump frames explicitly.
-      for (var frame = 0; frame < 10; frame++) {
-        await tester.pump(const Duration(milliseconds: 100));
-      }
+    FlutterDeck deck() =>
+        FlutterDeck.of(tester.element(find.byType(SlideFrame).last));
 
-      expect(find.text('0$slide / 08'), findsWidgets);
+    var advances = 0;
+    while (deck().slideNumber < 11 && advances < 50) {
+      deck().next();
+      advances++;
+      await pumpFrames(tester);
       expect(tester.takeException(), isNull);
     }
+
+    expect(deck().slideNumber, 11);
+    // 10 slide changes plus the extra steps of the two visualizations.
+    expect(advances, 10 + (7 - 1) + (4 - 1));
   });
 
   testWidgets('shows the speaker from the speaker notes', (tester) async {
     await tester.pumpWidget(
-      FlutterDeckApp(slides: const [_TimSlide()]),
+      FlutterDeckApp(
+        slides: const [
+          SkeletonSlide(
+            section: 'Test',
+            title: 'Title',
+            configuration: FlutterDeckSlideConfiguration(
+              route: '/tim',
+              speakerNotes: '$timSlideNotesHeader\nNotes.',
+            ),
+          ),
+        ],
+      ),
     );
     await tester.pump(const Duration(seconds: 1));
 
     expect(find.text('TIM'), findsOneWidget);
   });
-}
-
-class _TimSlide extends FlutterDeckSlideWidget {
-  const _TimSlide()
-    : super(
-        configuration: const FlutterDeckSlideConfiguration(
-          route: '/tim',
-          speakerNotes: '$timSlideNotesHeader\nNotes.',
-        ),
-      );
-
-  @override
-  Widget build(BuildContext context) =>
-      const StageSlideTemplate(section: 'Test', title: 'Title', lead: 'Lead');
 }
