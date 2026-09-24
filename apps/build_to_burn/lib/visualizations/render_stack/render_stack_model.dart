@@ -64,6 +64,12 @@ class PassesDetail extends TierDetail {
   final List<StackPass> passes;
 }
 
+/// Source code, shown as a code slide.
+class CodeDetail extends TierDetail {
+  const CodeDetail(this.code);
+  final String code;
+}
+
 /// The demo screen itself: the pixels.
 class ScreenDetail extends TierDetail {
   const ScreenDetail();
@@ -79,6 +85,9 @@ class StackTier {
     required this.inputs,
     required this.outputs,
     required this.token,
+    this.stage = '',
+    this.example = '',
+    this.handoff = '',
     this.where = '',
     this.detail,
     this.note = '',
@@ -97,8 +106,18 @@ class StackTier {
   /// The thread or place it runs, e.g. `UI thread`.
   final String where;
 
-  /// The output chip the traveling frame token shows at this tier.
+  /// A short name for this tier's output, e.g. `Picture`.
   final String token;
+
+  /// The stage slide's title: what happens here, e.g. `Layout: boxes snap to
+  /// sizes`.
+  final String stage;
+
+  /// One example value from the demo tree, shown with the output.
+  final String example;
+
+  /// What happens to the output next: the handoff to the next stage.
+  final String handoff;
 
   /// What the plane shows when expanded.
   final TierDetail? detail;
@@ -259,17 +278,43 @@ enum TilePhase {
   reseed,
 }
 
+/// Several frames in flight at once, on the finished stack: frame N+1 on the
+/// UI thread while N is on the raster thread, N-1 executes on the GPU and N-2
+/// is on screen.
+@immutable
+class FramesInFlight {
+  const FramesInFlight({this.animated = false, this.limits = false});
+
+  /// Whether the frames advance one stage per (slowed) vsync.
+  final bool animated;
+
+  /// Whether to stamp what does not overlap (one UI thread, one raster
+  /// thread, dependent passes) and name the helper threads that do.
+  final bool limits;
+
+  @override
+  bool operator ==(Object other) =>
+      other is FramesInFlight &&
+      other.animated == animated &&
+      other.limits == limits;
+
+  @override
+  int get hashCode => Object.hash(animated, limits);
+}
+
 /// Everything `RenderStack` shows at one moment. Changing the view animates
 /// from the previous one.
 @immutable
 class RenderStackView {
   const RenderStackView({
     this.bands = allBands,
+    this.visibleTiers,
+    this.focus,
+    this.landed = false,
     this.expanded = const {},
     this.light = const {},
     this.emphasis = const {},
     this.borders = const {},
-    this.token = false,
     this.showPixels = true,
     this.arcs = const [],
     this.arcSlowdown = 10,
@@ -277,6 +322,8 @@ class RenderStackView {
     this.phone,
     this.tiles,
     this.feedback = false,
+    this.frames,
+    this.showBands = false,
   });
 
   /// Sentinel for "every band".
@@ -284,6 +331,16 @@ class RenderStackView {
 
   /// Visible bands, rising in stack order. [allBands] shows all.
   final Set<String> bands;
+
+  /// When set, only these tiers are on the stack (overrides [bands]).
+  final Set<int>? visibleTiers;
+
+  /// The tier shown as its own flat slide, with its input and output. With
+  /// [landed] it flies onto the stack as its plane.
+  final int? focus;
+
+  /// Whether the [focus] slide has landed on the stack.
+  final bool landed;
 
   /// Tier numbers that show their [StackTier.detail].
   final Set<int> expanded;
@@ -295,9 +352,6 @@ class RenderStackView {
   final Set<String> emphasis;
 
   final Set<StackBorder> borders;
-
-  /// Whether one frame travels up the stack as a token.
-  final bool token;
 
   /// Whether the pixels tier shows the demo screen.
   final bool showPixels;
@@ -319,35 +373,60 @@ class RenderStackView {
   /// CPU/GPU border downward.
   final bool feedback;
 
+  /// When set, several frames are in flight on the finished stack.
+  final FramesInFlight? frames;
+
+  /// Whether to group the list into the four bands: the zoom-out summary.
+  final bool showBands;
+
   bool showsBand(String id) => bands.contains('*') || bands.contains(id);
+
+  /// Whether [tier] (in [band]) is on the stack.
+  bool showsTier(int tier, String band) {
+    if (focus case final focus?) {
+      return tier < focus || (tier == focus && landed);
+    }
+    if (visibleTiers case final tiers?) return tiers.contains(tier);
+    return showsBand(band);
+  }
 
   @override
   bool operator ==(Object other) =>
       other is RenderStackView &&
       setEquals(other.bands, bands) &&
+      setEquals(other.visibleTiers, visibleTiers) &&
+      other.focus == focus &&
+      other.landed == landed &&
       setEquals(other.expanded, expanded) &&
       mapEquals(other.light, light) &&
       setEquals(other.emphasis, emphasis) &&
       setEquals(other.borders, borders) &&
-      other.token == token &&
       other.showPixels == showPixels &&
       listEquals(other.arcs, arcs) &&
       other.arcSlowdown == arcSlowdown &&
       other.spotlight == spotlight &&
       other.phone == phone &&
       other.tiles == tiles &&
-      other.feedback == feedback;
+      other.feedback == feedback &&
+      other.frames == frames &&
+      other.showBands == showBands;
 
   @override
   int get hashCode => Object.hash(
     Object.hashAllUnordered(bands),
+    Object.hash(
+      visibleTiers == null ? null : Object.hashAllUnordered(visibleTiers!),
+      focus,
+      landed,
+      frames,
+      showBands,
+    ),
     Object.hashAllUnordered(expanded),
     Object.hashAllUnordered(
       light.entries.map((e) => Object.hash(e.key, e.value)),
     ),
     Object.hashAllUnordered(emphasis),
     Object.hashAllUnordered(borders),
-    token,
     showPixels,
     Object.hashAll(arcs),
     arcSlowdown,

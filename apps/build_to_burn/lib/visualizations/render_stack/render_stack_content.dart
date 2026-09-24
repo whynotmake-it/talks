@@ -1,13 +1,12 @@
 import 'package:build_to_burn/visualizations/render_stack/render_stack_model.dart';
 
-// Content from docs/render-stack-visualization.md (the spec). Example values
-// are for its demo tree (a frosted card with a focused CupertinoTextField over
-// a blue page) on an iPhone 15 Pro, Flutter 3.47.5, --profile, Impeller Metal.
-// Items marked [verify] or [estimate] there are unverified; keep them off
-// final slides until they're ticked. Tiers 2-5 and the caret counts follow the
-// real dumps in internal/demo-tree-dumps.md (widget test, 3.47.5); the planes
-// show the curated app-less subset (no route boundaries, barrier or
-// FollowerLayer).
+// Content from docs/render-stack-visualization.md (the spec): section 2 for
+// the tiers, section 7.1 for the stage slides and their handoffs, section 6
+// for frames in flight. Example values are for its demo tree (a frosted card
+// with a focused CupertinoTextField over a blue page) on an iPhone 15 Pro,
+// Flutter 3.47.5, --profile, Impeller Metal. Tiers 1-5 are [measured] (see
+// internal/demo-tree-dumps.md); 6-9 are [estimate]/pending a Metal capture.
+// Keep [verify]/[estimate] values off final slides until they're ticked.
 
 const renderStackBands = [
   StackBand(id: 'code', title: 'Your code'),
@@ -17,29 +16,63 @@ const renderStackBands = [
   StackBand(id: 'gpu', title: 'GPU and display'),
 ];
 
+/// The spec's `Demo` widget (section 1).
+const demoCode = '''
+class Demo extends StatelessWidget {
+  const Demo({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      children: [
+        const Positioned.fill(
+          child: ColoredBox(color: Color(0xFF2563EB)),
+        ),
+        Center(
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(24),
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+              child: Container(
+                width: 300,
+                height: 120,
+                color: const Color(0x33FFFFFF),
+                alignment: Alignment.center,
+                child: const CupertinoTextField(autofocus: true),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}''';
+
 const renderStackTiers = [
   StackTier(
     number: 1,
     band: 'code',
     title: 'Widget code',
-    inputs: 'build() + state',
-    outputs: 'element tree',
-    where: 'UI thread',
+    stage: 'You all write this',
+    inputs: 'your build() methods',
+    outputs: 'widget tree',
+    example: 'ClipRRect → BackdropFilter → Container → CupertinoTextField',
+    handoff: 'elements create render objects',
+    where: 'UI thread (the platform main thread)',
     token: 'Widget',
-    detail: ChipsDetail([
-      'Stack',
-      'ClipRRect(r: 24)',
-      'BackdropFilter(σ 10)',
-      'Container(300×120)',
-      'CupertinoTextField',
-    ]),
+    detail: CodeDetail(demoCode),
   ),
   StackTier(
     number: 2,
     band: 'ui',
     title: 'Render objects',
-    inputs: 'elements, constraints',
-    outputs: 'sizes, offsets, needsCompositing',
+    stage: 'Layout: boxes snap to sizes',
+    inputs: 'widget tree',
+    outputs: 'laid-out render tree',
+    example:
+        'RenderClipRRect 300×120 @ (46.5, 366); RenderBackdropFilter needs '
+        'compositing, up to the root',
+    handoff: 'dirty repaint boundaries go to flushPaint',
     where: 'UI thread · layout',
     token: 'RenderObject',
     detail: ChipsDetail([
@@ -50,16 +83,16 @@ const renderStackTiers = [
       'RenderEditable',
       'caret painter · boundary',
     ]),
-    note:
-        'needsCompositing spreads upward: the blur turns the clip into a '
-        'real layer.',
   ),
   StackTier(
     number: 3,
     band: 'ui',
     title: 'Paint calls',
-    inputs: 'dirty repaint boundaries',
-    outputs: 'Pictures (DisplayLists)',
+    stage: 'Paint: four tapes record, nothing is drawn',
+    inputs: 'laid-out render tree',
+    outputs: 'pictures ①–④',
+    example: '④ drawRRect(2×19, r=2, #007AFF): the caret',
+    handoff: 'each picture goes into a PictureLayer',
     where: 'UI thread · PictureRecorder',
     token: 'Picture',
     detail: LinesDetail([
@@ -70,16 +103,16 @@ const renderStackTiers = [
       '③ drawParagraph  text',
       '④ drawRRect  caret',
     ]),
-    note:
-        'Painting records a tape. Nothing is drawn yet. ② holds the frost '
-        'and the white field with its hairline border.',
   ),
   StackTier(
     number: 4,
     band: 'ui',
     title: 'Layer tree',
-    inputs: 'paint output',
-    outputs: 'retained layers + pictures',
+    stage: 'Layers: the tapes drop into folders',
+    inputs: 'pictures ①–④',
+    outputs: 'layer tree',
+    example: 'BackdropFilterLayer(blur 10) holds ② and the text field',
+    handoff: 'walked by a SceneBuilder',
     where: 'UI thread',
     token: 'Layer',
     detail: LinesDetail([
@@ -92,29 +125,29 @@ const renderStackTiers = [
       '│     └ field ▸ ③  caret ④',
       '└ Follower',
     ]),
-    note:
-        'Layers are folders for tapes and effects. ▸ collapses the app '
-        "shell and the text field's helper layers.",
   ),
   StackTier(
     number: 5,
     band: 'handoff',
     title: 'Scene handoff',
+    stage: 'Scene: the builder describes the tree',
     inputs: 'layer tree',
-    outputs: 'one single-use Scene',
-    where: 'UI builds it · pipeline carries it',
+    outputs: 'one Scene',
+    example: '26 SceneBuilder calls on a caret fade step, 7 on a hold tick',
+    handoff: 'FlutterView.render() → a pipeline slot → the raster thread',
+    where: 'UI builds it · the frame pipeline carries it',
     token: 'Scene',
     detail: TrayDetail(slots: 2, label: 'frame pipeline · 2 slots'),
-    note:
-        'Retained subtrees save UI work only. A new Scene ships every '
-        'frame on stable.',
   ),
   StackTier(
     number: 6,
     band: 'raster',
     title: 'One DisplayList',
-    inputs: 'LayerTree',
+    stage: 'Raster: the folders melt into one tape',
+    inputs: 'one Scene',
     outputs: 'one frame DisplayList',
+    example: 'SaveLayer(backdrop blur σ = 30 px)  [estimate]',
+    handoff: 'Impeller canvas dispatch',
     where: 'raster thread · preroll + paint',
     token: 'DisplayList',
     detail: LinesDetail([
@@ -126,17 +159,19 @@ const renderStackTiers = [
       'DrawDisplayList ③ ④',
       'Restore',
     ]),
-    note:
-        'Layers melt into one list, replayed in full every frame. No raster '
-        'cache, no partial repaint on mobile Impeller.',
   ),
   StackTier(
     number: 7,
     band: 'raster',
     title: 'Impeller passes',
-    inputs: 'frame DisplayList',
-    outputs: 'committed command buffers',
-    where: 'raster thread encodes · GPU executes',
+    stage: 'Impeller: the tape becomes render passes',
+    inputs: 'one frame DisplayList',
+    outputs: '~6 command buffers',
+    example:
+        'P1 offscreen, 3× Gaussian blur, P5 MSAA backdrop, P6 subpass; '
+        '~12 draw calls  [estimate]',
+    handoff: 'committed to the GPU queue',
+    where: 'raster thread encodes · GPU executes after commit',
     token: 'Pass',
     detail: PassesDetail([
       StackPass('P1', 'offscreen · clear'),
@@ -146,16 +181,16 @@ const renderStackTiers = [
       StackPass('P5', 'MSAA backdrop', drawCalls: 3, hot: true),
       StackPass('P6', 'subpass', drawCalls: 6),
     ]),
-    note:
-        'The backdrop ends P1, runs 3 blur passes, then re-seeds P5 with a '
-        'full-screen redraw. Pass list and ~12 draw calls: [estimate].',
   ),
   StackTier(
     number: 8,
     band: 'gpu',
     title: 'GPU execution',
-    inputs: 'command buffers',
+    stage: 'GPU: tiles fill on-chip',
+    inputs: '~6 command buffers',
     outputs: 'resolved drawable',
+    example: 'T0 ≈ 12 MB stored and read back at the pass break  [estimate]',
+    handoff: 'present',
     where: 'GPU · tile memory + DRAM',
     token: 'Tile',
     detail: ChipsDetail([
@@ -168,21 +203,145 @@ const renderStackTiers = [
     number: 9,
     band: 'gpu',
     title: 'Pixels',
-    inputs: 'drawable',
+    stage: 'Pixels: the phone shows the frosted card',
+    inputs: 'resolved drawable',
     outputs: 'the frame on screen',
+    example: '1179×2556; on ≈111 of ≈119 caret frames/s no pixel changes',
+    handoff: 'the render server composites it → display',
     where: 'FlutterMetalLayer · 3 drawables',
     token: 'Pixel',
     detail: ScreenDetail(),
   ),
 ];
 
-/// The thin cap above the pixels: the system still composites Flutter's
-/// surface.
-const systemCompositorLabel = 'System compositor · iOS render server';
-
 Map<int, double> _lit(Iterable<int> tiers, double light) => {
   for (final tier in tiers) tier: light,
 };
+
+Set<int> _upTo(int tier) => {for (var n = 1; n <= tier; n++) n};
+
+StackTier _tier(int number) =>
+    renderStackTiers.firstWhere((tier) => tier.number == number);
+
+/// Stage [number] as its own flat slide.
+RenderStackStep _stageSlide(int number, {String? caption}) => RenderStackStep(
+  RenderStackView(focus: number),
+  caption:
+      caption ??
+      'What happens to the ${_tier(number).inputs} now? '
+          '${_tier(number).stage}.',
+);
+
+/// Stage [number]'s slide landing on the stack as its plane.
+RenderStackStep _landing(
+  int number, {
+  Set<StackBorder> borders = const {},
+  String? caption,
+}) => RenderStackStep(
+  RenderStackView(focus: number, landed: true, borders: borders),
+  caption:
+      caption ??
+      'Layer $number: ${_tier(number).outputs}, and next, '
+          '${_tier(number).handoff}.',
+);
+
+/// Cold open (agenda § 0): only the code slide.
+final coldOpenScript = [
+  _stageSlide(1, caption: 'You all write this.'),
+];
+
+/// Hook (agenda § 1): the demo on a phone and the vote. No stack yet.
+const hookScript = [
+  RenderStackStep(
+    RenderStackView(
+      visibleTiers: {},
+      phone: HookPhone(
+        question: 'What keeps the GPU busy?',
+        options: [
+          'A  The blur',
+          'B  The list underneath',
+          'C  The blinking cursor',
+          'D  The keyboard',
+        ],
+      ),
+    ),
+    caption:
+        'A search sheet over the app drove the GPU to its limit and never let '
+        'it rest. Vote now; we come back to it.',
+  ),
+];
+
+/// Pipeline, UI half (agenda § 2a): the code lands as plane 1, then stages
+/// 2-5, each as its own slide that lands on the stack.
+final uiHalfScript = [
+  _stageSlide(1, caption: 'Your code again. What happens to it now?'),
+  _landing(
+    1,
+    caption:
+        'It becomes the first layer. Its output, a widget tree, is the next '
+        "stage's input.",
+  ),
+  for (final number in [2, 3, 4]) ...[
+    _stageSlide(number),
+    _landing(number),
+  ],
+  _stageSlide(5),
+  _landing(5, borders: {StackBorder.thread}),
+];
+
+/// Pipeline, raster half (agenda § 2b): stages 6-9, then frames in flight
+/// (spec section 6) and the four-band zoom-out.
+final rasterHalfScript = [
+  _stageSlide(6),
+  _landing(6),
+  _stageSlide(7),
+  _landing(
+    7,
+    borders: {StackBorder.gpu},
+    caption:
+        'Layer 7: command buffers, committed to the GPU queue. This is where '
+        'work crosses from CPU to GPU.',
+  ),
+  _stageSlide(8),
+  _landing(8),
+  RenderStackStep(
+    RenderStackView(
+      visibleTiers: _upTo(8),
+      light: const {6: TierLight.dim, 7: TierLight.dim, 8: TierLight.hot},
+      feedback: true,
+    ),
+    caption:
+        'Two signals come back down. When the GPU falls behind, the raster '
+        'thread waits for a drawable, and DevTools counts it as raster time.',
+  ),
+  _stageSlide(9),
+  _landing(9, borders: {StackBorder.present}),
+  const RenderStackStep(
+    RenderStackView(frames: FramesInFlight()),
+    caption:
+        'One frame runs in order, but frames overlap: N+1 on the UI thread '
+        'while N rasterizes and N−1 runs on the GPU.',
+  ),
+  const RenderStackStep(
+    RenderStackView(frames: FramesInFlight(animated: true)),
+    caption:
+        'Every vsync, each frame moves up one stage. Two Scenes can wait in '
+        "the queue; three drawables rotate. On Metal, N's first passes start "
+        'on the GPU while later ones encode.',
+  ),
+  const RenderStackStep(
+    RenderStackView(frames: FramesInFlight(limits: true)),
+    caption:
+        "What doesn't overlap: one UI thread, one raster thread, and passes "
+        'that wait on each other. The price of pipelining is latency.',
+  ),
+  const RenderStackStep(
+    RenderStackView(showBands: true),
+    caption:
+        'Zoomed out: your code, the UI thread, the handoff, the raster '
+        'thread, and the GPU and display.',
+  ),
+];
 
 /// Lighting for a ticker frame (spec section 5): tiers 1-4 off (nothing is
 /// dirty), 5 dim, 6-9 hot.
@@ -226,149 +385,11 @@ const _caretRepaint = LoopArc(
   rateLabel: '≈8/s',
 );
 
-/// Build-up step 1 (cold open): the bands rise, then one frame travels up.
-const coldOpenScript = [
-  RenderStackStep(
-    RenderStackView(showPixels: false),
-    caption:
-        'One frame of one small widget tree, from your code at the bottom '
-        'to pixels at the top.',
-  ),
-  RenderStackStep(
-    RenderStackView(token: true),
-    caption:
-        'Each tier hands its output up: widget, render object, picture, '
-        'layer, Scene, DisplayList, pass, tile, pixel.',
-  ),
-];
-
-/// Build-up step 3 (2a, UI half): expand paint calls and the layer tree.
-const uiHalfScript = [
-  RenderStackStep(
-    RenderStackView(expanded: {3}, light: {3: TierLight.dim}),
-    caption:
-        'Paint records a tape per picture. Nothing is drawn yet: ① page, '
-        '② frost, ③ text, ④ caret.',
-  ),
-  RenderStackStep(
-    RenderStackView(
-      expanded: {4},
-      light: {4: TierLight.dim},
-      emphasis: {'BackdropFilterLayer', 'OffsetLayer'},
-    ),
-    caption:
-        'Layers are folders for tapes and effects. The blur is a layer; the '
-        'caret has its own repaint boundary.',
-  ),
-];
-
-/// Build-up step 4 (2b, raster half): the handoff, one list, the passes.
-const rasterHalfScript = [
-  RenderStackStep(
-    RenderStackView(
-      expanded: {5},
-      light: {5: TierLight.dim},
-      borders: {StackBorder.thread},
-    ),
-    caption:
-        'The Scene crosses to the raster thread through a queue with two '
-        'slots. Same CPU, another thread.',
-  ),
-  RenderStackStep(
-    RenderStackView(
-      expanded: {6},
-      light: {6: TierLight.dim},
-      borders: {StackBorder.thread},
-    ),
-    caption:
-        'The raster thread melts the layers into one DisplayList and replays '
-        'all of it, every frame.',
-  ),
-  RenderStackStep(
-    RenderStackView(
-      expanded: {7},
-      light: {7: TierLight.hot},
-      emphasis: {'blur', 'MSAA'},
-      borders: {StackBorder.thread, StackBorder.gpu, StackBorder.present},
-    ),
-    caption:
-        'Impeller encodes render passes; the GPU executes them after commit. '
-        'The blur breaks the pass: 3 blur passes and a full-screen re-seed.',
-  ),
-  RenderStackStep(
-    RenderStackView(
-      light: {6: TierLight.dim, 7: TierLight.dim, 8: TierLight.hot},
-      borders: {StackBorder.gpu},
-      feedback: true,
-    ),
-    caption:
-        'Two signals come back down. When the GPU falls behind, the raster '
-        'thread waits for a drawable, and DevTools counts it as raster time.',
-  ),
-];
-
-/// Build-up step 2 (1, the hook): the stack dims and the demo comes forward.
-const hookScript = [
-  RenderStackStep(
-    RenderStackView(
-      phone: HookPhone(
-        question: 'What keeps the GPU busy?',
-        options: [
-          'A  The blur',
-          'B  The list underneath',
-          'C  The blinking cursor',
-          'D  The keyboard',
-        ],
-      ),
-    ),
-    caption:
-        'A search sheet over the app drove the GPU to its limit and never let '
-        'it rest. Vote now; we come back to it.',
-  ),
-];
-
-/// Build-up step 7 (4, why a blur costs): the GPU tier's tile memory.
-const blurCostScript = [
-  RenderStackStep(
-    RenderStackView(
-      light: {8: TierLight.dim},
-      tiles: TilePhase.fill,
-      borders: {StackBorder.gpu},
-    ),
-    caption:
-        'Mobile GPUs render in on-chip tiles. MSAA color and depth are '
-        'memoryless: they never leave the chip.',
-  ),
-  RenderStackStep(
-    RenderStackView(
-      light: {8: TierLight.hot},
-      tiles: TilePhase.flush,
-      borders: {StackBorder.gpu},
-    ),
-    caption:
-        'The backdrop blur needs pixels already drawn. The pass snaps: the '
-        'frame so far is stored to DRAM as T0, then blurred.',
-  ),
-  RenderStackStep(
-    RenderStackView(
-      light: {8: TierLight.hot},
-      tiles: TilePhase.reseed,
-      borders: {StackBorder.gpu},
-    ),
-    caption:
-        'The resumed pass is re-seeded from DRAM with a full-screen redraw. '
-        'Every frame, 120 times a second.',
-  ),
-];
-
-/// Build-up step 5 (3, the aha): a running Ticker means a full frame every
-/// vsync; the RepaintBoundary myth; #192128.
+/// Aha (agenda § 3): a running Ticker means a full frame every vsync; the
+/// RepaintBoundary myth; #192128.
 final ahaScript = [
   const RenderStackStep(
-    RenderStackView(
-      arcs: [_rebuild, _repaint, _tickerFrame],
-      borders: {StackBorder.gpu},
-    ),
+    RenderStackView(arcs: [_rebuild, _repaint, _tickerFrame]),
     caption:
         'Loops run from where work starts up to the top. A rebuild starts at '
         'your code, a repaint at paint. A ticker frame starts at the vsync.',
@@ -377,7 +398,6 @@ final ahaScript = [
     RenderStackView(
       arcs: const [_tickerFrameRunning, _caretRepaint],
       light: tickerFrameLight,
-      borders: const {StackBorder.gpu},
     ),
     caption:
         'A running Ticker means a full frame every vsync: about 119 a second, '
@@ -387,11 +407,10 @@ final ahaScript = [
     RenderStackView(
       arcs: const [_tickerFrameRunning],
       light: tickerFrameLight,
-      borders: const {StackBorder.gpu},
     ),
     caption:
         "RepaintBoundary can't help: nothing is repainting. The Ticker still "
-        'asks for a frame every vsync, and tiers 5 to 9 stay hot.',
+        'asks for a frame every vsync, and layers 5 to 9 stay hot.',
   ),
   RenderStackStep(
     RenderStackView(
@@ -411,10 +430,11 @@ final ahaScript = [
         _caretRepaint,
       ],
       light: {
-        ..._lit([3, 4, 5], .2),
-        ..._lit([6, 7, 8, 9], .5),
+        3: .2,
+        4: .2,
+        5: .2,
+        ..._lit([6, 7, 8, 9], .3),
       },
-      borders: const {StackBorder.gpu},
     ),
     caption:
         'With #192128 (master, expected in 3.50), drawFrame skips frames '
@@ -422,7 +442,29 @@ final ahaScript = [
   ),
 ];
 
-/// Build-up step 8 (5, profiling): each tool lights the tiers it can see.
+/// Why an everyday blur costs so much (agenda § 4): the GPU tier's tiles.
+const blurCostScript = [
+  RenderStackStep(
+    RenderStackView(light: {8: TierLight.dim}, tiles: TilePhase.fill),
+    caption:
+        'Mobile GPUs render in on-chip tiles. MSAA color and depth are '
+        'memoryless: they never leave the chip.',
+  ),
+  RenderStackStep(
+    RenderStackView(light: {8: TierLight.hot}, tiles: TilePhase.flush),
+    caption:
+        'The backdrop blur needs pixels already drawn. The pass snaps: the '
+        'frame so far is stored to DRAM as T0, then blurred.',
+  ),
+  RenderStackStep(
+    RenderStackView(light: {8: TierLight.hot}, tiles: TilePhase.reseed),
+    caption:
+        'The resumed pass is re-seeded from DRAM with a full-screen redraw. '
+        'Every frame, 120 times a second.',
+  ),
+];
+
+/// Profiling (agenda § 5): each tool marks the layers it can see.
 const profilingScript = [
   RenderStackStep(
     RenderStackView(
@@ -432,16 +474,17 @@ const profilingScript = [
         shows: 'which boundaries repaint',
       ),
     ),
-    caption: 'Highlight repaints sees the paint tier only.',
+    caption:
+        'Highlight repaints sees the paint layer only: for the caret, almost '
+        'nothing, which is why it misleads.',
   ),
   RenderStackStep(
     RenderStackView(
       spotlight: ToolSpotlight(
         tool: 'DevTools Performance',
         tiers: {1: .5, 2: .5, 3: .5, 4: .5, 5: .5, 6: .3, 7: .3},
-        shows: 'UI and raster CPU time; raster includes waiting for a drawable',
+        shows: 'UI + raster CPU time',
       ),
-      borders: {StackBorder.gpu},
     ),
     caption:
         'DevTools sees the UI thread and the CPU half of the raster thread. '
@@ -452,21 +495,18 @@ const profilingScript = [
       spotlight: ToolSpotlight(
         tool: 'Metal System Trace',
         tiers: {6: .5, 7: .5, 8: .5},
-        shows: 'GPU work every vsync, over time',
+        shows: 'GPU work every vsync',
       ),
-      borders: {StackBorder.gpu},
     ),
     caption: 'Instruments Metal System Trace shows GPU work every vsync.',
   ),
   RenderStackStep(
     RenderStackView(
-      expanded: {7},
       spotlight: ToolSpotlight(
         tool: 'Metal frame capture',
         tiers: {7: .5, 8: .5},
-        shows: 'passes, draw calls, textures: structure, not cost',
+        shows: 'passes, draws: structure',
       ),
-      borders: {StackBorder.gpu},
     ),
     caption:
         'An Xcode Metal frame capture shows one frame: its passes, draw calls '
@@ -477,9 +517,8 @@ const profilingScript = [
       spotlight: ToolSpotlight(
         tool: 'Power Profiler',
         tiers: {8: .5, 9: .5},
-        shows: 'power impact and thermal state',
+        shows: 'power + thermal state',
       ),
-      borders: {StackBorder.gpu},
     ),
     caption: 'Power Profiler shows what it costs in power and heat.',
   ),

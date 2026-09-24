@@ -13,14 +13,10 @@ final coldOpenSlide = RenderStackSlide(
   speakerNotes:
       '''
 $timSlideNotesHeader
-Key message: a frame goes build -> layout -> paint -> new Scene -> raster -> GPU -> display. DevTools sees the lower half well. The upper half is where phones get hot.
-- Four bands rise (your code, UI thread, raster thread, GPU and display), then one frame travels up as a token showing each tier's output.
-- Dart runs on the platform main thread on iOS and Android (default since 3.29, mandatory now); the raster thread is separate (Guide 4).
-- Every scheduled frame sends a new Scene on stable 3.47.5, even if nothing repainted (Guide 2).
-- The raster thread replays the whole frame; a BackdropFilter blur adds a pass break and 3 blur passes on the GPU (Guide 5, 6.2).
-- The DevTools raster bar is raster-thread CPU time, not GPU time (Guide 9.1).
-- Pipelining: the UI thread prepares frame N+1 while frame N rasterizes (pipeline depth 2 on Metal, Guide 4).
-- Example values follow docs/render-stack-visualization.md; [verify]/[estimate] items are not yet checked on a device.''',
+Key message: you all write this. The spec's Demo widget: a blue page, a frosted card (ClipRRect r=24 + BackdropFilter blur 10) and a focused CupertinoTextField.
+- Just the code, full screen, plain editor look. No stack yet; the hook (phone + vote) comes next.
+- In 2a this slide returns and shrinks into plane 1, and the stack grows one stage at a time (spec section 7.1).
+''',
 );
 
 final uiHalfSlide = RenderStackSlide(
@@ -37,7 +33,7 @@ Key message: painting records, layers group, and every scheduled frame sends a n
 - markNeedsPaint walks up to the nearest repaint boundary; that boundary re-records its subtree (Guide 3.3).
 - compositeFrame describes the layer tree to the engine as a new Scene, once per frame per view. Clean subtrees are addRetained. Cheap (Guide 3.4).
 - "Retained" saves UI-thread work only; the GPU still draws that subtree.
-- On the stack: tiers 3 (paint calls, tapes 1-4) and 4 (layer tree) expand; BackdropFilterLayer and the caret's OffsetLayer are emphasized.''',
+- On the stack: the code slide lands as plane 1; then each stage (2 layout, 3 paint, 4 layers, 5 Scene) appears as its own slide with its input (the previous output) and its output, and lands as the next plane. One example value per stage (spec 7.1).''',
 );
 
 final rasterHalfSlide = RenderStackSlide(
@@ -54,7 +50,7 @@ Key message: the raster thread flattens the tree into one DisplayList and replay
 - saveLayer (ShaderMask, ColorFiltered, non-peephole Opacity): +1 offscreen pass, pasted back as "Subpass" (Guide 6.2 B).
 - BackdropFilter blur: ends the parent pass, 3 blur passes (downsample, vertical, horizontal), restarts the pass with a full-screen "MSAA backdrop" redraw and replays clips. About 4-5 extra passes; count them in a capture (Guide 6.2 C).
 - BackdropGroup / BackdropFilter.grouped shares one capture (and one blur if equal) (Guide 6.2).
-- On the stack: the 2-slot handoff tray, tier 6 as one DisplayList, tier 7 as passes P1-P6; the bold CPU/GPU border runs through tier 7 at command-buffer commit (spec section 3).''',
+- On the stack: stages 6 (one DisplayList), 7 (passes; the CPU/GPU bracket meets at commit), 8 (GPU, with back-pressure/completion) and 9 (pixels) land one by one. Then frames in flight: N+1 on the UI planes, N on raster, N-1 on GPU/display, the 2-slot queue and 3 drawables; then what doesn't overlap (spec section 6); then the four-band zoom-out.''',
 );
 
 final ahaSlide = RenderStackSlide(
@@ -73,7 +69,7 @@ Key message: answer to the vote: C makes the frames, A makes each one expensive.
 - Myth-buster: RepaintBoundary and const save UI-thread paint work, not frames, and not GPU work under Impeller.
 - "A frame requested is not a frame rendered": flutter/flutter#192128 is a framework-side skip: a gate in RendererBinding.drawFrame that only composites when something repainted (needsCompositeFrame). On no-repaint frames no Scene is built, so nothing reaches the engine: no raster, no GPU, no FrameTiming. Measured on master: the caret drops from ~119 to ~7.9 Scenes/s. The Ticker still wakes the UI thread every vsync, and spinners (which really repaint) are not helped. Merged to master 2026-09-24, after the 3.49 beta cut: expected in 3.50 stable (estimate). Name it as coming until it ships.
 - It's a defaults problem, not "your code is wrong".
-- On the stack: loop T (Ticker frame) is the bold arc from the vsync, dim through tiers 1-4 (nothing dirty) and hot from the Scene up, with the counter "≈119 frames/s, ≈111 repaint nothing". The repaint loop C (≈8/s) is a thin side branch. Pulses run slowed x10.
+- On the list: loop T (Ticker frame) is the bold bracket from the vsync row, dim through rows 1-4 (nothing dirty) and hot from the Scene up, labelled ≈119 frames/s, ≈111 repaint nothing. Repaint C (≈8/s) is a thin bracket. Rows and planes light up together. Pulses run slowed x10.
 ''',
 );
 
@@ -106,7 +102,7 @@ Key message: a search sheet over the app drove the GPU to its limit and never le
 - Vote: A) the blur, B) the list underneath, C) the blinking cursor, D) the keyboard.
 - The sheet is a frosted BackdropFilter blur over a busy page, with a focused field.
 - Show one real measurement with a footer: device + SoC, OS, Flutter version, --profile, 60/120 Hz, thermal state, duration, runs, metric source (Guide 9.2). No bare "GPU %".
-- On the stack: the stack dims and the demo comes forward on a phone (real BackdropFilter, fading caret) with the vote.
+- No stack yet: the demo on a phone (real BackdropFilter, fading caret) with the vote.
 - Answer comes in section 3: C makes the frames, A makes each one expensive.
 - Get ClickUp's sign-off and facts (Flutter version, sheet widget, cursorOpacityAnimates, platform views?) before telling it (Guide 14).''',
 );
