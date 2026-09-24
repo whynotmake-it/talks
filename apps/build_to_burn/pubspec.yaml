@@ -25,7 +25,8 @@ dependencies:
       url: https://github.com/whynotmake-it/rivership.git
       ref: e3fd207606651d1e4c033ffd38c7fde280df2592
       path: packages/motor
-  wnma_talk: any
+  wnma_talk:
+    path: ../../packages/wnma_talk
 
 dev_dependencies:
   flutter_test:

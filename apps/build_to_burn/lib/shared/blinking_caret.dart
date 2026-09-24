@@ -1,4 +1,4 @@
-import 'package:build_to_burn/design/style.dart';
+import 'package:build_to_burn/shared/style.dart';
 import 'package:flutter/widgets.dart';
 import 'package:motor/motor.dart';
 

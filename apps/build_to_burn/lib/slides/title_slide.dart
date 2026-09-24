@@ -1,6 +1,6 @@
-import 'package:build_to_burn/design/entrance.dart';
-import 'package:build_to_burn/design/slide_frame.dart';
-import 'package:build_to_burn/design/style.dart';
+import 'package:build_to_burn/shared/entrance.dart';
+import 'package:build_to_burn/shared/slide_frame.dart';
+import 'package:build_to_burn/shared/style.dart';
 import 'package:flutter/material.dart';
 import 'package:wnma_talk/wnma_talk.dart';
 

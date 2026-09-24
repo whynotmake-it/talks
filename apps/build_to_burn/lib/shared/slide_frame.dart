@@ -1,10 +1,14 @@
-import 'package:build_to_burn/design/style.dart';
+import 'package:build_to_burn/shared/style.dart';
 import 'package:example_design/example_design.dart' show LogoGlyph;
 import 'package:flutter/material.dart';
+import 'package:wnma_talk/slide_number.dart';
 import 'package:wnma_talk/wnma_talk.dart';
 
 /// The chrome every slide shares: the canvas, a top bar with the section
-/// label and a progress strip, and the slide number.
+/// label, the speaker and a progress strip, and the slide number.
+///
+/// The speaker comes from the first line of the slide's speaker notes, using
+/// wnma_talk's [timSlideNotesHeader] and [jesperSlideNotesHeader] convention.
 class SlideFrame extends StatelessWidget {
   const SlideFrame({
     required this.child,
@@ -25,6 +29,14 @@ class SlideFrame extends StatelessWidget {
     final deck = FlutterDeck.of(context);
     final count = deck.router.slides.length;
     final current = deck.slideNumber;
+    final speaker = switch (deck.configuration.speakerNotes
+        .split('\n')
+        .first
+        .trim()) {
+      timSlideNotesHeader => SlideSpeaker.tim,
+      jesperSlideNotesHeader => SlideSpeaker.jesper,
+      _ => null,
+    };
     return ColoredBox(
       color: p.canvas,
       child: DefaultTextStyle(
@@ -43,6 +55,19 @@ class SlideFrame extends StatelessWidget {
                     if (label case final label?)
                       Text(label.toUpperCase(), style: p.eyebrow),
                     const Spacer(),
+                    if (speaker case final speaker?) ...[
+                      Container(
+                        width: 10,
+                        height: 10,
+                        decoration: BoxDecoration(
+                          color: p.accent,
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Text(speaker.name.toUpperCase(), style: p.eyebrow),
+                      const SizedBox(width: 40),
+                    ],
                     for (var i = 1; i <= count; i++)
                       Container(
                         width: 28,

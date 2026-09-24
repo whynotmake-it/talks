@@ -1,30 +1,25 @@
-import 'package:build_to_burn/design/entrance.dart';
-import 'package:build_to_burn/design/slide_frame.dart';
-import 'package:build_to_burn/design/style.dart';
+import 'package:build_to_burn/shared/entrance.dart';
+import 'package:build_to_burn/shared/slide_frame.dart';
+import 'package:build_to_burn/shared/style.dart';
 import 'package:flutter/material.dart';
 import 'package:wnma_talk/wnma_talk.dart';
 
-/// A section opener: number, title and one lead sentence on the left, and a
-/// stage for the section's visualization on the right.
+/// A title and one lead sentence on the left, and a stage for a
+/// visualization on the right.
 ///
-/// Until a section's visualization exists, [stage] defaults to a labeled
+/// Until a slide's visualization exists, [stage] defaults to a labeled
 /// placeholder.
-class SectionSlideTemplate extends FlutterDeckSlideWidget {
-  const SectionSlideTemplate({
-    required this.number,
-    required this.label,
+class StageSlideTemplate extends FlutterDeckSlideWidget {
+  const StageSlideTemplate({
+    required this.section,
     required this.title,
     required this.lead,
-    required super.configuration,
     this.stage,
     super.key,
   });
 
-  /// The section's position in the talk, starting at 1.
-  final int number;
-
-  /// A short label for the top bar, e.g. `Frame pipeline`.
-  final String label;
+  /// The talk section, shown in the top bar, e.g. `02 · Frame pipeline`.
+  final String section;
 
   final String title;
 
@@ -38,11 +33,10 @@ class SectionSlideTemplate extends FlutterDeckSlideWidget {
     return FlutterDeckSlide.custom(
       builder: (context) {
         final p = Palette.of(context);
-        final eyebrow = '${number.toString().padLeft(2, '0')} · $label';
         return SlideFrame(
-          label: eyebrow,
+          label: section,
           child: Entrance(
-            count: 4,
+            count: 3,
             builder: (context, reveal) => Row(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
@@ -52,11 +46,9 @@ class SectionSlideTemplate extends FlutterDeckSlideWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      reveal(0, Text(eyebrow.toUpperCase(), style: p.eyebrow)),
-                      const SizedBox(height: 32),
-                      reveal(1, Text(title, style: p.display)),
+                      reveal(0, Text(title, style: p.display)),
                       const SizedBox(height: 36),
-                      reveal(2, Text(lead)),
+                      reveal(1, Text(lead)),
                     ],
                   ),
                 ),
@@ -64,7 +56,7 @@ class SectionSlideTemplate extends FlutterDeckSlideWidget {
                 Expanded(
                   flex: 4,
                   child: reveal(
-                    3,
+                    2,
                     Stage(child: stage ?? const _PlaceholderStage()),
                   ),
                 ),
