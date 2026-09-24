@@ -24,7 +24,7 @@ class AnimatedElement extends StatelessWidget {
     return MotionBuilder(
       value: visible ? Offset.zero : const Offset(0, 50),
       motion: motion,
-      converter: OffsetMotionConverter(),
+      converter: const OffsetMotionConverter(),
       builder: (context, value, child) => Transform.translate(
         offset: value,
         child: SingleMotionBuilder(
