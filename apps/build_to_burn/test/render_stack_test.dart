@@ -133,7 +133,7 @@ void main() {
   testWidgets('labels loop brackets with their rate, and cut ones', (
     tester,
   ) async {
-    await tester.pumpWidget(host(ahaScript.last.view));
+    await tester.pumpWidget(host(ahaScript[3].view));
     await pumpFrames(tester);
 
     expect(find.text('C · Repaint\n≈8/s'), findsOneWidget);
@@ -262,5 +262,19 @@ void main() {
     );
     final row7 = tester.getRect(find.text('7  Impeller passes'));
     expect((label.center.dy - row7.center.dy).abs(), lessThan(60));
+  });
+
+  testWidgets('after the partial #192128 cut, the spinner keeps pulsing', (
+    tester,
+  ) async {
+    await tester.pumpWidget(host(ahaScript.last.view));
+    await pumpFrames(tester);
+
+    expect(find.text('✂ #192128 · partial'), findsOneWidget);
+    expect(
+      find.text('S · Spinner\n≈120/s, paints\nin a RepaintBoundary'),
+      findsOneWidget,
+    );
+    expect(find.byKey(const ValueKey('arc-line-S')), findsOneWidget);
   });
 }

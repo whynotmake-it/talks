@@ -385,8 +385,19 @@ const _caretRepaint = LoopArc(
   rateLabel: '≈8/s',
 );
 
+/// A custom spinner inside a RepaintBoundary (spec section 4.1): it paints
+/// one small picture every tick, so #192128 can't skip its frames.
+const _spinner = LoopArc(
+  id: 'S',
+  label: 'Spinner',
+  startTier: 3,
+  perSecond: 120,
+  prominent: true,
+  rateLabel: '≈120/s, paints\nin a RepaintBoundary',
+);
+
 /// Aha (agenda § 3): a running Ticker means a full frame every vsync; the
-/// RepaintBoundary myth; #192128.
+/// RepaintBoundary myth; #192128 as a partial fix; the spinner it can't cut.
 final ahaScript = [
   const RenderStackStep(
     RenderStackView(arcs: [_rebuild, _repaint, _tickerFrame]),
@@ -437,8 +448,36 @@ final ahaScript = [
       },
     ),
     caption:
-        'With #192128 (master, expected in 3.50), drawFrame skips frames '
-        'with nothing repainted: no Scene. ≈119 → ≈7.9 Scenes per second.',
+        'A partial fix: with #192128 (master, expected in 3.50) drawFrame '
+        'skips frames where nothing painted. The caret: ≈119 → ≈7.9 '
+        'Scenes/s.',
+  ),
+  RenderStackStep(
+    RenderStackView(
+      arcs: const [
+        LoopArc(
+          id: 'T',
+          label: 'Ticker frame',
+          startTier: 1,
+          endTier: 4,
+          activeFromTier: 5,
+          origin: 'Ticker · every vsync',
+          rateLabel: 'caret: no Scene',
+          cutNote: '#192128 · partial',
+        ),
+        _spinner,
+      ],
+      light: {
+        3: .25,
+        4: .25,
+        5: TierLight.dim,
+        ..._lit([6, 7, 8, 9], 1),
+      },
+    ),
+    caption:
+        'But a spinner in a RepaintBoundary paints one small picture per '
+        'tick, so every frame still composites, rasters and blurs in full. '
+        'The real fix: stop or slow the ticker.',
   ),
 ];
 

@@ -58,6 +58,7 @@ const fixesSlide = SkeletonSlide(
 $jesperSlideNotesHeader
 Key message: kill idle frames first, then make each frame cheaper.
 - Fewer frames: cursorOpacityAnimates: false (iOS caret 60-120 -> 2 frames/s), no autofocus, TickerMode(enabled: false) on the page under a sheet, stop hidden spinners (Guide 10).
+- The main fix is stopping or slowing the ticker; it works for spinners and any per-frame painter. flutter/flutter#192128 (framework-side drawFrame gate, expected in 3.50 stable) is only partial: it skips frames where a ticker runs but nothing paints (the caret's hold ticks), not a spinner that paints every tick, even inside a RepaintBoundary.
 - fixed_ticker, and natively motor 2.0: tickerRate: on every motor widget, TickerRateScope for a subtree (rivership #320). It cuts frame count, not cost per frame. The fastest ticker on screen sets the frame rate; framework tickers (caret, Material spinners) ignore the scope (Guide 10.1).
 - Cheaper frames: BackdropGroup + BackdropFilter.grouped, clip every blur tightly, ImageFiltered for a known child, sigma on the sawtooth, BackdropFilter(enabled: false) when covered or during drag, snapshot blur only over static content.
 - RepaintBoundary around spinners saves UI-thread work only under Impeller.
