@@ -295,7 +295,7 @@ class _StackPicture extends StatelessWidget {
         if (expand[tier.number]! > .05) index,
     ].fold<int?>(null, (lowest, index) => lowest ?? index);
 
-    final stackOpacity = 1 - .82 * dim.clamp(0.0, 1.0);
+    final stackOpacity = 1 - .9 * dim.clamp(0.0, 1.0);
     return DefaultTextStyle(
       style: archivo(22, color: p.textSecondary),
       child: Stack(
@@ -351,13 +351,16 @@ class _StackPicture extends StatelessWidget {
         ),
     if (tiers.isNotEmpty) _cap(p, layout),
     ..._borders(p, layout),
-    _Labels(
-      tiers: tiers,
-      bands: bands,
-      layout: layout,
-      expand: expand,
-      light: light,
-    ),
+    // The hook's phone and vote stand alone: tier labels fade out fully.
+    if (dim < .99)
+      _Labels(
+        tiers: tiers,
+        bands: bands,
+        layout: layout,
+        expand: expand,
+        light: light,
+        opacity: 1 - dim.clamp(0.0, 1.0),
+      ),
     for (final (index, arc) in view.arcs.indexed)
       if (layout.indexOf(arc.startTier) >= 0 &&
           layout.indexOf(arc.endTier) >= 0)
@@ -1003,6 +1006,7 @@ class _Labels extends StatelessWidget {
     required this.layout,
     required this.expand,
     required this.light,
+    this.opacity = 1,
   });
 
   final List<StackTier> tiers;
@@ -1010,6 +1014,7 @@ class _Labels extends StatelessWidget {
   final _Layout layout;
   final Map<int, double> expand;
   final Map<int, double> light;
+  final double opacity;
 
   static const _lineHeight = 50.0;
   static const _headerHeight = 26.0;
@@ -1053,12 +1058,15 @@ class _Labels extends StatelessWidget {
 
     return Positioned.fill(
       child: IgnorePointer(
-        child: Stack(
-          clipBehavior: Clip.none,
-          children: [
-            for (final (i, entry) in entries.indexed)
-              ..._label(p, entry.index, placed[i], entry.header),
-          ],
+        child: Opacity(
+          opacity: opacity,
+          child: Stack(
+            clipBehavior: Clip.none,
+            children: [
+              for (final (i, entry) in entries.indexed)
+                ..._label(p, entry.index, placed[i], entry.header),
+            ],
+          ),
         ),
       ),
     );

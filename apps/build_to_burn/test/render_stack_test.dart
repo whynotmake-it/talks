@@ -140,6 +140,7 @@ void main() {
 
     expect(find.text('What keeps the GPU busy?'), findsOneWidget);
     expect(find.text('C  The blinking cursor'), findsOneWidget);
+    expect(find.text('9  Pixels'), findsNothing);
   });
 
   testWidgets('tiles flush to DRAM and re-seed from it', (tester) async {
