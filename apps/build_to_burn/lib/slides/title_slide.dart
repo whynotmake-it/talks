@@ -10,7 +10,7 @@ class TitleSlide extends FlutterDeckSlideWidget {
         configuration: const FlutterDeckSlideConfiguration(
           route: '/title',
           title: 'Title',
-          speakerNotes: 'Placeholder title. Final title and speakers TBD.',
+          speakerNotes: 'Placeholder title. Final title TBD.',
         ),
       );
 
@@ -77,7 +77,7 @@ class TitleSlide extends FlutterDeckSlideWidget {
                 reveal(
                   4,
                   Text(
-                    'Tim Lehmann & co-speaker · whynotmake.it',
+                    'Jesper Bellenbaum & Tim Lehmann · whynotmake.it',
                     style: p.title.copyWith(color: p.textSecondary),
                   ),
                 ),
