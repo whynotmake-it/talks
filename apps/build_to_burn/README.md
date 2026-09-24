@@ -2,16 +2,20 @@
 
 Fluttercon 2026 talk: following one Flutter frame from build to burn.
 
-## Getting Started
+Runs on motor 2.0 from the rivership PR stack. The git ref is pinned in this
+package's `pubspec.yaml` and in the `dependency_overrides` of the root
+`pubspec.yaml`; bump both together.
 
-This project is a starting point for a Flutter application.
+```sh
+flutter run -d macos             # the presentation target (Impeller)
+flutter run -d chrome            # quick look in the browser
+flutter test                     # every slide lays out with the real fonts
+```
 
-A few resources to get you started if this is your first Flutter project:
+Navigate with the arrow keys. Each slide has a route (`/#/hook`,
+`/#/frame-pipeline`, …) for jumping straight to it.
 
-- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
-- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+- `lib/design/`: tokens from motor's example gallery (`style.dart`), the
+  flutter_deck theme, the shared slide chrome, and motor-driven helpers.
+- `lib/templates/`: slide layouts.
+- `lib/slides/`: the slides, in the order `main.dart` lists them.
