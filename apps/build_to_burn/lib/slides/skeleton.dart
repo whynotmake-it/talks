@@ -103,6 +103,27 @@ Key message: the raster thread flattens the tree into one DisplayList and replay
   ),
 );
 
+const paintVsCompositeSlide = SkeletonSlide(
+  section: '3',
+  title: 'Paint vs composite',
+  configuration: FlutterDeckSlideConfiguration(
+    route: '/paint-vs-composite',
+    title: 'Paint vs composite',
+    speakerNotes:
+        '''
+$timSlideNotesHeader
+Key message: answer to the vote: C makes the frames, A makes each one expensive. GPU work = how often you draw x how hard each frame is.
+- iOS: TextField defaults cursorOpacityAnimates to true; the caret is an AnimationController whose ticker asks for a frame every vsync (60 or 120/s) while focused. Android default: a 500 ms timer, 2 frames/s (Guide 7.2).
+- The caret sits in its own repaint boundary: a tick re-records one rect, and nothing during the hold phases.
+- On stable, every tick still sends a new Scene, and the raster thread re-renders the whole screen with the blur: pass break + 3 blur passes, up to 120 times a second.
+- Each frame fits the budget, so no jank; the GPU just never idles. Heat builds, then throttling causes jank.
+- Myth-buster: RepaintBoundary and const save UI-thread work, not GPU work, under Impeller.
+- "A frame requested is not a frame rendered": flutter/flutter#192128 (master) skips ticks where nothing repainted. Helps the caret during holds, not spinners. Name it as coming unless it has reached stable.
+- It's a defaults problem, not "your code is wrong".
+- Planned: the render stack again, with the repaint loop (lower planes) vs the every-frame loop (above the handoff).''',
+  ),
+);
+
 const blurCostSlide = SkeletonSlide(
   section: '4',
   title: 'Why an everyday blur costs so much',

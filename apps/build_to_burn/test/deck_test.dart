@@ -1,6 +1,7 @@
 import 'package:build_to_burn/main.dart';
 import 'package:build_to_burn/shared/slide_frame.dart';
 import 'package:build_to_burn/slides/skeleton.dart';
+import 'package:build_to_burn/visualizations/render_stack/render_stack_content.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:wnma_talk/slide_number.dart';
 import 'package:wnma_talk/wnma_talk.dart';
@@ -41,8 +42,8 @@ void main() {
     }
 
     expect(deck().slideNumber, 11);
-    // 10 slide changes plus the extra steps of the two visualizations.
-    expect(advances, 10 + (7 - 1) + (4 - 1));
+    // 10 slide changes plus the render stack's extra steps.
+    expect(advances, 10 + renderStackIntro.length - 1);
   });
 
   testWidgets('shows the speaker from the speaker notes', (tester) async {
