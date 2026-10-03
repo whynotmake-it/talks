@@ -94,8 +94,11 @@ class _HookScreen extends StatelessWidget {
       children: [
         const ColoredBox(color: Color(0xFF2563EB)),
         for (final (left, top, size) in [
+          // Two circles sit behind the card, so its blur shows. The same as
+          // the GPU chapter's phone.
           (40.0, 170.0, 150.0),
-          (200.0, 470.0, 120.0),
+          (160.0, 290.0, 150.0),
+          (30.0, 400.0, 110.0),
         ])
           Positioned(
             left: left,

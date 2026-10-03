@@ -40,7 +40,7 @@ final hookSlide = RenderStackSlide(
   title: 'Hook',
   script: hookScript,
   entry: coldOpenScript.last.view,
-  backEntry: stage2Step.view,
+  backEntry: docsStep.view,
   transition: const FlutterDeckTransition.none(),
   speakerNotes: jesperSlideNotesHeader,
 );
@@ -51,8 +51,9 @@ final hookSlide = RenderStackSlide(
 final stage2Slide = _stackSlide(
   '/stage-2',
   layerHeading(2),
-  // Then the docs' trees come up as a dialog: where the docs stop.
-  [stage2Step, stage2DocsStep],
+  // The docs' trees come up as a dialog over the hook, close back onto the
+  // code, and then the code lands on the stack.
+  [docsStep, codeStep, stage2Step],
   entry: hookScript.last.view,
   backEntry: paintSourceStep.view,
   speakerNotes: timSlideNotesHeader,
@@ -63,7 +64,7 @@ final paintSourceSlide = _stackSlide(
   '/paint-source',
   layerHeading(3, 'Inside paint()'),
   [paintSourceStep],
-  entry: stage2DocsStep.view,
+  entry: stage2Step.view,
   backEntry: stage3Step.view,
   speakerNotes: timSlideNotesHeader,
 );
@@ -120,15 +121,6 @@ final stage8Slide = _stackSlide(
   layerHeading(8),
   [stage8Step],
   entry: stage7Step.view,
-  backEntry: backpressureStep.view,
-  speakerNotes: jesperSlideNotesHeader,
-);
-
-final backpressureSlide = _stackSlide(
-  '/backpressure',
-  'Back-pressure',
-  [backpressureStep],
-  entry: stage8Step.view,
   backEntry: stage9Step.view,
   speakerNotes: jesperSlideNotesHeader,
 );
@@ -137,7 +129,7 @@ final stage9Slide = _stackSlide(
   '/stage-9',
   layerHeading(9),
   [stage9Step],
-  entry: backpressureStep.view,
+  entry: stage8Step.view,
   backEntry: framesStep.view,
   speakerNotes: jesperSlideNotesHeader,
 );

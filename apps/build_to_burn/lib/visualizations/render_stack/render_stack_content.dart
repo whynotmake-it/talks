@@ -481,15 +481,22 @@ const hookScript = [
 // stage. Moving on from each stage's slide lands it as its plane while the
 // next stage comes in.
 
+/// The official docs' picture of the trees, as a dialog over the hook: the
+/// docs stop at the render tree, this talk goes on toward the GPU.
+final docsStep = RenderStackStep(
+  const RenderStackView(focus: 1, phone: _hookVote, docs: true),
+  caption: layerHeading(1),
+);
+
+/// The dialog closed, back on the code and its phone, before it lands. The
+/// vote is done.
+final codeStep = RenderStackStep(
+  const RenderStackView(focus: 1, phone: HookPhone()),
+  caption: layerHeading(1),
+);
+
 // The code gains its widget colors as it lands, matching the render objects.
 final stage2Step = _stageSlide(2, widgetColors: true);
-
-/// The official docs' picture of the trees, as a dialog over the render tree:
-/// the docs stop here, this talk goes on toward the GPU.
-final stage2DocsStep = RenderStackStep(
-  const RenderStackView(focus: 2, widgetColors: true, docs: true),
-  caption: layerHeading(2),
-);
 
 /// The paint() signatures you may have written yourself, before the demo's
 /// paint calls: render objects paint the way a CustomPainter does.

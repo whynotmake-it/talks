@@ -1,6 +1,7 @@
 import 'package:build_to_burn/font_licenses.dart';
 import 'package:build_to_burn/shared/deck_theme.dart';
 import 'package:build_to_burn/shared/style.dart';
+import 'package:build_to_burn/slides/gpu_chapter_slide.dart';
 import 'package:build_to_burn/slides/render_stack_slides.dart';
 import 'package:build_to_burn/slides/skeleton.dart';
 import 'package:build_to_burn/slides/title_slide.dart';
@@ -44,8 +45,8 @@ class BuildToBurnTalk extends StatelessWidget {
             stage5Slide,
             stage6Slide,
             stage7Slide,
+            const GpuChapterSlide(),
             stage8Slide,
-            backpressureSlide,
             stage9Slide,
             framesSlide,
             limitsSlide,
