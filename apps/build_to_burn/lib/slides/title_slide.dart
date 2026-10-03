@@ -77,7 +77,7 @@ class TitleSlide extends FlutterDeckSlideWidget {
                 reveal(
                   4,
                   Text(
-                    'Jesper Bellenbaum & Tim Lehmann · whynotmake.it',
+                    'whynotmake.it',
                     style: p.title.copyWith(color: p.textSecondary),
                   ),
                 ),

@@ -1,24 +1,19 @@
 import 'package:build_to_burn/shared/style.dart';
-import 'package:example_design/example_design.dart' show LogoGlyph;
 import 'package:flutter/material.dart';
 import 'package:wnma_talk/slide_number.dart';
 import 'package:wnma_talk/wnma_talk.dart';
 
-/// The chrome every slide shares: the canvas, a top bar with the section
-/// label, the speaker and a progress strip, and the slide number.
+/// The chrome every slide shares: the canvas, a top bar with the speaker dot
+/// and a progress strip, and the slide number.
 ///
 /// The speaker comes from the first line of the slide's speaker notes, using
 /// wnma_talk's [timSlideNotesHeader] and [jesperSlideNotesHeader] convention.
 class SlideFrame extends StatelessWidget {
   const SlideFrame({
     required this.child,
-    this.label,
     this.padding = const EdgeInsets.fromLTRB(120, 0, 120, 96),
     super.key,
   });
-
-  /// The eyebrow in the top bar, e.g. `02 · FRAME PIPELINE`.
-  final String? label;
 
   final EdgeInsets padding;
   final Widget child;
@@ -50,22 +45,16 @@ class SlideFrame extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(horizontal: 120),
                 child: Row(
                   children: [
-                    LogoGlyph(color: p.accent, size: 36),
-                    const SizedBox(width: 24),
-                    if (label case final label?)
-                      Text(label.toUpperCase(), style: p.eyebrow),
                     const Spacer(),
                     if (speaker case final speaker?) ...[
                       Container(
                         width: 10,
                         height: 10,
                         decoration: BoxDecoration(
-                          color: p.accent,
+                          color: speaker.color,
                           shape: BoxShape.circle,
                         ),
                       ),
-                      const SizedBox(width: 12),
-                      Text(speaker.name.toUpperCase(), style: p.eyebrow),
                       const SizedBox(width: 40),
                     ],
                     for (var i = 1; i <= count; i++)

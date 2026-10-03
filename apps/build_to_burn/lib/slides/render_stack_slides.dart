@@ -8,7 +8,6 @@ import 'package:wnma_talk/slide_number.dart';
 final coldOpenSlide = RenderStackSlide(
   route: '/cold-open',
   title: 'Cold open',
-  section: '0',
   script: coldOpenScript,
   speakerNotes:
       '''
@@ -22,7 +21,6 @@ Key message: you all write this. The spec's Demo widget: a blue page, a frosted 
 final uiHalfSlide = RenderStackSlide(
   route: '/pipeline-ui',
   title: 'Pipeline, UI half',
-  section: '2a',
   script: uiHalfScript,
   speakerNotes:
       '''
@@ -39,7 +37,6 @@ Key message: painting records, layers group, and every scheduled frame sends a n
 final rasterHalfSlide = RenderStackSlide(
   route: '/pipeline-raster',
   title: 'Pipeline, raster half',
-  section: '2b',
   script: rasterHalfScript,
   speakerNotes:
       '''
@@ -56,7 +53,6 @@ Key message: the raster thread flattens the tree into one DisplayList and replay
 final ahaSlide = RenderStackSlide(
   route: '/paint-vs-composite',
   title: 'Paint vs composite',
-  section: '3',
   script: ahaScript,
   speakerNotes:
       '''
@@ -78,7 +74,6 @@ Key message: answer to the vote: C makes the frames, A makes each one expensive.
 final profilingSlide = RenderStackSlide(
   route: '/profiling',
   title: 'Profiling',
-  section: '5',
   script: profilingScript,
   speakerNotes:
       '''
@@ -95,7 +90,6 @@ Key message: DevTools shows the symptom; platform tools show the cost.
 final hookSlide = RenderStackSlide(
   route: '/hook',
   title: 'Hook',
-  section: '1',
   script: hookScript,
   speakerNotes:
       '''
@@ -112,7 +106,6 @@ Key message: a search sheet over the app drove the GPU to its limit and never le
 final blurCostSlide = RenderStackSlide(
   route: '/blur-cost',
   title: 'Why blur costs',
-  section: '4',
   script: blurCostScript,
   speakerNotes:
       '''

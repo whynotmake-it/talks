@@ -10,14 +10,10 @@ import 'package:wnma_talk/wnma_talk.dart';
 /// Replace these with real slides. Nothing here is a layout to build on.
 class SkeletonSlide extends FlutterDeckSlideWidget {
   const SkeletonSlide({
-    required this.section,
     required this.title,
     required super.configuration,
     super.key,
   });
-
-  /// The agenda section, e.g. `2a`.
-  final String section;
 
   final String title;
 
@@ -27,7 +23,6 @@ class SkeletonSlide extends FlutterDeckSlideWidget {
       builder: (context) {
         final p = Palette.of(context);
         return SlideFrame(
-          label: 'Section $section',
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisAlignment: MainAxisAlignment.center,
@@ -48,7 +43,6 @@ class SkeletonSlide extends FlutterDeckSlideWidget {
 }
 
 const fixesSlide = SkeletonSlide(
-  section: '6',
   title: 'Fixes: idle screens and animating screens',
   configuration: FlutterDeckSlideConfiguration(
     route: '/fixes',
@@ -67,7 +61,6 @@ Key message: kill idle frames first, then make each frame cheaper.
 );
 
 const productionSlide = SkeletonSlide(
-  section: '7',
   title: 'Production, and a skill that reads the trace',
   configuration: FlutterDeckSlideConfiguration(
     route: '/production',
@@ -85,7 +78,6 @@ Key message: log idle frames per second in production; let /frame-autopsy read t
 );
 
 const closeSlide = SkeletonSlide(
-  section: '8',
   title: 'The Monday checklist',
   configuration: FlutterDeckSlideConfiguration(
     route: '/close',

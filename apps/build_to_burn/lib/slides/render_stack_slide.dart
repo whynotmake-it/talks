@@ -14,7 +14,6 @@ class RenderStackSlide extends FlutterDeckSlideWidget {
   RenderStackSlide({
     required String route,
     required String title,
-    required this.section,
     required this.script,
     String speakerNotes = '',
     super.key,
@@ -27,16 +26,12 @@ class RenderStackSlide extends FlutterDeckSlideWidget {
          ),
        );
 
-  /// The agenda section, shown in the top bar.
-  final String section;
-
   final List<RenderStackStep> script;
 
   @override
   Widget build(BuildContext context) {
     return FlutterDeckSlide.custom(
       builder: (context) => SlideFrame(
-        label: 'Section $section',
         padding: const EdgeInsets.fromLTRB(80, 0, 80, 24),
         child: FlutterDeckSlideStepsBuilder(
           builder: (context, step) {

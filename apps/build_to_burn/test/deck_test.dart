@@ -2,6 +2,7 @@ import 'package:build_to_burn/main.dart';
 import 'package:build_to_burn/shared/slide_frame.dart';
 import 'package:build_to_burn/slides/skeleton.dart';
 import 'package:build_to_burn/visualizations/render_stack/render_stack_content.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:wnma_talk/slide_number.dart';
 import 'package:wnma_talk/wnma_talk.dart';
@@ -55,12 +56,11 @@ void main() {
     expect(advances, 10 + extraSteps);
   });
 
-  testWidgets('shows the speaker from the speaker notes', (tester) async {
+  testWidgets('marks the speaker with a colored dot', (tester) async {
     await tester.pumpWidget(
       FlutterDeckApp(
         slides: const [
           SkeletonSlide(
-            section: 'Test',
             title: 'Title',
             configuration: FlutterDeckSlideConfiguration(
               route: '/tim',
@@ -72,6 +72,15 @@ void main() {
     );
     await tester.pump(const Duration(seconds: 1));
 
-    expect(find.text('TIM'), findsOneWidget);
+    expect(
+      find.byWidgetPredicate(
+        (w) =>
+            w is Container &&
+            w.decoration is BoxDecoration &&
+            (w.decoration! as BoxDecoration).shape == BoxShape.circle &&
+            (w.decoration! as BoxDecoration).color == SlideSpeaker.tim.color,
+      ),
+      findsOneWidget,
+    );
   });
 }
