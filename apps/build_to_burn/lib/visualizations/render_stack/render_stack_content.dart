@@ -264,7 +264,11 @@ final uiHalfScript = [
     _landing(number),
   ],
   _stageSlide(5),
-  _landing(5, borders: {StackBorder.thread}),
+  _landing(
+    5,
+    borders: {StackBorder.thread},
+    caption: 'Plane 5: one Scene, handed to the raster thread.',
+  ),
 ];
 
 /// Pipeline, raster half (agenda § 2b): stages 6-9, then frames in flight
@@ -390,7 +394,6 @@ final ahaScript = [
           prominent: true,
           origin: 'Ticker · every vsync',
           perSecond: 119,
-          rateLabel: 'no Scene',
           cutNote: 'skipped',
         ),
         _caretRepaint,

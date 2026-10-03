@@ -259,7 +259,7 @@ class _Gutter extends StatelessWidget {
             from: 7.1,
             to: 9,
             color: heat,
-            label: 'GPU executes ↑\ncommit at layer 7',
+            label: 'GPU executes ↑\ncommit at plane 7',
             labelRow: 8.2,
           ),
           gpu,
@@ -599,8 +599,8 @@ class _FeedbackArrows extends StatelessWidget {
               ]),
             ),
             Positioned(
-              left: _rowsRight + 30,
-              width: 1960 - _rowsRight - 30,
+              left: _rowsRight + 50,
+              width: 1960 - _rowsRight - 50,
               top: rows.y(6) - 18,
               child: Text(
                 'GPU busy → raster waits',

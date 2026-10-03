@@ -145,7 +145,7 @@ void main() {
     await pumpFrames(tester);
 
     expect(find.text('CPU encodes'), findsOneWidget);
-    expect(find.text('GPU executes ↑\ncommit at layer 7'), findsOneWidget);
+    expect(find.text('GPU executes ↑\ncommit at plane 7'), findsOneWidget);
   });
 
   testWidgets('labels loop brackets with their rate, and cut ones', (
@@ -155,7 +155,7 @@ void main() {
     await pumpFrames(tester);
 
     expect(find.text('C · Repaint  8/s'), findsOneWidget);
-    expect(find.text('T · Ticker  no Scene'), findsOneWidget);
+    expect(find.text('T · Ticker'), findsOneWidget);
     expect(find.text('vsync'), findsOneWidget);
     expect(find.text('skipped'), findsOneWidget);
   });
@@ -274,7 +274,7 @@ void main() {
     await pumpFrames(tester);
 
     final label = tester.getRect(
-      find.text('GPU executes ↑\ncommit at layer 7'),
+      find.text('GPU executes ↑\ncommit at plane 7'),
     );
     final row7 = tester.getRect(find.text('7  Impeller passes'));
     expect((label.center.dy - row7.center.dy).abs(), lessThan(60));
