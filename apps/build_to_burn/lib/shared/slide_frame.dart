@@ -3,8 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:wnma_talk/slide_number.dart';
 import 'package:wnma_talk/wnma_talk.dart';
 
-/// The chrome every slide shares: the canvas, a top bar with the speaker dot
-/// and a progress strip, and the slide number.
+/// The chrome every slide shares: the canvas, a top bar with the speaker dot,
+/// and the slide number.
 ///
 /// The speaker comes from the first line of the slide's speaker notes, using
 /// wnma_talk's [timSlideNotesHeader] and [jesperSlideNotesHeader] convention.
@@ -22,7 +22,6 @@ class SlideFrame extends StatelessWidget {
   Widget build(BuildContext context) {
     final p = Palette.of(context);
     final deck = FlutterDeck.of(context);
-    final count = deck.router.slides.length;
     final current = deck.slideNumber;
     final speaker = switch (deck.configuration.speakerNotes
         .split('\n')
@@ -55,15 +54,7 @@ class SlideFrame extends StatelessWidget {
                           shape: BoxShape.circle,
                         ),
                       ),
-                      const SizedBox(width: 40),
                     ],
-                    for (var i = 1; i <= count; i++)
-                      Container(
-                        width: 28,
-                        height: 4,
-                        margin: const EdgeInsets.only(left: 6),
-                        color: i == current ? p.accent : p.control,
-                      ),
                   ],
                 ),
               ),
@@ -80,8 +71,7 @@ class SlideFrame extends StatelessWidget {
                     Text('whynotmake.it · Fluttercon 2026', style: p.caption),
                     const Spacer(),
                     Text(
-                      '${current.toString().padLeft(2, '0')} / '
-                      '${count.toString().padLeft(2, '0')}',
+                      current.toString().padLeft(2, '0'),
                       style: p.eyebrow,
                     ),
                   ],

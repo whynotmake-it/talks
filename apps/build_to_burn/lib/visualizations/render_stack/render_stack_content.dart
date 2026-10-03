@@ -48,6 +48,49 @@ class Demo extends StatelessWidget {
   }
 }''';
 
+/// The demo's widget tree, for stage 2's split view beside the render tree:
+/// each chip is the color of the render objects its widget creates.
+const demoWidgetTree = WidgetNode(
+  'Stack',
+  widget: DemoWidget.stack,
+  children: [
+    WidgetNode(
+      'Positioned.fill',
+      widget: DemoWidget.positioned,
+      note: 'no render object',
+      children: [WidgetNode('ColoredBox', widget: DemoWidget.coloredBox)],
+    ),
+    WidgetNode(
+      'Center',
+      widget: DemoWidget.center,
+      children: [
+        WidgetNode(
+          'ClipRRect',
+          widget: DemoWidget.clipRRect,
+          children: [
+            WidgetNode(
+              'BackdropFilter',
+              widget: DemoWidget.backdropFilter,
+              children: [
+                WidgetNode(
+                  'Container',
+                  widget: DemoWidget.container,
+                  children: [
+                    WidgetNode(
+                      'CupertinoTextField',
+                      widget: DemoWidget.textField,
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ],
+        ),
+      ],
+    ),
+  ],
+);
+
 const renderStackTiers = [
   StackTier(
     number: 1,
@@ -66,7 +109,7 @@ const renderStackTiers = [
     number: 2,
     band: 'ui',
     title: 'Render objects',
-    stage: 'Layout: every box gets a size.',
+    stage: 'Widgets create render objects. Layout sizes them.',
     inputs: 'widget tree',
     outputs: 'laid-out render tree',
     example:
@@ -75,50 +118,203 @@ const renderStackTiers = [
     handoff: 'dirty repaint boundaries go to flushPaint',
     where: 'UI thread · layout',
     token: 'RenderObject',
-    detail: ChipsDetail([
-      'RenderColoredBox · page',
-      'RenderClipRRect',
-      'RenderBackdropFilter',
-      'caret · repaint boundary',
-    ]),
+    detail: RenderTreeDetail(
+      RenderNode(
+        'RenderStack',
+        widget: DemoWidget.stack,
+        size: '393×852',
+        children: [
+          RenderNode(
+            '_RenderColoredBox',
+            widget: DemoWidget.coloredBox,
+            size: '393×852',
+            note: 'sized by Positioned.fill',
+          ),
+          RenderNode(
+            'RenderPositionedBox',
+            widget: DemoWidget.center,
+            size: '393×852',
+            children: [
+              RenderNode(
+                'RenderClipRRect',
+                widget: DemoWidget.clipRRect,
+                size: '300×120',
+                children: [
+                  RenderNode(
+                    'RenderBackdropFilter',
+                    widget: DemoWidget.backdropFilter,
+                    size: '300×120',
+                    children: [
+                      RenderNode(
+                        'RenderConstrainedBox',
+                        widget: DemoWidget.container,
+                        size: '300×120',
+                        children: [
+                          RenderNode(
+                            '_RenderColoredBox',
+                            widget: DemoWidget.container,
+                            size: '300×120',
+                            children: [
+                              RenderNode(
+                                'RenderPositionedBox',
+                                widget: DemoWidget.container,
+                                size: '300×120',
+                                children: [
+                                  RenderNode(
+                                    '22 render objects',
+                                    widget: DemoWidget.textField,
+                                    count: 22,
+                                    note: 'RenderDecoratedBox … RenderEditable',
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ],
+      ),
+    ),
   ),
   StackTier(
     number: 3,
     band: 'ui',
     title: 'Paint calls',
-    stage: 'Paint records four pictures. Nothing is drawn yet.',
+    stage: 'Paint records pictures and pushes layers.',
     inputs: 'laid-out render tree',
-    outputs: 'four pictures',
-    example: '④ drawRRect(2×19, r=2, #007AFF): the caret',
-    handoff: 'each picture goes into a PictureLayer',
+    outputs: 'pictures + layers',
+    example:
+        'RenderClipRRect pushes a ClipRRectLayer because its child needs '
+        'compositing',
+    handoff: 'pushLayer adds to the layer tree as paint runs',
     where: 'UI thread · PictureRecorder',
     token: 'Picture',
-    detail: LinesDetail([
-      '1  drawRect · page',
-      '2  drawRRect · frost, field',
-      '3  drawParagraph · text',
-      '4  drawRRect · caret',
-    ]),
+    detail: PaintDetail(
+      [
+        PaintOp(
+          '_RenderColoredBox',
+          'drawRect',
+          widget: DemoWidget.coloredBox,
+          picture: 1,
+        ),
+        PaintOp(
+          'RenderClipRRect',
+          'push',
+          widget: DemoWidget.clipRRect,
+          pushes: 'ClipRRectLayer',
+        ),
+        PaintOp(
+          'RenderBackdropFilter',
+          'push',
+          widget: DemoWidget.backdropFilter,
+          pushes: 'BackdropFilterLayer',
+        ),
+        PaintOp(
+          '_RenderColoredBox',
+          'drawRect',
+          widget: DemoWidget.container,
+          picture: 2,
+        ),
+        PaintOp(
+          'RenderDecoratedBox',
+          'drawRRect',
+          widget: DemoWidget.textField,
+          picture: 2,
+        ),
+        PaintOp(
+          'RenderRepaintBoundary',
+          'push',
+          widget: DemoWidget.textField,
+          pushes: 'OffsetLayer',
+        ),
+        PaintOp(
+          'RenderEditable',
+          'drawParagraph',
+          widget: DemoWidget.textField,
+          picture: 3,
+        ),
+        PaintOp(
+          '_RenderEditableCustomPaint',
+          'drawRRect',
+          widget: DemoWidget.textField,
+          picture: 4,
+          pushes: 'OffsetLayer',
+        ),
+      ],
+      notes: [
+        'Pushing a layer ends the current picture.',
+        'The clip is a layer only because BackdropFilter needs compositing.',
+      ],
+    ),
   ),
   StackTier(
     number: 4,
     band: 'ui',
     title: 'Layer tree',
-    stage: 'The pictures go into a layer tree.',
-    inputs: 'four pictures',
+    stage: 'The pushed layers hold the pictures: a layer tree.',
+    inputs: 'pictures + layers',
     outputs: 'layer tree',
-    example: 'BackdropFilterLayer(blur 10) holds ② and the text field',
+    example: 'BackdropFilterLayer(blur 10) holds picture ② and the field',
     handoff: 'walked by a SceneBuilder',
     where: 'UI thread',
     token: 'Layer',
-    detail: LinesDetail([
-      'root',
-      '├ Picture 1 · page',
-      '└ ClipRRect',
-      '  └ BackdropFilter',
-      '    ├ Picture 2',
-      '    └ field: 3, caret 4',
-    ]),
+    detail: LayerTreeDetail(
+      LayerNode(
+        'OffsetLayer · route boundary',
+        children: [
+          LayerNode(
+            'Picture ①',
+            picture: 1,
+            sources: [DemoWidget.coloredBox],
+          ),
+          LayerNode(
+            'ClipRRectLayer · r 24',
+            widget: DemoWidget.clipRRect,
+            children: [
+              LayerNode(
+                'BackdropFilterLayer · blur 10',
+                widget: DemoWidget.backdropFilter,
+                children: [
+                  LayerNode(
+                    'Picture ②',
+                    picture: 2,
+                    sources: [DemoWidget.container, DemoWidget.textField],
+                  ),
+                  LayerNode(
+                    'OffsetLayer · field',
+                    widget: DemoWidget.textField,
+                    children: [
+                      LayerNode(
+                        'Picture ③',
+                        picture: 3,
+                        sources: [DemoWidget.textField],
+                      ),
+                      LayerNode(
+                        'OffsetLayer · caret',
+                        widget: DemoWidget.textField,
+                        children: [
+                          LayerNode(
+                            'Picture ④',
+                            picture: 4,
+                            sources: [DemoWidget.textField],
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ],
+      ),
+    ),
   ),
   StackTier(
     number: 5,
@@ -211,23 +407,37 @@ Map<int, double> _lit(Iterable<int> tiers, double light) => {
 
 Set<int> _upTo(int tier) => {for (var n = 1; n <= tier; n++) n};
 
-StackTier _tier(int number) =>
-    renderStackTiers.firstWhere((tier) => tier.number == number);
+/// Each layer's slide title: what that stage's slide shows.
+const layerTitles = {
+  1: 'Your widget code',
+  2: 'Render objects',
+  3: 'Paint calls',
+  4: 'Layer tree',
+  5: 'One Scene',
+  6: 'One DisplayList',
+  7: 'Render passes',
+  8: 'GPU tiles',
+  9: 'Pixels on screen',
+};
 
-/// Stage [number] as its own flat slide.
-RenderStackStep _stageSlide(int number, {String? caption}) => RenderStackStep(
-  RenderStackView(focus: number),
-  caption: caption ?? _tier(number).stage,
-);
+/// The heading of layer [number]'s slide: its number, then its title.
+String layerHeading(int number, [String? title]) =>
+    '$number: ${title ?? layerTitles[number]}';
 
-/// Stage [number]'s slide landing on the stack as its plane.
-RenderStackStep _landing(
+/// Stage [number] as its own flat slide. Moving on to the next slide lands
+/// it on the stack as its plane.
+RenderStackStep _stageSlide(
   int number, {
-  Set<StackBorder> borders = const {},
   String? caption,
+  bool widgetColors = false,
+  Set<StackBorder> borders = const {},
 }) => RenderStackStep(
-  RenderStackView(focus: number, landed: true, borders: borders),
-  caption: caption ?? 'Plane $number: ${_tier(number).outputs}.',
+  RenderStackView(
+    focus: number,
+    widgetColors: widgetColors,
+    borders: borders,
+  ),
+  caption: caption ?? layerHeading(number),
 );
 
 /// Cold open (agenda § 0): only the code slide.
@@ -235,11 +445,12 @@ final coldOpenScript = [
   _stageSlide(1, caption: 'You all write this.'),
 ];
 
-/// Hook (agenda § 1): the demo on a phone and the vote. No stack yet.
+/// Hook (agenda § 1): the demo's code on the left, the demo on a phone and
+/// the vote on the right. No stack yet.
 const hookScript = [
   RenderStackStep(
     RenderStackView(
-      visibleTiers: {},
+      focus: 1,
       phone: HookPhone(
         question: 'What keeps the GPU busy?',
         options: [
@@ -254,59 +465,57 @@ const hookScript = [
   ),
 ];
 
-/// Pipeline, UI half (agenda § 2a): the code lands as plane 1, then stages
-/// 2-5, each as its own slide that lands on the stack.
-final uiHalfScript = [
-  _stageSlide(1, caption: 'Your code. What happens to it next?'),
-  _landing(1),
-  for (final number in [2, 3, 4]) ...[
-    _stageSlide(number),
-    _landing(number),
-  ],
-  _stageSlide(5),
-  _landing(
-    5,
-    borders: {StackBorder.thread},
-    caption: 'Plane 5: one Scene, handed to the raster thread.',
-  ),
-];
+// Pipeline, UI half (agenda § 2a) and raster half (§ 2b): one deck slide per
+// stage. The code opens full screen and gains its widget colors; moving on
+// from each stage's slide lands it as its plane while the next stage comes
+// in.
 
-/// Pipeline, raster half (agenda § 2b): stages 6-9, then frames in flight
-/// (spec section 6) and the four-band zoom-out.
-final rasterHalfScript = [
-  _stageSlide(6),
-  _landing(6),
-  _stageSlide(7),
-  _landing(
-    7,
-    borders: {StackBorder.gpu},
-    caption: 'Plane 7: command buffers. Work crosses to the GPU.',
+final codeStep = _stageSlide(1);
+
+final colorsStep = RenderStackStep(
+  const RenderStackView(focus: 1, widgetColors: true),
+  caption: layerHeading(1, 'Widgets by color'),
+);
+
+// The code keeps its colors while it lands.
+final stage2Step = _stageSlide(2, widgetColors: true);
+final stage3Step = _stageSlide(3);
+final stage4Step = _stageSlide(4);
+final stage5Step = _stageSlide(5);
+
+// Plane 5 lands across the thread border.
+final stage6Step = _stageSlide(6, borders: {StackBorder.thread});
+final stage7Step = _stageSlide(7);
+
+// Plane 7 lands across the GPU border.
+final stage8Step = _stageSlide(8, borders: {StackBorder.gpu});
+
+/// GPU back-pressure (spec section 6): the raster thread waits on a busy GPU.
+final backpressureStep = RenderStackStep(
+  RenderStackView(
+    visibleTiers: _upTo(8),
+    light: const {6: TierLight.dim, 7: TierLight.dim, 8: TierLight.hot},
+    feedback: true,
   ),
-  _stageSlide(8),
-  _landing(8),
-  RenderStackStep(
-    RenderStackView(
-      visibleTiers: _upTo(8),
-      light: const {6: TierLight.dim, 7: TierLight.dim, 8: TierLight.hot},
-      feedback: true,
-    ),
-    caption: 'When the GPU falls behind, the raster thread waits.',
-  ),
-  _stageSlide(9),
-  _landing(9, borders: {StackBorder.present}),
-  const RenderStackStep(
-    RenderStackView(frames: FramesInFlight(animated: true)),
-    caption: 'Frames overlap: N+1 builds while N rasters and N−1 draws.',
-  ),
-  const RenderStackStep(
-    RenderStackView(frames: FramesInFlight(limits: true)),
-    caption: 'One UI thread, one raster thread. Pipelining costs latency.',
-  ),
-  const RenderStackStep(
-    RenderStackView(showBands: true),
-    caption: 'Zoomed out: five bands, two threads, one GPU.',
-  ),
-];
+  caption: 'When the GPU falls behind, the raster thread waits.',
+);
+
+final stage9Step = _stageSlide(9);
+
+const framesStep = RenderStackStep(
+  RenderStackView(frames: FramesInFlight(animated: true)),
+  caption: 'Frames overlap: N+1 builds while N rasters and N−1 draws.',
+);
+
+const limitsStep = RenderStackStep(
+  RenderStackView(frames: FramesInFlight(limits: true)),
+  caption: 'One UI thread, one raster thread. Pipelining costs latency.',
+);
+
+const bandsStep = RenderStackStep(
+  RenderStackView(showBands: true),
+  caption: 'Zoomed out: five bands, two threads, one GPU.',
+);
 
 /// Lighting for a ticker frame (spec section 5): tiers 1-4 off (nothing is
 /// dirty), 5 dim, 6-9 hot.

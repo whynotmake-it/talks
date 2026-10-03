@@ -1,3 +1,5 @@
+import 'dart:ui' show Color;
+
 import 'package:flutter/foundation.dart';
 
 /// A group of tiers drawn close together, e.g. everything on the UI thread.
@@ -38,11 +40,136 @@ class LinesDetail extends TierDetail {
   final List<String> lines;
 }
 
+/// A widget in the demo code, and the color of the render objects it creates.
+enum DemoWidget {
+  stack('Stack', Color(0xFF9467BD)),
+  positioned('Positioned.fill', null), // creates no render object
+  coloredBox('ColoredBox', Color(0xFF1F77B4)),
+  center('Center', Color(0xFF2CA02C)),
+  clipRRect('ClipRRect', Color(0xFFFF7F0E)),
+  backdropFilter('BackdropFilter', Color(0xFFE377C2)),
+  container('Container', Color(0xFF17BECF)),
+  textField('CupertinoTextField', Color(0xFF8C564B));
+
+  const DemoWidget(this.label, this.color);
+
+  final String label;
+  final Color? color;
+}
+
+/// One render object in [RenderTreeDetail].
+@immutable
+class RenderNode {
+  const RenderNode(
+    this.name, {
+    required this.widget,
+    this.size = '',
+    this.children = const [],
+    this.count = 1,
+    this.note = '',
+  });
+
+  final String name;
+  final DemoWidget widget;
+  final String size;
+  final List<RenderNode> children;
+
+  /// >1: one node standing for that many render objects.
+  final int count;
+  final String note;
+}
+
+/// The demo's render tree, colored by the widget that created each node.
+class RenderTreeDetail extends TierDetail {
+  const RenderTreeDetail(this.root);
+
+  final RenderNode root;
+}
+
+/// One paint call in [PaintDetail]: a draw into a picture or a pushed layer.
+@immutable
+class PaintOp {
+  const PaintOp(
+    this.renderObject,
+    this.action, {
+    required this.widget,
+    this.picture,
+    this.pushes,
+  });
+
+  final String renderObject;
+  final String action;
+  final DemoWidget widget;
+
+  /// The picture this draws into, if any.
+  final int? picture;
+
+  /// The layer this pushes, if any.
+  final String? pushes;
+}
+
+/// The demo's paint calls in order, colored by widget.
+class PaintDetail extends TierDetail {
+  const PaintDetail(this.ops, {this.notes = const []});
+
+  final List<PaintOp> ops;
+  final List<String> notes;
+}
+
+/// One layer in [LayerTreeDetail].
+@immutable
+class LayerNode {
+  const LayerNode(
+    this.name, {
+    this.widget,
+    this.picture,
+    this.sources = const [],
+    this.children = const [],
+  });
+
+  final String name;
+
+  /// The widget whose render object pushed this layer, if any.
+  final DemoWidget? widget;
+
+  /// for PictureLayers
+  final int? picture;
+
+  /// widgets whose render objects drew into this picture
+  final List<DemoWidget> sources;
+  final List<LayerNode> children;
+}
+
+/// The layer tree paint built, colored by the widget behind each layer.
+class LayerTreeDetail extends TierDetail {
+  const LayerTreeDetail(this.root);
+
+  final LayerNode root;
+}
+
 /// A queue with a fixed number of slots, like the frame pipeline.
 class TrayDetail extends TierDetail {
   const TrayDetail({required this.slots, required this.label});
   final int slots;
   final String label;
+}
+
+/// A widget in the demo's widget tree, shown beside the render tree.
+@immutable
+class WidgetNode {
+  const WidgetNode(
+    this.name, {
+    required this.widget,
+    this.note = '',
+    this.children = const [],
+  });
+
+  final String name;
+  final DemoWidget widget;
+
+  /// speaker reference shown small, e.g. `no render object`.
+  final String note;
+  final List<WidgetNode> children;
 }
 
 /// One render pass in [PassesDetail].
@@ -328,6 +455,7 @@ class RenderStackView {
     this.feedback = false,
     this.frames,
     this.showBands = false,
+    this.widgetColors = false,
   });
 
   /// Sentinel for "every band".
@@ -382,6 +510,10 @@ class RenderStackView {
   /// Whether to group the list into the four bands: the zoom-out summary.
   final bool showBands;
 
+  /// Whether the code slide marks each widget's constructor calls in its
+  /// [DemoWidget] color.
+  final bool widgetColors;
+
   bool showsBand(String id) => bands.contains('*') || bands.contains(id);
 
   /// Whether [tier] (in [band]) is on the stack.
@@ -412,7 +544,8 @@ class RenderStackView {
       other.tiles == tiles &&
       other.feedback == feedback &&
       other.frames == frames &&
-      other.showBands == showBands;
+      other.showBands == showBands &&
+      other.widgetColors == widgetColors;
 
   @override
   int get hashCode => Object.hash(
@@ -437,6 +570,7 @@ class RenderStackView {
     phone,
     tiles,
     feedback,
+    widgetColors,
   );
 }
 

@@ -18,7 +18,7 @@ class _HookPhoneOverlay extends StatelessWidget {
           child: Stack(
             children: [
               Positioned(
-                left: _centerX - 180,
+                left: 1090,
                 top: 70,
                 width: 360,
                 height: 760,
@@ -35,9 +35,9 @@ class _HookPhoneOverlay extends StatelessWidget {
                 ),
               ),
               Positioned(
-                left: _centerX + 260,
+                left: 1490,
                 top: 250,
-                width: 560,
+                width: 480,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [

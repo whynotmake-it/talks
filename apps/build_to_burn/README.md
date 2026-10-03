@@ -9,7 +9,6 @@ package's `pubspec.yaml` and in the `dependency_overrides` of the root
 ```sh
 flutter run -d macos             # the presentation target (Impeller)
 flutter run -d chrome            # quick look in the browser
-flutter test                     # every slide lays out with the real fonts
 ```
 
 Navigate with the arrow keys. Each slide has a route (`/#/hook`,

@@ -51,7 +51,7 @@ class _EntranceState extends State<Entrance> {
         for (final (index, track) in _tracks.indexed)
           track([
             .hold(widget.stagger * index),
-            const .to(1, motion: .curved(Duration(milliseconds: 500), easeOut)),
+            const .to(1, motion: .smoothSpring()),
           ]),
       ],
       builder: (context, value, _) => widget.builder(
