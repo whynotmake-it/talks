@@ -58,7 +58,7 @@ final stage2Slide = _stackSlide(
   speakerNotes: timSlideNotesHeader,
 );
 
-// A real paint() method before the paint calls.
+// The paint() signatures people know, before the demo's paint calls.
 final paintSourceSlide = _stackSlide(
   '/paint-source',
   layerHeading(3, 'Inside paint()'),

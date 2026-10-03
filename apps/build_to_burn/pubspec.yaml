@@ -17,6 +17,8 @@ dependencies:
       path: packages/example_design
   flutter:
     sdk: flutter
+  flutter_highlight: ^0.7.0
+  highlight: ^0.7.0
   # Motor 2.0, from the rivership `motor/2.0` integration branch. Its version
   # is still 1.1.0 there; melos publishes it as 2.0.0-dev.0. The pinned commit
   # is kept reachable by the rivership tag talks/motor-2.0-pin-aba0c4c.

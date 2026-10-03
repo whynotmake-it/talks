@@ -306,11 +306,6 @@ class _CodeView extends StatelessWidget {
   /// color. The marks always take the same space, so the code never moves.
   final double widgetColors;
 
-  static final _tokens = RegExp(
-    r"(//.*)|(@\w+)|(\b(?:class|extends|const|return|super|final|required)\b)"
-    r"|(0x[0-9A-Fa-f]+|\b\d+\b)|(\b[A-Z]\w*)|([()\[\]{},;:.])",
-  );
-
   /// The `<label>(` occurrences of every [DemoWidget], in code order.
   static List<({int start, int end, DemoWidget widget})> _marks(String code) {
     final marks = <({int start, int end, DemoWidget widget})>[];
@@ -333,36 +328,21 @@ class _CodeView extends StatelessWidget {
     ];
   }
 
-  void _appendTokens(
-    List<InlineSpan> spans,
-    String text,
-    Palette p,
-  ) {
-    var start = 0;
-    for (final match in _tokens.allMatches(text)) {
-      if (match.start > start) {
-        spans.add(TextSpan(text: text.substring(start, match.start)));
-      }
-      final color = switch (match) {
-        _ when match.group(1) != null || match.group(2) != null =>
-          p.textSecondary,
-        _ when match.group(3) != null => p.accent,
-        _ when match.group(4) != null => heat,
-        _ when match.group(5) != null => p.text,
-        _ => p.textSecondary,
-      };
-      spans.add(
-        TextSpan(
-          text: match.group(0),
-          style: TextStyle(
-            color: color,
-            fontWeight: match.group(3) != null ? FontWeight.w600 : null,
-          ),
-        ),
-      );
-      start = match.end;
-    }
-    spans.add(TextSpan(text: text.substring(start)));
+  /// Highlights [text] as Dart with the deck's code theme.
+  void _appendTokens(List<InlineSpan> spans, String text) {
+    InlineSpan convert(Node node) => node.value != null
+        ? TextSpan(text: node.value, style: _codeTheme[node.className])
+        : TextSpan(
+            style: _codeTheme[node.className],
+            children: [
+              for (final child in node.children ?? <Node>[]) convert(child),
+            ],
+          );
+    spans.addAll([
+      for (final node
+          in highlight.parse(text, language: 'dart').nodes ?? <Node>[])
+        convert(node),
+    ]);
   }
 
   @override
@@ -371,7 +351,7 @@ class _CodeView extends StatelessWidget {
     final spans = <InlineSpan>[];
     var start = 0;
     for (final mark in _marks(code)) {
-      _appendTokens(spans, code.substring(start, mark.start), p);
+      _appendTokens(spans, code.substring(start, mark.start));
       spans.add(
         WidgetSpan(
           alignment: PlaceholderAlignment.middle,
@@ -380,7 +360,7 @@ class _CodeView extends StatelessWidget {
       );
       start = mark.end;
     }
-    _appendTokens(spans, code.substring(start), p);
+    _appendTokens(spans, code.substring(start));
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -416,7 +396,7 @@ class _CodeView extends StatelessWidget {
               alignment: Alignment.topLeft,
               child: Text.rich(
                 TextSpan(children: spans),
-                style: mono(32, height: 1.38, color: p.textSecondary),
+                style: mono(32, height: 1.38, color: _codeTheme['root']!.color),
               ),
             ),
           ),
@@ -1377,14 +1357,18 @@ class _SourceView extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text(
-                excerpt.title,
-                style: mono(28, weight: 600, color: p.textSecondary),
-              ),
-              const SizedBox(height: 14),
-              Text.rich(
-                TextSpan(children: _highlight(excerpt.code, p)),
-                style: mono(30, height: 1.38, color: p.textSecondary),
+              if (excerpt.title.isNotEmpty) ...[
+                Text(
+                  excerpt.title,
+                  style: mono(28, weight: 600, color: p.textSecondary),
+                ),
+                const SizedBox(height: 14),
+              ],
+              HighlightView(
+                excerpt.code,
+                language: 'dart',
+                theme: _codeTheme,
+                textStyle: mono(40, height: 1.4),
               ),
               if (excerpt.note.isNotEmpty) ...[
                 const SizedBox(height: 18),
@@ -1398,13 +1382,6 @@ class _SourceView extends StatelessWidget {
         ],
       ],
     );
-  }
-
-  /// Syntax colors, the same as the code slide's.
-  static List<InlineSpan> _highlight(String code, Palette p) {
-    final spans = <InlineSpan>[];
-    _CodeView(code: code)._appendTokens(spans, code, p);
-    return spans;
   }
 }
 
@@ -1427,3 +1404,10 @@ Widget _traySlot(
       ? null
       : Text(text, style: mono(34, weight: 600, color: color)),
 );
+
+/// The deck's code colors: Xcode's light theme, on the panel's own
+/// background.
+final _codeTheme = {
+  ...xcodeTheme,
+  'root': xcodeTheme['root']!.copyWith(backgroundColor: Colors.transparent),
+};

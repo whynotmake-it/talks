@@ -7,6 +7,9 @@ import 'package:build_to_burn/visualizations/render_stack/render_stack_model.dar
 import 'package:example_design/example_design.dart' show ExampleTheme;
 import 'package:flutter/foundation.dart' show listEquals;
 import 'package:flutter/material.dart';
+import 'package:flutter_highlight/flutter_highlight.dart';
+import 'package:flutter_highlight/themes/xcode.dart';
+import 'package:highlight/highlight.dart' show Node, highlight;
 import 'package:motor/motor.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 

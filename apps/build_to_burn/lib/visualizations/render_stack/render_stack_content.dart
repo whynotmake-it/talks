@@ -491,36 +491,18 @@ final stage2DocsStep = RenderStackStep(
   caption: layerHeading(2),
 );
 
-/// A real paint() method, before the paint calls: drawing records through
-/// FFI, effects push layers. Trimmed from the Flutter 3.47 sources.
+/// The paint() signatures you may have written yourself, before the demo's
+/// paint calls: render objects paint the way a CustomPainter does.
 final paintSourceStep = RenderStackStep(
   const RenderStackView(
     focus: 3,
     focusDetail: SourceDetail([
-      SourceExcerpt(
-        '_RenderColoredBox.paint  (widgets/basic.dart)',
-        '''
-void paint(PaintingContext context, Offset offset) {
-  if (size > Size.zero) {
-    context.canvas.drawRect(
-      offset & size,
-      Paint()..color = color,
-    );
-  }
-}''',
-        note: 'drawRect → FFI → C++ Canvas::drawRect: recorded, not drawn',
-      ),
-      SourceExcerpt(
-        'RenderBackdropFilter.paint  (rendering/proxy_box.dart)',
-        '''
-void paint(PaintingContext context, Offset offset) {
-  …
-  layer ??= BackdropFilterLayer();
-  layer!.filter = effectiveFilter;
-  context.pushLayer(layer!, super.paint, offset);
-}''',
-        note: 'pushLayer: a new layer in the Dart layer tree',
-      ),
+      SourceExcerpt('', '''
+// A render object
+void paint(PaintingContext context, Offset offset)
+
+// A CustomPainter
+void paint(Canvas canvas, Size size)'''),
     ]),
   ),
   caption: layerHeading(3, 'Inside paint()'),
