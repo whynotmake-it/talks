@@ -19,16 +19,23 @@ dev_dependencies:
   melos: ^7.1.0
 
 # The workspace has a single resolution, so every package (including hosted
-# heroine and rivership) runs on motor 2.0 from the rivership PR stack. Keep
-# the ref in sync with apps/build_to_burn/pubspec.yaml.
+# heroine and rivership) runs on motor 2.0.0-dev.1 from the rivership PR stack
+# (motor-2/09-prerelease-version). Keep the refs in sync with
+# apps/build_to_burn/pubspec.yaml.
 dependency_overrides:
   motor:
     git:
       url: https://github.com/whynotmake-it/rivership.git
-      ref: e3fd207606651d1e4c033ffd38c7fde280df2592
+      ref: 9174a3acce07ea0670c0f35a86fef49cb107fc24
       path: packages/motor
+  # motor 2.0 needs fixed_ticker ^0.2.1, which is not on pub.dev yet.
+  fixed_ticker:
+    git:
+      url: https://github.com/whynotmake-it/rivership.git
+      ref: 9174a3acce07ea0670c0f35a86fef49cb107fc24
+      path: packages/fixed_ticker
 
-melos: 
+melos:
   command:
     version:
       updateGitTagRefs: true

@@ -1,6 +1,9 @@
 analyzer:
   errors:
     invalid_use_of_protected_member: ignore
+  exclude:
+    - build/**
+    - macos/**
 include: package:lintervention/analysis_options.yaml
 
 linter: 
