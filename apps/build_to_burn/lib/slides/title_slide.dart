@@ -10,7 +10,6 @@ class TitleSlide extends FlutterDeckSlideWidget {
         configuration: const FlutterDeckSlideConfiguration(
           route: '/title',
           title: 'Title',
-          speakerNotes: 'Placeholder title. Final title TBD.',
         ),
       );
 

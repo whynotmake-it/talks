@@ -247,10 +247,6 @@ const renderStackTiers = [
           pushes: 'OffsetLayer',
         ),
       ],
-      notes: [
-        'Pushing a layer ends the current picture.',
-        'The clip is a layer only because BackdropFilter needs compositing.',
-      ],
     ),
   ),
   StackTier(
@@ -327,7 +323,17 @@ const renderStackTiers = [
     handoff: 'FlutterView.render() → a pipeline slot → the raster thread',
     where: 'UI builds it · the frame pipeline carries it',
     token: 'Scene',
-    detail: TrayDetail(slots: 2, label: '2 slots'),
+    detail: TrayDetail(
+      slots: 2,
+      label: 'Frame pipeline · 2 slots',
+      slotLabels: ['N · raster', 'N+1 · UI'],
+      notes: [
+        'SceneBuilder calls cross FFI: the layer tree is built again in C++.',
+        'A slot is taken when the UI thread starts a frame,',
+        'and freed when the raster thread has finished it.',
+        'Two slots: the UI thread builds N+1 while raster draws N.',
+      ],
+    ),
   ),
   StackTier(
     number: 6,
@@ -440,10 +446,24 @@ RenderStackStep _stageSlide(
   caption: caption ?? layerHeading(number),
 );
 
-/// Cold open (agenda § 0): only the code slide.
-final coldOpenScript = [
-  _stageSlide(1, caption: 'You all write this.'),
+/// Cold open (agenda § 0): the demo's code and what it builds, on a phone.
+const coldOpenScript = [
+  RenderStackStep(
+    RenderStackView(focus: 1, phone: HookPhone()),
+    caption: 'You all write this.',
+  ),
 ];
+
+/// The demo on its phone, with the hook's vote.
+const _hookVote = HookPhone(
+  question: 'What keeps the GPU busy?',
+  options: [
+    'A  The blur',
+    'B  The list underneath',
+    'C  The blinking cursor',
+    'D  The keyboard',
+  ],
+);
 
 /// Hook (agenda § 1): the demo's code on the left, the demo on a phone and
 /// the vote on the right. No stack yet.
@@ -451,34 +471,61 @@ const hookScript = [
   RenderStackStep(
     RenderStackView(
       focus: 1,
-      phone: HookPhone(
-        question: 'What keeps the GPU busy?',
-        options: [
-          'A  The blur',
-          'B  The list underneath',
-          'C  The blinking cursor',
-          'D  The keyboard',
-        ],
-      ),
+      phone: _hookVote,
     ),
     caption: 'A search sheet pinned the GPU. What kept it busy?',
   ),
 ];
 
 // Pipeline, UI half (agenda § 2a) and raster half (§ 2b): one deck slide per
-// stage. The code opens full screen and gains its widget colors; moving on
-// from each stage's slide lands it as its plane while the next stage comes
-// in.
+// stage. Moving on from each stage's slide lands it as its plane while the
+// next stage comes in.
 
-final codeStep = _stageSlide(1);
+// The code gains its widget colors as it lands, matching the render objects.
+final stage2Step = _stageSlide(2, widgetColors: true);
 
-final colorsStep = RenderStackStep(
-  const RenderStackView(focus: 1, widgetColors: true),
-  caption: layerHeading(1, 'Widgets by color'),
+/// The official docs' picture of the trees, as a dialog over the render tree:
+/// the docs stop here, this talk goes on toward the GPU.
+final stage2DocsStep = RenderStackStep(
+  const RenderStackView(focus: 2, widgetColors: true, docs: true),
+  caption: layerHeading(2),
 );
 
-// The code keeps its colors while it lands.
-final stage2Step = _stageSlide(2, widgetColors: true);
+/// A real paint() method, before the paint calls: drawing records through
+/// FFI, effects push layers. Trimmed from the Flutter 3.47 sources.
+final paintSourceStep = RenderStackStep(
+  const RenderStackView(
+    focus: 3,
+    focusDetail: SourceDetail([
+      SourceExcerpt(
+        '_RenderColoredBox.paint  (widgets/basic.dart)',
+        '''
+void paint(PaintingContext context, Offset offset) {
+  if (size > Size.zero) {
+    context.canvas.drawRect(
+      offset & size,
+      Paint()..color = color,
+    );
+  }
+}''',
+        note: 'drawRect → FFI → C++ Canvas::drawRect: recorded, not drawn',
+      ),
+      SourceExcerpt(
+        'RenderBackdropFilter.paint  (rendering/proxy_box.dart)',
+        '''
+void paint(PaintingContext context, Offset offset) {
+  …
+  layer ??= BackdropFilterLayer();
+  layer!.filter = effectiveFilter;
+  context.pushLayer(layer!, super.paint, offset);
+}''',
+        note: 'pushLayer: a new layer in the Dart layer tree',
+      ),
+    ]),
+  ),
+  caption: layerHeading(3, 'Inside paint()'),
+);
+
 final stage3Step = _stageSlide(3);
 final stage4Step = _stageSlide(4);
 final stage5Step = _stageSlide(5);
@@ -509,7 +556,7 @@ const framesStep = RenderStackStep(
 
 const limitsStep = RenderStackStep(
   RenderStackView(frames: FramesInFlight(limits: true)),
-  caption: 'One UI thread, one raster thread. Pipelining costs latency.',
+  caption: 'One UI thread, one raster thread, two slots.',
 );
 
 const bandsStep = RenderStackStep(

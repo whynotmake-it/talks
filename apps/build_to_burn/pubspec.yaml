@@ -25,6 +25,7 @@ dependencies:
       url: https://github.com/whynotmake-it/rivership.git
       ref: aba0c4ca0cff05fe444892bf5fe79a4b921e63ce
       path: packages/motor
+  qr_flutter: ^4.1.0
   wnma_talk:
     path: ../../packages/wnma_talk
 
@@ -35,6 +36,10 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+
+  assets:
+    # From docs.flutter.dev/resources/architectural-overview.
+    - assets/images/flutter_docs_trees.png
 
   fonts:
     - family: Archivo

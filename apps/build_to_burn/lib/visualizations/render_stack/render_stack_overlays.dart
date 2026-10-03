@@ -1,6 +1,7 @@
 part of 'render_stack.dart';
 
-/// The hook: the demo on a phone in front of the dimmed stack, with a vote.
+/// The demo on a phone in front of the dimmed stack, with the hook's vote if
+/// it has one.
 class _HookPhoneOverlay extends StatelessWidget {
   const _HookPhoneOverlay({required this.phone, required this.presence});
 
@@ -34,37 +35,45 @@ class _HookPhoneOverlay extends StatelessWidget {
                   ),
                 ),
               ),
-              Positioned(
-                left: 1490,
-                top: 250,
-                width: 480,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      phone.question,
-                      style: archivo(40, weight: 500, color: p.text),
+              if (phone.question.isNotEmpty)
+                Positioned(
+                  left: 1490,
+                  top: 250,
+                  width: 480,
+                  // The vote joins a phone that is already up.
+                  child: TweenAnimationBuilder<double>(
+                    tween: Tween(begin: 0, end: 1),
+                    duration: const Duration(milliseconds: 400),
+                    builder: (context, value, child) =>
+                        Opacity(opacity: value, child: child),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          phone.question,
+                          style: archivo(40, weight: 500, color: p.text),
+                        ),
+                        const SizedBox(height: 28),
+                        for (final option in phone.options)
+                          Container(
+                            margin: const EdgeInsets.only(bottom: 14),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 20,
+                              vertical: 12,
+                            ),
+                            decoration: BoxDecoration(
+                              color: p.surface,
+                              border: Border.all(color: p.border, width: 2),
+                            ),
+                            child: Text(
+                              option,
+                              style: archivo(34, color: p.text),
+                            ),
+                          ),
+                      ],
                     ),
-                    const SizedBox(height: 28),
-                    for (final option in phone.options)
-                      Container(
-                        margin: const EdgeInsets.only(bottom: 14),
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 20,
-                          vertical: 12,
-                        ),
-                        decoration: BoxDecoration(
-                          color: p.surface,
-                          border: Border.all(color: p.border, width: 2),
-                        ),
-                        child: Text(
-                          option,
-                          style: archivo(34, color: p.text),
-                        ),
-                      ),
-                  ],
+                  ),
                 ),
-              ),
             ],
           ),
         ),
@@ -463,6 +472,175 @@ class _TokensPainter extends StatelessWidget {
                 ),
               ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+/// The official docs' picture of the widget, element and render trees, as a
+/// dialog with a link to the docs: the docs stop at the render tree, where
+/// this talk goes on toward the GPU.
+class _DocsOverlay extends StatelessWidget {
+  const _DocsOverlay({required this.presence});
+
+  final double presence;
+
+  /// The image's size, and where its render tree column starts.
+  static const _imageSize = Size(2913, 1146);
+  static const _renderTreeStart = .645;
+  static const _width = 1500.0;
+  static const _url =
+      'https://docs.flutter.dev/resources/architectural-overview'
+      '#layout-and-rendering';
+
+  @override
+  Widget build(BuildContext context) {
+    final p = Palette.of(context);
+    final height = _width * _imageSize.height / _imageSize.width;
+    return Positioned.fill(
+      child: IgnorePointer(
+        child: Opacity(
+          opacity: presence,
+          child: ColoredBox(
+            color: p.canvas.withValues(alpha: .85),
+            child: Center(
+              child: Transform.translate(
+                offset: Offset(0, (1 - presence) * 40),
+                child: Container(
+                  padding: const EdgeInsets.fromLTRB(40, 32, 40, 32),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    border: Border.all(color: p.border, width: 2),
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      SizedBox(
+                        width: _width,
+                        height: height,
+                        child: Stack(
+                          children: [
+                            Positioned.fill(
+                              child: Image.asset(
+                                'assets/images/flutter_docs_trees.png',
+                                fit: BoxFit.contain,
+                              ),
+                            ),
+                            // What the docs explain, quieter.
+                            Positioned(
+                              left: 0,
+                              top: 0,
+                              bottom: 0,
+                              width: _width * _renderTreeStart,
+                              child: ColoredBox(
+                                color: Colors.white.withValues(alpha: .45),
+                              ),
+                            ),
+                            // Where this talk starts.
+                            Positioned(
+                              left: _width * _renderTreeStart,
+                              top: 0,
+                              bottom: 0,
+                              right: 0,
+                              child: DecoratedBox(
+                                decoration: BoxDecoration(
+                                  border: Border.all(
+                                    color: p.accent,
+                                    width: 6,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+                      SizedBox(
+                        width: _width,
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                _url.replaceFirst('https://', ''),
+                                style: mono(30, color: p.textSecondary),
+                              ),
+                            ),
+                            QrImageView(
+                              data: _url,
+                              size: 170,
+                              padding: EdgeInsets.zero,
+                              backgroundColor: Colors.white,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// The frame pipeline's two slots beside the Scene plane, both taken: frame
+/// N rasterizing, N+1 built. N+2 can't start until N is done.
+class _PipelineSlots extends StatelessWidget {
+  const _PipelineSlots({required this.presence, required this.tierCenter});
+
+  final double presence;
+  final double tierCenter;
+
+  @override
+  Widget build(BuildContext context) {
+    final p = Palette.of(context);
+    Widget slot(String text, Color color) => Container(
+      height: 60,
+      margin: const EdgeInsets.only(top: 10),
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        color: p.accentSoft,
+        border: Border.all(color: color, width: 2),
+      ),
+      child: Text(text, style: mono(30, weight: 700, color: color)),
+    );
+    return Positioned(
+      left: 14,
+      width: 270,
+      top: tierCenter - 150,
+      child: IgnorePointer(
+        // Joins the frames already on the stack.
+        child: TweenAnimationBuilder<double>(
+          tween: Tween(begin: 0, end: 1),
+          duration: const Duration(milliseconds: 400),
+          builder: (context, value, child) =>
+              Opacity(opacity: value * presence, child: child),
+          child: Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: p.surface,
+              border: Border.all(color: p.border, width: 2),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text('2 SLOTS', style: mono(30, color: p.textSecondary)),
+                slot('N · raster', ExampleTheme.roseQuartz),
+                slot('N+1 · UI', p.accent),
+                const SizedBox(height: 14),
+                Text(
+                  'Both full: N+2 waits',
+                  style: archivo(30, weight: 600, color: heat),
+                ),
+              ],
+            ),
+          ),
         ),
       ),
     );

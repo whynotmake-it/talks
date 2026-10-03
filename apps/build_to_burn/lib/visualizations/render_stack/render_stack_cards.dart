@@ -576,6 +576,7 @@ class _StagePicture extends StatelessWidget {
         notes: notes,
       ),
       LayerTreeDetail(:final root) => _LayerTreeView(root: root),
+      SourceDetail(:final excerpts) => _SourceView(excerpts: excerpts),
       _ => ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 680),
         child: _Detail(
@@ -701,7 +702,8 @@ class _Detail extends StatelessWidget {
       color: _emphasized(text) ? heat : p.text,
     );
     return switch (detail) {
-      null || ScreenDetail() => const SizedBox.shrink(),
+      // Source excerpts only show on a stage slide's picture.
+      null || ScreenDetail() || SourceDetail() => const SizedBox.shrink(),
       CodeDetail(:final code) => Text(
         code.split('\n').take(8).join('\n'),
         style: mono(32, height: 1.35, color: p.text),
@@ -749,37 +751,41 @@ class _Detail extends StatelessWidget {
             Text(text, maxLines: 1, softWrap: false, style: line(text)),
         ],
       ),
-      TrayDetail(:final slots, :final label) => Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(label.toUpperCase(), style: mono(34, color: p.textSecondary)),
-          const SizedBox(height: 10),
-          Row(
-            children: [
-              for (var slot = 0; slot < slots; slot++)
-                Container(
-                  width: 128,
-                  height: 72,
-                  margin: const EdgeInsets.only(right: 12),
-                  alignment: Alignment.center,
-                  decoration: BoxDecoration(
-                    color: slot == 0 ? p.accentSoft : p.surface,
-                    border: Border.all(
-                      color: slot == 0 ? color : p.border,
-                      width: 2,
-                    ),
+      TrayDetail(
+        :final slots,
+        :final label,
+        :final slotLabels,
+        :final notes,
+      ) =>
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(label.toUpperCase(), style: mono(34, color: p.textSecondary)),
+            const SizedBox(height: 10),
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                for (var slot = 0; slot < slots; slot++)
+                  _traySlot(
+                    (slotLabels.isEmpty ? const ['Scene'] : slotLabels)
+                        .elementAtOrNull(slot),
+                    width: slotLabels.isEmpty ? 128 : 300,
+                    color: color,
+                    p: p,
                   ),
-                  child: slot == 0
-                      ? Text(
-                          'Scene',
-                          style: mono(34, weight: 600, color: color),
-                        )
-                      : null,
+              ],
+            ),
+            for (final note in notes)
+              Padding(
+                padding: const EdgeInsets.only(top: 14),
+                child: Text(
+                  note,
+                  style: archivo(30, height: 1.25, color: p.text),
                 ),
-            ],
-          ),
-        ],
-      ),
+              ),
+          ],
+        ),
       PassesDetail(:final passes) => Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -1350,3 +1356,74 @@ class _DemoScreen extends StatelessWidget {
     );
   }
 }
+
+/// Real source excerpts side by side: each with a title, its code, and a
+/// note on where the call goes next.
+class _SourceView extends StatelessWidget {
+  const _SourceView({required this.excerpts});
+
+  final List<SourceExcerpt> excerpts;
+
+  @override
+  Widget build(BuildContext context) {
+    final p = Palette.of(context);
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        for (final (index, excerpt) in excerpts.indexed) ...[
+          if (index > 0) const SizedBox(width: 56),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                excerpt.title,
+                style: mono(28, weight: 600, color: p.textSecondary),
+              ),
+              const SizedBox(height: 14),
+              Text.rich(
+                TextSpan(children: _highlight(excerpt.code, p)),
+                style: mono(30, height: 1.38, color: p.textSecondary),
+              ),
+              if (excerpt.note.isNotEmpty) ...[
+                const SizedBox(height: 18),
+                Text(
+                  excerpt.note,
+                  style: archivo(30, weight: 600, color: p.accent),
+                ),
+              ],
+            ],
+          ),
+        ],
+      ],
+    );
+  }
+
+  /// Syntax colors, the same as the code slide's.
+  static List<InlineSpan> _highlight(String code, Palette p) {
+    final spans = <InlineSpan>[];
+    _CodeView(code: code)._appendTokens(spans, code, p);
+    return spans;
+  }
+}
+
+/// One slot of a [TrayDetail]: filled with [text], or empty.
+Widget _traySlot(
+  String? text, {
+  required double width,
+  required Color color,
+  required Palette p,
+}) => Container(
+  width: width,
+  height: 72,
+  margin: const EdgeInsets.only(right: 12),
+  alignment: Alignment.center,
+  decoration: BoxDecoration(
+    color: text == null ? p.surface : p.accentSoft,
+    border: Border.all(color: text == null ? p.border : color, width: 2),
+  ),
+  child: text == null
+      ? null
+      : Text(text, style: mono(34, weight: 600, color: color)),
+);

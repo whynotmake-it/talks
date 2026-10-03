@@ -252,7 +252,8 @@ class _Schematic extends StatelessWidget {
           barColor ?? (_emphasized(text) ? heat : color.withValues(alpha: .55)),
     );
     return switch (detail) {
-      null || ScreenDetail() => const SizedBox.shrink(),
+      // Source excerpts only show on a stage slide's picture.
+      null || ScreenDetail() || SourceDetail() => const SizedBox.shrink(),
       CodeDetail(:final code) => Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

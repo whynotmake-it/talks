@@ -8,6 +8,7 @@ import 'package:example_design/example_design.dart' show ExampleTheme;
 import 'package:flutter/foundation.dart' show listEquals;
 import 'package:flutter/material.dart';
 import 'package:motor/motor.dart';
+import 'package:qr_flutter/qr_flutter.dart';
 
 part 'render_stack_cards.dart';
 part 'render_stack_list.dart';
@@ -126,6 +127,7 @@ class _RenderStackState extends State<RenderStack> {
   final _feedback = Track<double>(.single, initial: 0, debugLabel: 'Feedback');
   final _frames = Track<double>(.single, initial: 0, debugLabel: 'Frames');
   final _bands = Track<double>(.single, initial: 0, debugLabel: 'Bands');
+  final _docs = Track<double>(.single, initial: 0, debugLabel: 'Docs dialog');
 
   /// The last phone, tile phase and frames shown, kept so they can fade out.
   HookPhone? _lastPhone;
@@ -200,6 +202,7 @@ class _RenderStackState extends State<RenderStack> {
     'feedback': _feedback,
     'frames': _frames,
     'bands': _bands,
+    'docs': _docs,
   };
 
   /// Each track's resting value in [view], by key.
@@ -235,6 +238,7 @@ class _RenderStackState extends State<RenderStack> {
       'feedback': view.feedback ? 1.0 : 0.0,
       'frames': view.frames != null ? 1.0 : 0.0,
       'bands': view.showBands ? 1.0 : 0.0,
+      'docs': view.docs ? 1.0 : 0.0,
     };
   }
 
@@ -419,6 +423,7 @@ class _RenderStackState extends State<RenderStack> {
               'feedback',
               'frames',
               'bands',
+              'docs',
             ])
               animate(key, _motion),
           ],
@@ -459,6 +464,7 @@ class _RenderStackState extends State<RenderStack> {
               feedback: v(_feedback),
               frames: v(_frames),
               bandsSummary: v(_bands),
+              docs: v(_docs),
               phone: _lastPhone,
               tilePhase: view.tiles ?? _lastTiles,
               framesInFlight: view.frames ?? _lastFrames,
@@ -752,6 +758,7 @@ class _StackPicture extends StatelessWidget {
     required this.feedback,
     required this.frames,
     required this.bandsSummary,
+    required this.docs,
     required this.phone,
     required this.tilePhase,
     required this.framesInFlight,
@@ -775,6 +782,9 @@ class _StackPicture extends StatelessWidget {
   final double feedback;
   final double frames;
   final double bandsSummary;
+
+  /// The docs dialog's presence, 0..1.
+  final double docs;
   final HookPhone? phone;
   final TilePhase? tilePhase;
   final FramesInFlight? framesInFlight;
@@ -871,6 +881,13 @@ class _StackPicture extends StatelessWidget {
                         presence: frames,
                         frames: framesInFlight!,
                       ),
+                    if (frames > .01 &&
+                        (framesInFlight?.limits ?? false) &&
+                        layout.indexOf(5) >= 0)
+                      _PipelineSlots(
+                        presence: frames,
+                        tierCenter: layout.center(layout.indexOf(5)),
+                      ),
                     if (dram > .01 &&
                         tilePhase != null &&
                         layout.indexOf(8) >= 0)
@@ -927,7 +944,10 @@ class _StackPicture extends StatelessWidget {
           for (final (index, tier) in tiers.indexed)
             if (_cardVisible(tier))
               _StageCard(
-                tier: tier,
+                // The focus slide can show other content than its plane.
+                tier: view.focus == tier.number && view.focusDetail != null
+                    ? tier.withDetail(view.focusDetail)
+                    : tier,
                 band: _band(tier.band),
                 card: values[tier.number]!.card,
                 shrink: values[tier.number]!.shrink,
@@ -946,6 +966,7 @@ class _StackPicture extends StatelessWidget {
               ),
           if (dim > .01 && phone != null)
             _HookPhoneOverlay(phone: phone!, presence: dim),
+          if (docs > .01) _DocsOverlay(presence: docs),
           if (caption case final caption?)
             Positioned(
               left: 40,

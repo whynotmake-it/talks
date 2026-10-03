@@ -149,9 +149,38 @@ class LayerTreeDetail extends TierDetail {
 
 /// A queue with a fixed number of slots, like the frame pipeline.
 class TrayDetail extends TierDetail {
-  const TrayDetail({required this.slots, required this.label});
+  const TrayDetail({
+    required this.slots,
+    required this.label,
+    this.slotLabels = const [],
+    this.notes = const [],
+  });
   final int slots;
   final String label;
+
+  /// What each slot holds, on the stage slide. Empty slots stay blank.
+  final List<String> slotLabels;
+
+  /// Lines under the slots, on the stage slide.
+  final List<String> notes;
+}
+
+/// One excerpt in [SourceDetail], with what it shows.
+@immutable
+class SourceExcerpt {
+  const SourceExcerpt(this.title, this.code, {this.note = ''});
+
+  final String title;
+  final String code;
+
+  /// Shown under the code, e.g. where a call goes next.
+  final String note;
+}
+
+/// Real source excerpts, shown on a stage slide in place of its picture.
+class SourceDetail extends TierDetail {
+  const SourceDetail(this.excerpts);
+  final List<SourceExcerpt> excerpts;
 }
 
 /// A widget in the demo's widget tree, shown beside the render tree.
@@ -255,6 +284,22 @@ class StackTier {
 
   /// speaker reference, not drawn.
   final String note;
+
+  /// This tier with [detail] in place of its own.
+  StackTier withDetail(TierDetail? detail) => StackTier(
+    number: number,
+    band: band,
+    title: title,
+    inputs: inputs,
+    outputs: outputs,
+    token: token,
+    stage: stage,
+    example: example,
+    handoff: handoff,
+    where: where,
+    detail: detail,
+    note: note,
+  );
 }
 
 /// How brightly a tier is lit: [off], [dim] (ran, small) or [hot] (ran over
@@ -377,11 +422,12 @@ class ToolSpotlight {
   int get hashCode => Object.hash(tool, shows, Object.hashAll(tiers.keys));
 }
 
-/// The hook: the demo on a phone in front of the dimmed stack, with a vote.
+/// The demo on a phone in front of the dimmed stack, with an optional vote.
 @immutable
 class HookPhone {
-  const HookPhone({required this.question, required this.options});
+  const HookPhone({this.question = '', this.options = const []});
 
+  /// The vote's question. Empty shows the phone without a vote.
   final String question;
 
   /// The vote's answers, e.g. `A  The blur`.
@@ -456,6 +502,8 @@ class RenderStackView {
     this.frames,
     this.showBands = false,
     this.widgetColors = false,
+    this.focusDetail,
+    this.docs = false,
   });
 
   /// Sentinel for "every band".
@@ -514,6 +562,13 @@ class RenderStackView {
   /// [DemoWidget] color.
   final bool widgetColors;
 
+  /// Shown on the [focus] slide in place of its tier's own detail.
+  final TierDetail? focusDetail;
+
+  /// Whether the docs' widget, element and render trees come up as a dialog
+  /// over everything: where the official docs stop and this talk starts.
+  final bool docs;
+
   bool showsBand(String id) => bands.contains('*') || bands.contains(id);
 
   /// Whether [tier] (in [band]) is on the stack.
@@ -545,7 +600,9 @@ class RenderStackView {
       other.feedback == feedback &&
       other.frames == frames &&
       other.showBands == showBands &&
-      other.widgetColors == widgetColors;
+      other.widgetColors == widgetColors &&
+      other.focusDetail == focusDetail &&
+      other.docs == docs;
 
   @override
   int get hashCode => Object.hash(
@@ -570,7 +627,7 @@ class RenderStackView {
     phone,
     tiles,
     feedback,
-    widgetColors,
+    Object.hash(widgetColors, focusDetail, docs),
   );
 }
 
