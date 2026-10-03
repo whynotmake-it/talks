@@ -1,3 +1,4 @@
+import 'package:build_to_burn/shared/style.dart';
 import 'package:build_to_burn/visualizations/render_stack/render_stack.dart';
 import 'package:build_to_burn/visualizations/render_stack/render_stack_content.dart';
 import 'package:build_to_burn/visualizations/render_stack/render_stack_model.dart';
@@ -36,6 +37,26 @@ void main() {
     'profiling': profilingScript,
   };
 
+  test('every script caption fits on one 1760 px line', () {
+    for (final MapEntry(key: name, value: script) in scripts.entries) {
+      for (final step in script) {
+        final painter = TextPainter(
+          text: TextSpan(
+            text: step.caption,
+            style: archivo(48, weight: 500, height: 1.25),
+          ),
+          maxLines: 1,
+          textDirection: TextDirection.ltr,
+        )..layout(maxWidth: 1760);
+        expect(
+          painter.didExceedMaxLines,
+          isFalse,
+          reason: '$name caption: ${step.caption}',
+        );
+      }
+    }
+  });
+
   for (final MapEntry(key: name, value: script) in scripts.entries) {
     testWidgets('every $name step lays out, animating from the last', (
       tester,
@@ -67,10 +88,7 @@ void main() {
 
     expect(find.textContaining('class Demo extends'), findsNothing);
     expect(find.text('1  Widget code'), findsOneWidget);
-    expect(
-      find.text('your build() methods → widget tree'),
-      findsOneWidget,
-    );
+    expect(find.text('your build() methods → widget tree'), findsNothing);
   });
 
   testWidgets("a stage slide takes the previous stage's output as input", (
@@ -79,9 +97,9 @@ void main() {
     await tester.pumpWidget(host(uiHalfScript[2].view));
     await pumpFrames(tester);
 
-    expect(find.text('STAGE 2 · RENDER OBJECTS'), findsOneWidget);
+    expect(find.text('Render objects'), findsOneWidget);
     expect(find.text('INPUT'), findsOneWidget);
-    expect(find.text('from 1 Widget code'), findsOneWidget);
+    expect(find.text('from 1 Widget code'), findsNothing);
     expect(find.text('OUTPUT'), findsOneWidget);
     expect(find.text('laid-out render tree'), findsOneWidget);
     for (var n = 2; n <= 9; n++) {
@@ -108,7 +126,7 @@ void main() {
       host(const RenderStackView(focus: 4, landed: true)),
     );
     await pumpFrames(tester);
-    expect(find.text('pictures ①–④ → layer tree'), findsOneWidget);
+    expect(find.textContaining('→ layer tree'), findsNothing);
     expect(find.text('9  Pixels'), findsNothing);
   });
 
@@ -117,7 +135,7 @@ void main() {
     await pumpFrames(tester);
 
     expect(find.text('4  LAYER TREE'), findsOneWidget);
-    expect(find.text('│   └ BackdropFilter'), findsOneWidget);
+    expect(find.text('  └ BackdropFilter'), findsOneWidget);
   });
 
   testWidgets('borders are brackets beside the list', (tester) async {
@@ -136,13 +154,10 @@ void main() {
     await tester.pumpWidget(host(ahaScript[3].view));
     await pumpFrames(tester);
 
-    expect(find.text('C · Repaint\n≈8/s'), findsOneWidget);
-    expect(
-      find.text('T · Ticker frame\n≈111 frames/s: no Scene'),
-      findsOneWidget,
-    );
-    expect(find.text('⏱  Ticker · every vsync'), findsOneWidget);
-    expect(find.text('✂ #192128 · drawFrame gate'), findsOneWidget);
+    expect(find.text('C · Repaint  8/s'), findsOneWidget);
+    expect(find.text('T · Ticker  no Scene'), findsOneWidget);
+    expect(find.text('vsync'), findsOneWidget);
+    expect(find.text('skipped'), findsOneWidget);
   });
 
   testWidgets('loop labels stay clear of every loop line', (tester) async {
@@ -192,15 +207,16 @@ void main() {
     expect(find.text('frame N+1'), findsOneWidget);
     expect(find.text('frame N'), findsOneWidget);
     expect(find.text('frame N−1'), findsOneWidget);
-    expect(find.text('queue ▣▢'), findsOneWidget);
-    expect(find.text('drawables ▣▣▢'), findsOneWidget);
+    expect(find.text('N+1 · UI'), findsOneWidget);
+    expect(find.text('N · raster'), findsOneWidget);
+    expect(find.text('N−1 · GPU'), findsOneWidget);
 
     await tester.pumpWidget(
       host(const RenderStackView(frames: FramesInFlight(limits: true))),
     );
     await pumpFrames(tester);
-    expect(find.text('frame N+1\none UI thread'), findsOneWidget);
-    expect(find.textContaining('image decode'), findsOneWidget);
+    expect(find.text('N+1 · UI'), findsOneWidget);
+    expect(find.textContaining('image decode'), findsNothing);
   });
 
   testWidgets('the zoom-out groups the list into bands', (tester) async {
@@ -230,22 +246,22 @@ void main() {
 
     await tester.pumpWidget(host(blurCostScript[1].view));
     await pumpFrames(tester);
-    expect(find.text('store T0: 1179×2556 RGBA8 ≈ 12 MB'), findsOneWidget);
+    expect(find.text('T0 · ~12 MB'), findsOneWidget);
 
     await tester.pumpWidget(host(blurCostScript[2].view));
     await pumpFrames(tester);
-    expect(find.text('re-seed: full-screen redraw from T0'), findsOneWidget);
+    expect(find.text('redraw from T0'), findsOneWidget);
   });
 
-  testWidgets('shows back-pressure and completion beside the list', (
+  testWidgets('shows GPU back-pressure beside the list', (
     tester,
   ) async {
     final feedback = rasterHalfScript.firstWhere((step) => step.view.feedback);
     await tester.pumpWidget(host(feedback.view));
     await pumpFrames(tester);
 
-    expect(find.textContaining('back-pressure'), findsOneWidget);
-    expect(find.textContaining('completion'), findsOneWidget);
+    expect(find.text('GPU busy → raster waits'), findsOneWidget);
+    expect(find.textContaining('completion'), findsNothing);
   });
 
   testWidgets('brackets stop at the highest layer on the stack', (
@@ -270,11 +286,8 @@ void main() {
     await tester.pumpWidget(host(ahaScript.last.view));
     await pumpFrames(tester);
 
-    expect(find.text('✂ #192128 · partial'), findsOneWidget);
-    expect(
-      find.text('S · Spinner\n≈120/s, paints\nin a RepaintBoundary'),
-      findsOneWidget,
-    );
+    expect(find.text('skipped'), findsOneWidget);
+    expect(find.text('S · Spinner  120/s'), findsOneWidget);
     expect(find.byKey(const ValueKey('arc-line-S')), findsOneWidget);
   });
 
@@ -290,14 +303,13 @@ void main() {
       for (final name in ['N+1', 'N', 'N−1'])
         tester.getRect(find.text('frame $name')),
     ];
+    final bracketLabels = ['N+1 · UI', 'N · raster', 'N−1 · GPU'];
     final brackets = [
-      for (final label in [
-        'frame N+1\nUI thread',
-        'frame N\nraster thread',
-        'frame N−1\nGPU + display',
-      ])
-        tester.getRect(find.text(label)),
+      for (final label in bracketLabels) tester.getRect(find.text(label)),
     ];
+    for (var i = 0; i < brackets.length; i++) {
+      expect(brackets[i].height, lessThan(50), reason: bracketLabels[i]);
+    }
     for (var i = 0; i < 3; i++) {
       if (i > 0) {
         expect(pills[i - 1].top - pills[i].bottom, greaterThan(40));
@@ -310,17 +322,14 @@ void main() {
     }
   });
 
-  testWidgets('focus details wrap instead of cutting off', (tester) async {
+  testWidgets('focused rows omit speaker-reference details', (tester) async {
     await tester.pumpWidget(
       host(const RenderStackView(focus: 5, landed: true)),
     );
     await pumpFrames(tester);
 
-    final where = tester.widget<Text>(
-      find.text('UI builds it · the frame pipeline carries it'),
-    );
-    expect(where.maxLines, greaterThan(1));
-    expect(where.overflow, isNot(TextOverflow.ellipsis));
+    expect(find.textContaining('UI builds it'), findsNothing);
+    expect(find.text('5  Scene handoff'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 }

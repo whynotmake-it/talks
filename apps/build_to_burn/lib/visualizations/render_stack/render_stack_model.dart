@@ -12,6 +12,8 @@ class StackBand {
 
   final String id;
   final String title;
+
+  /// speaker reference, not drawn.
   final String subtitle;
 
   /// Drawn as a thin tray between its neighbors instead of a full band, like
@@ -54,11 +56,13 @@ class StackPass {
   });
   final String name;
   final String label;
+
+  /// speaker reference, not drawn.
   final int drawCalls;
   final bool hot;
 }
 
-/// A strip of render passes with draw-call ticks.
+/// A strip of render passes with speaker-reference draw-call counts.
 class PassesDetail extends TierDetail {
   const PassesDetail(this.passes);
   final List<StackPass> passes;
@@ -103,26 +107,26 @@ class StackTier {
   final String inputs;
   final String outputs;
 
-  /// The thread or place it runs, e.g. `UI thread`.
+  /// speaker reference, not drawn.
   final String where;
 
-  /// A short name for this tier's output, e.g. `Picture`.
+  /// speaker reference, not drawn.
   final String token;
 
   /// The stage slide's title: what happens here, e.g. `Layout: boxes snap to
   /// sizes`.
   final String stage;
 
-  /// One example value from the demo tree, shown with the output.
+  /// speaker reference, not drawn.
   final String example;
 
-  /// What happens to the output next: the handoff to the next stage.
+  /// speaker reference, not drawn.
   final String handoff;
 
   /// What the plane shows when expanded.
   final TierDetail? detail;
 
-  /// A key fact shown next to the expanded tier.
+  /// speaker reference, not drawn.
   final String note;
 }
 
@@ -369,8 +373,7 @@ class RenderStackView {
   /// When set, the GPU tier shows its tile memory in this phase.
   final TilePhase? tiles;
 
-  /// Whether to draw the back-pressure and completion arrows that cross the
-  /// CPU/GPU border downward.
+  /// Whether to draw the GPU back-pressure arrow across the rows.
   final bool feedback;
 
   /// When set, several frames are in flight on the finished stack.

@@ -8,14 +8,12 @@ part of 'render_stack.dart';
 class _StageCard extends StatelessWidget {
   const _StageCard({
     required this.tier,
-    required this.previous,
     required this.card,
     required this.morph,
     required this.planeTop,
   });
 
   final StackTier tier;
-  final StackTier? previous;
   final double card;
   final double morph;
   final double planeTop;
@@ -96,7 +94,7 @@ class _StageCard extends StatelessWidget {
                     opacity: (1 - (t - .5) / .4).clamp(0.0, 1.0),
                     child: tier.detail is CodeDetail
                         ? _CodeView(code: (tier.detail! as CodeDetail).code)
-                        : _StageContent(tier: tier, previous: previous),
+                        : _StageContent(tier: tier),
                   ),
                 ),
               ),
@@ -130,11 +128,11 @@ class _CodeView extends StatelessWidget {
       }
       final color = switch (match) {
         _ when match.group(1) != null || match.group(2) != null =>
-          p.textTertiary,
+          p.textSecondary,
         _ when match.group(3) != null => p.accent,
         _ when match.group(4) != null => heat,
         _ when match.group(5) != null => p.text,
-        _ => p.textTertiary,
+        _ => p.textSecondary,
       };
       spans.add(
         TextSpan(
@@ -171,7 +169,7 @@ class _CodeView extends StatelessWidget {
                   ),
                 ),
               const SizedBox(width: 14),
-              Text('demo.dart', style: mono(18, color: p.textSecondary)),
+              Text('demo.dart', style: mono(28, color: p.textSecondary)),
             ],
           ),
         ),
@@ -183,7 +181,7 @@ class _CodeView extends StatelessWidget {
               alignment: Alignment.topLeft,
               child: Text.rich(
                 TextSpan(children: spans),
-                style: mono(23, height: 1.38, color: p.textSecondary),
+                style: mono(32, height: 1.38, color: p.textSecondary),
               ),
             ),
           ),
@@ -196,10 +194,9 @@ class _CodeView extends StatelessWidget {
 /// A stage slide: the question, the input it takes (the previous stage's
 /// output), one picture, and the output it hands up.
 class _StageContent extends StatelessWidget {
-  const _StageContent({required this.tier, required this.previous});
+  const _StageContent({required this.tier});
 
   final StackTier tier;
-  final StackTier? previous;
 
   @override
   Widget build(BuildContext context) {
@@ -209,12 +206,7 @@ class _StageContent extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'STAGE ${tier.number} · ${tier.title.toUpperCase()}',
-            style: mono(20, weight: 600, color: p.accent),
-          ),
-          const SizedBox(height: 10),
-          Text(tier.stage, style: archivo(52, spacing: -1.4, color: p.text)),
+          Text(tier.title, style: archivo(64, weight: 500, color: p.text)),
           const SizedBox(height: 28),
           Expanded(
             child: Row(
@@ -222,11 +214,6 @@ class _StageContent extends StatelessWidget {
                 _HandoffChip(
                   label: 'INPUT',
                   value: tier.inputs,
-                  note: switch (previous) {
-                    final previous? =>
-                      'from ${previous.number} ${previous.title}',
-                    null => '',
-                  },
                   color: p.textSecondary,
                 ),
                 const _Arrow(),
@@ -235,16 +222,10 @@ class _StageContent extends StatelessWidget {
                 _HandoffChip(
                   label: 'OUTPUT',
                   value: tier.outputs,
-                  note: tier.example,
                   color: p.accent,
                 ),
               ],
             ),
-          ),
-          const SizedBox(height: 20),
-          Text(
-            '→ ${tier.handoff}',
-            style: mono(22, weight: 500, color: p.textSecondary),
           ),
         ],
       ),
@@ -256,25 +237,23 @@ class _HandoffChip extends StatelessWidget {
   const _HandoffChip({
     required this.label,
     required this.value,
-    required this.note,
     required this.color,
   });
 
   final String label;
   final String value;
-  final String note;
   final Color color;
 
   @override
   Widget build(BuildContext context) {
     final p = Palette.of(context);
     return SizedBox(
-      width: 300,
+      width: 440,
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(label, style: mono(16, weight: 700, color: color)),
+          Text(label, style: mono(30, weight: 700, color: color)),
           const SizedBox(height: 8),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
@@ -284,16 +263,9 @@ class _HandoffChip extends StatelessWidget {
             ),
             child: Text(
               value,
-              style: archivo(26, weight: 500, height: 1.2, color: p.text),
+              style: archivo(40, weight: 500, height: 1.2, color: p.text),
             ),
           ),
-          if (note.isNotEmpty) ...[
-            const SizedBox(height: 10),
-            Text(
-              note,
-              style: mono(15, height: 1.4, color: p.textSecondary),
-            ),
-          ],
         ],
       ),
     );
@@ -336,12 +308,12 @@ class _StagePicture extends StatelessWidget {
         ),
       ),
       _ when tier.number == 8 => SizedBox(
-        width: 460,
+        width: 680,
         height: 300,
         child: Row(
           children: [
             SizedBox.square(
-              dimension: 260,
+              dimension: 240,
               child: CustomPaint(
                 painter: _TilePainter(
                   progress: 1,
@@ -362,7 +334,7 @@ class _StagePicture extends StatelessWidget {
         ),
       ),
       _ => ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 460),
+        constraints: const BoxConstraints(maxWidth: 680),
         child: _Detail(
           detail: tier.detail,
           emphasis: const {},
@@ -398,7 +370,7 @@ class _DetailCard extends StatelessWidget {
   final Offset anchor;
   final Color color;
 
-  static const rect = Rect.fromLTWH(20, 560, 280, 310);
+  static const rect = Rect.fromLTWH(1416, 480, 544, 390);
 
   @override
   Widget build(BuildContext context) {
@@ -433,7 +405,7 @@ class _DetailCard extends StatelessWidget {
                     children: [
                       Text(
                         '${tier.number}  ${tier.title}'.toUpperCase(),
-                        style: mono(15, weight: 700, color: color),
+                        style: mono(34, weight: 700, color: color),
                       ),
                       const SizedBox(height: 10),
                       _Detail(
@@ -470,7 +442,7 @@ class _Detail extends StatelessWidget {
   Widget build(BuildContext context) {
     final p = Palette.of(context);
     TextStyle line(String text) => mono(
-      18,
+      34,
       weight: _emphasized(text) ? 700 : 450,
       height: 1.4,
       color: _emphasized(text) ? heat : p.text,
@@ -479,7 +451,7 @@ class _Detail extends StatelessWidget {
       null || ScreenDetail() => const SizedBox.shrink(),
       CodeDetail(:final code) => Text(
         code.split('\n').take(8).join('\n'),
-        style: mono(13, height: 1.35, color: p.text),
+        style: mono(32, height: 1.35, color: p.text),
       ),
       ChipsDetail(:final items) => Wrap(
         spacing: 8,
@@ -503,14 +475,14 @@ class _Detail extends StatelessWidget {
       TrayDetail(:final slots, :final label) => Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(label.toUpperCase(), style: mono(13, color: p.textTertiary)),
+          Text(label.toUpperCase(), style: mono(34, color: p.textSecondary)),
           const SizedBox(height: 10),
           Row(
             children: [
               for (var slot = 0; slot < slots; slot++)
                 Container(
-                  width: 96,
-                  height: 64,
+                  width: 128,
+                  height: 72,
                   margin: const EdgeInsets.only(right: 12),
                   alignment: Alignment.center,
                   decoration: BoxDecoration(
@@ -523,7 +495,7 @@ class _Detail extends StatelessWidget {
                   child: slot == 0
                       ? Text(
                           'Scene',
-                          style: mono(15, weight: 600, color: color),
+                          style: mono(34, weight: 600, color: color),
                         )
                       : null,
                 ),
@@ -540,32 +512,25 @@ class _Detail extends StatelessWidget {
               child: Row(
                 children: [
                   SizedBox(
-                    width: 34,
+                    width: 64,
                     child: Text(
                       pass.name,
                       style: mono(
-                        15,
+                        34,
                         weight: 700,
                         color: pass.hot ? heat : p.text,
                       ),
                     ),
                   ),
                   SizedBox(
-                    width: 136,
+                    width: 460,
                     child: Text(
                       pass.label,
                       maxLines: 1,
                       softWrap: false,
-                      style: mono(14, color: pass.hot ? heat : p.textSecondary),
+                      style: mono(34, color: pass.hot ? heat : p.textSecondary),
                     ),
                   ),
-                  for (var call = 0; call < pass.drawCalls; call++)
-                    Container(
-                      width: 8,
-                      height: 14,
-                      margin: const EdgeInsets.only(right: 3),
-                      color: pass.hot ? heat : p.accent,
-                    ),
                 ],
               ),
             ),

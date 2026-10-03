@@ -41,11 +41,16 @@ class RenderStackSlide extends FlutterDeckSlideWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 SizedBox(
-                  height: 92,
+                  height: 80,
                   child: Text(
                     current.caption,
-                    maxLines: 2,
-                    style: archivo(32, height: 1.3, color: p.text),
+                    maxLines: 1,
+                    style: archivo(
+                      48,
+                      weight: 500,
+                      height: 1.25,
+                      color: p.text,
+                    ),
                   ),
                 ),
                 Expanded(child: RenderStack(view: current.view)),

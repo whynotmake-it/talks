@@ -59,7 +59,7 @@ class _HookPhoneOverlay extends StatelessWidget {
                         ),
                         child: Text(
                           option,
-                          style: archivo(28, color: p.text),
+                          style: archivo(34, color: p.text),
                         ),
                       ),
                   ],
@@ -272,17 +272,11 @@ class _DramOverlayState extends State<_DramOverlay> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('DRAM', style: mono(22, weight: 700, color: heat)),
+                      Text('DRAM', style: mono(40, weight: 700, color: heat)),
                       const SizedBox(height: 6),
                       Text(
-                        outward
-                            ? 'store T0: 1179×2556 RGBA8 ≈ 12 MB'
-                            : 're-seed: full-screen redraw from T0',
-                        style: archivo(17, height: 1.3, color: p.text),
-                      ),
-                      Text(
-                        '× 120/s ≈ 3–4 GB/s [estimate]',
-                        style: mono(14, color: p.textSecondary),
+                        outward ? 'T0 · ~12 MB' : 'redraw from T0',
+                        style: archivo(34, height: 1.2, color: p.text),
                       ),
                     ],
                   ),
@@ -434,8 +428,8 @@ class _TokensPainter extends StatelessWidget {
           children: [
             for (var k = 0; k < 4; k++)
               Positioned(
-                left: _centerX - 70,
-                width: 140,
+                left: _centerX - 130,
+                width: 260,
                 top: lerpDouble(positions[k], positions[k + 1], t)! - 26,
                 child: Opacity(
                   opacity:
@@ -462,7 +456,7 @@ class _TokensPainter extends StatelessWidget {
                       ),
                       child: Text(
                         'frame ${labels[k]}',
-                        style: mono(18, weight: 700, color: Colors.white),
+                        style: mono(34, weight: 700, color: Colors.white),
                       ),
                     ),
                   ),

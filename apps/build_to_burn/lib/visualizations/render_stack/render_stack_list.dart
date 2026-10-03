@@ -1,8 +1,6 @@
 part of 'render_stack.dart';
 
-/// The label list: one row per tier, number and title only. The focused
-/// stage expands under its label with its input, output and thread. Rows
-/// light up with their planes.
+/// The label list: one row per tier, number and title only.
 class _LabelList extends StatelessWidget {
   const _LabelList({
     required this.tiers,
@@ -24,15 +22,10 @@ class _LabelList extends StatelessWidget {
   final double frames;
   final double opacity;
 
-  int? get _focused => rows.focus;
-
   @override
   Widget build(BuildContext context) {
     final p = Palette.of(context);
-    final origins = {
-      for (final arc in view.arcs)
-        if (arc.origin.isNotEmpty) arc.origin,
-    };
+    final hasOrigin = view.arcs.any((arc) => arc.origin.isNotEmpty);
     return Positioned.fill(
       child: IgnorePointer(
         child: Opacity(
@@ -43,13 +36,13 @@ class _LabelList extends StatelessWidget {
               for (final (index, tier) in tiers.indexed)
                 if (values[tier.number]!.presence > .005)
                   ..._row(p, index, tier),
-              if (origins.isNotEmpty)
+              if (hasOrigin)
                 Positioned(
                   left: _rowsLeft,
-                  top: rows.y(0) - 14,
+                  top: rows.y(0) - 22,
                   child: Text(
-                    '⏱  ${origins.first}',
-                    style: mono(18, weight: 600, color: p.textSecondary),
+                    'vsync',
+                    style: mono(34, weight: 600, color: p.textSecondary),
                   ),
                 ),
             ],
@@ -62,7 +55,6 @@ class _LabelList extends StatelessWidget {
   List<Widget> _row(Palette p, int index, StackTier tier) {
     final v = values[tier.number]!;
     final y = rows.y(tier.number.toDouble());
-    final focused = _focused == tier.number;
     final lit = _lightColors(p, v.light);
     final frameTint = switch (tier.number) {
       <= 5 => p.accent,
@@ -113,55 +105,14 @@ class _LabelList extends StatelessWidget {
                     Text(
                       '${tier.number}  ${tier.title}',
                       style: archivo(
-                        24,
+                        36,
                         weight: 500,
                         height: 1.2,
                         color: v.light > .01 ? lit.text : p.text,
                       ),
                     ),
-                    if (frames > .01 && tier.number == 5)
-                      _chip(p, 'queue ▣▢', frames),
-                    if (frames > .01 && tier.number == 9)
-                      _chip(p, 'drawables ▣▣▢', frames),
                   ],
                 ),
-                if (focused && rows.extra > 1)
-                  SizedBox(
-                    height: rows.extra,
-                    child: ClipRect(
-                      child: OverflowBox(
-                        alignment: Alignment.topLeft,
-                        maxHeight: _focusDetails,
-                        child: Opacity(
-                          opacity: (rows.extra / _focusDetails).clamp(0.0, 1.0),
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const SizedBox(height: 4),
-                              Text(
-                                '${tier.inputs} → ${tier.outputs}',
-                                maxLines: 2,
-                                overflow: TextOverflow.clip,
-                                style: archivo(19, height: 1.25, color: p.text),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                tier.where,
-                                maxLines: 2,
-                                overflow: TextOverflow.clip,
-                                style: mono(
-                                  15,
-                                  height: 1.3,
-                                  color: p.textSecondary,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
               ],
             ),
           ),
@@ -169,14 +120,6 @@ class _LabelList extends StatelessWidget {
       ),
     ];
   }
-
-  Widget _chip(Palette p, String text, double opacity) => Opacity(
-    opacity: opacity,
-    child: Padding(
-      padding: const EdgeInsets.only(left: 12),
-      child: Text(text, style: mono(14, weight: 600, color: p.textSecondary)),
-    ),
-  );
 }
 
 /// One bracket beside the label list, from row [from] up to row [to].
@@ -192,8 +135,10 @@ class _Bracket {
     this.prominent = false,
     this.dimBelow,
     this.perSecond = 0,
+    this.rateLabel,
     this.cutNote = '',
     this.id,
+    this.bandTitle = false,
   });
 
   final int slot;
@@ -205,7 +150,9 @@ class _Bracket {
   final bool prominent;
   final double? dimBelow;
   final double perSecond;
+  final String? rateLabel;
   final String cutNote;
+  final bool bandTitle;
 
   /// Loop id, for pulses and test keys.
   final String? id;
@@ -244,11 +191,6 @@ class _Gutter extends StatelessWidget {
     final result = <(_Bracket, double)>[];
     var slot = 0;
     for (final arc in view.arcs) {
-      final rate =
-          arc.rateLabel ??
-          (arc.perSecond == 0
-              ? ''
-              : '${arc.perSecond % 1 == 0 ? arc.perSecond.toInt() : arc.perSecond}/s');
       final from = arc.origin.isNotEmpty ? 0.0 : arc.startTier.toDouble();
       result.add((
         _Bracket(
@@ -256,14 +198,14 @@ class _Gutter extends StatelessWidget {
           from: from,
           to: arc.endTier.toDouble(),
           color: arc.endTier >= 6 ? heat : p.accent,
-          label: [
-            '${arc.id} · ${arc.label}',
-            if (rate.isNotEmpty) rate,
-          ].join('\n'),
+          label: '${arc.id} · ${arc.label}',
           labelRow: from,
           prominent: arc.prominent,
           dimBelow: arc.activeFromTier?.toDouble(),
           perSecond: arc.perSecond,
+          rateLabel: (arc.rateLabel?.isNotEmpty ?? false)
+              ? arc.rateLabel
+              : null,
           cutNote: arc.cutNote,
           id: arc.id,
         ),
@@ -367,6 +309,7 @@ class _Gutter extends StatelessWidget {
             color: band.connector ? p.textTertiary : p.accent,
             label: band.title,
             labelRow: (numbers.first + numbers.last) / 2,
+            bandTitle: true,
           ),
           bandsSummary,
         ));
@@ -374,26 +317,10 @@ class _Gutter extends StatelessWidget {
       slot++;
     }
     if (frames > .01 && framesInFlight != null) {
-      final limits = framesInFlight!.limits;
       for (final (from, to, color, label) in [
-        (
-          1.0,
-          5.0,
-          p.accent,
-          'frame N+1\n${limits ? 'one UI thread' : 'UI thread'}',
-        ),
-        (
-          6.0,
-          7.0,
-          ExampleTheme.roseQuartz,
-          'frame N\n${limits ? 'one raster thread' : 'raster thread'}',
-        ),
-        (
-          8.0,
-          9.0,
-          heat,
-          'frame N−1\n${limits ? 'dependent passes' : 'GPU + display'}',
-        ),
+        (1.0, 5.0, p.accent, 'N+1 · UI'),
+        (6.0, 7.0, ExampleTheme.roseQuartz, 'N · raster'),
+        (8.0, 9.0, heat, 'N−1 · GPU'),
       ]) {
         result.add((
           _Bracket(
@@ -434,8 +361,10 @@ class _Gutter extends StatelessWidget {
               prominent: b.prominent,
               dimBelow: b.dimBelow,
               perSecond: b.perSecond,
+              rateLabel: b.rateLabel,
               cutNote: b.cutNote,
               id: b.id,
+              bandTitle: b.bandTitle,
             ),
             presence,
           ),
@@ -472,21 +401,6 @@ class _Gutter extends StatelessWidget {
                   rows: rows,
                   presence: feedback,
                   slot: slots - 1,
-                  textLeft: textLeft,
-                ),
-              if (frames > .01 && (framesInFlight?.limits ?? false))
-                Positioned(
-                  left: _rowsLeft - 14,
-                  top: rows.y(0) - 22,
-                  width: 1590 - _rowsLeft,
-                  child: Opacity(
-                    opacity: frames,
-                    child: Text(
-                      'Also in parallel: image decode (worker + IO threads), '
-                      'pipeline compile (workers).',
-                      style: mono(14, height: 1.35, color: p.textSecondary),
-                    ),
-                  ),
                 ),
             ],
           ),
@@ -544,7 +458,7 @@ class _BracketViewState extends State<_BracketView> {
             microseconds: (widget.slowdown * 1000000 / b.perSecond).round(),
           )
         : Duration.zero;
-    final textWidth = 1596 - widget.textLeft;
+    final textWidth = 1960 - widget.textLeft;
     return Positioned.fill(
       child: Opacity(
         opacity: widget.presence.clamp(0.0, 1.0),
@@ -609,15 +523,36 @@ class _BracketViewState extends State<_BracketView> {
               left: widget.textLeft,
               width: textWidth,
               top: widget.rows.y(b.labelRow) - (b.prominent ? 22 : 16),
-              child: Text(
-                b.label,
-                style: mono(
-                  b.prominent ? 17 : 15,
-                  weight: b.prominent ? 700 : 600,
-                  height: 1.3,
-                  color: b.color,
-                ),
-              ),
+              child: b.rateLabel == null
+                  ? Text(
+                      b.label,
+                      style: mono(
+                        b.bandTitle ? 40 : 34,
+                        weight: 600,
+                        height: 1.2,
+                        color: b.color,
+                      ),
+                    )
+                  : Text.rich(
+                      TextSpan(
+                        children: [
+                          TextSpan(
+                            text: '${b.label}  ',
+                            style: mono(34, weight: 600, color: b.color),
+                          ),
+                          TextSpan(
+                            text: b.rateLabel,
+                            style: mono(
+                              b.prominent ? 48 : 40,
+                              weight: 700,
+                              color: b.color,
+                            ),
+                          ),
+                        ],
+                      ),
+                      maxLines: 1,
+                      softWrap: false,
+                    ),
             ),
             if (b.cutNote.isNotEmpty)
               Positioned(
@@ -625,8 +560,8 @@ class _BracketViewState extends State<_BracketView> {
                 width: textWidth,
                 top: top - 40,
                 child: Text(
-                  '✂ ${b.cutNote}',
-                  style: mono(15, weight: 700, color: p.text),
+                  b.cutNote,
+                  style: mono(34, weight: 700, color: p.text),
                 ),
               ),
           ],
@@ -636,24 +571,20 @@ class _BracketViewState extends State<_BracketView> {
   }
 }
 
-/// Back-pressure and completion: two arrows beside the list, from the GPU
-/// row down to the raster rows.
+/// Back-pressure from the GPU row down to the raster rows.
 class _FeedbackArrows extends StatelessWidget {
   const _FeedbackArrows({
     required this.rows,
     required this.presence,
     required this.slot,
-    required this.textLeft,
   });
 
   final _Rows rows;
   final double presence;
   final int slot;
-  final double textLeft;
 
   @override
   Widget build(BuildContext context) {
-    final p = Palette.of(context);
     final x = _slotX(slot) + 4;
     return Positioned.fill(
       child: Opacity(
@@ -665,29 +596,15 @@ class _FeedbackArrows extends StatelessWidget {
               size: RenderStack.designSize,
               painter: _ArrowsPainter([
                 (Offset(x, rows.y(8)), Offset(x, rows.y(6)), heat),
-                (
-                  Offset(x + 12, rows.y(8)),
-                  Offset(x + 12, rows.y(7)),
-                  p.accent,
-                ),
               ]),
             ),
             Positioned(
-              left: textLeft + 12,
-              width: 1596 - textLeft - 12,
+              left: _rowsRight + 30,
+              width: 1960 - _rowsRight - 30,
               top: rows.y(6) - 18,
               child: Text(
-                'back-pressure\n3 drawables in flight:\nraster waits',
-                style: mono(14, weight: 600, height: 1.3, color: heat),
-              ),
-            ),
-            Positioned(
-              left: textLeft + 12,
-              width: 1596 - textLeft - 12,
-              top: rows.y(8) - 30,
-              child: Text(
-                'completion\nfrees resources',
-                style: mono(14, weight: 600, height: 1.3, color: p.accent),
+                'GPU busy → raster waits',
+                style: mono(34, weight: 600, color: heat),
               ),
             ),
           ],

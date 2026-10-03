@@ -47,7 +47,8 @@ Key message: the raster thread flattens the tree into one DisplayList and replay
 - saveLayer (ShaderMask, ColorFiltered, non-peephole Opacity): +1 offscreen pass, pasted back as "Subpass" (Guide 6.2 B).
 - BackdropFilter blur: ends the parent pass, 3 blur passes (downsample, vertical, horizontal), restarts the pass with a full-screen "MSAA backdrop" redraw and replays clips. About 4-5 extra passes; count them in a capture (Guide 6.2 C).
 - BackdropGroup / BackdropFilter.grouped shares one capture (and one blur if equal) (Guide 6.2).
-- On the stack: stages 6 (one DisplayList), 7 (passes; the CPU/GPU bracket meets at commit), 8 (GPU, with back-pressure/completion) and 9 (pixels) land one by one. Then frames in flight: N+1 on the UI planes, N on raster, N-1 on GPU/display, the 2-slot queue and 3 drawables; then what doesn't overlap (spec section 6); then the four-band zoom-out.''',
+- On the stack: stages 6 (one DisplayList), 7 (passes; the CPU/GPU bracket meets at commit), 8 (GPU, with back-pressure) and 9 (pixels) land one by one. Then frames in flight: N+1 on the UI planes, N on raster, N-1 on GPU/display, the 2-slot queue and 3 drawables; then what doesn't overlap (spec section 6); then the five-band zoom-out.
+- Back-pressure: the raster thread waits for a drawable, and DevTools counts that wait as raster time.''',
 );
 
 final ahaSlide = RenderStackSlide(
@@ -117,5 +118,6 @@ Key message: BackdropFilter blur is everywhere and shockingly expensive for how 
 - A GPU woken every vsync never clocks down or idles. No jank is not no cost; heat builds over minutes.
 - Sigma is a sawtooth: <= 4 full resolution, above that downsampled; the fixed cost stays.
 - On the stack: the GPU tier's tiles fill on-chip, the pass snaps and T0 streams to DRAM, then the resumed pass is re-seeded from it (spec step 7; the camera dolly is not built).
+- T0 is an estimate: 1179×2556 RGBA8 is about 12 MB.
 - One line on liquid glass: the Flutter team is officially building it; any liquid-glass look is built on the same backdrop reads, so all of this applies, multiplied.''',
 );

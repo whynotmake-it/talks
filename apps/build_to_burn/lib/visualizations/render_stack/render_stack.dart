@@ -43,7 +43,7 @@ class RenderStack extends StatefulWidget {
   /// Shown at the bottom left, if set.
   final String? caption;
 
-  static const designSize = Size(1600, 900);
+  static const designSize = Size(2000, 900);
 
   @override
   State<RenderStack> createState() => _RenderStackState();
@@ -242,36 +242,22 @@ const _capGap = 18.0;
 
 /// The label list and the gutter beside it.
 const _rowsLeft = 1040.0;
-const _rowsRight = 1330.0;
-const _gutterLeft = 1346.0;
+const _rowsRight = 1440.0;
+const _gutterLeft = 1456.0;
 const _slotWidth = 24.0;
 
 /// The stage slide, flat.
-const _cardRect = Rect.fromLTWH(30, 10, 1540, 870);
+const _cardRect = Rect.fromLTWH(30, 10, 1940, 870);
 
 /// Center y of list row [row] with no focus: row 0 is the vsync, rows 1-9
 /// the tiers.
 double _rowY(double row) => 818 - row * 78;
 
-/// Height the focused row's details take below its title.
-const _focusDetails = 100.0;
-
-/// Where list rows sit this frame: rows below the focused row move down to
-/// make room for its details.
 @immutable
 class _Rows {
-  const _Rows({this.focus, this.extra = 0});
+  const _Rows();
 
-  final int? focus;
-  final double extra;
-
-  double y(double row) {
-    final base = _rowY(row);
-    if (focus case final focus?) {
-      return base + extra * (focus - row).clamp(0.0, 1.0);
-    }
-    return base;
-  }
+  double y(double row) => _rowY(row);
 }
 
 /// Maps a flat square onto an isometric rhombus with its top vertex at the
@@ -430,7 +416,7 @@ class _StackPicture extends StatelessWidget {
     final stackOpacity = 1 - .9 * dim;
 
     return DefaultTextStyle(
-      style: archivo(22, color: p.textSecondary),
+      style: archivo(32, color: p.textSecondary),
       child: Stack(
         clipBehavior: Clip.none,
         children: [
@@ -523,7 +509,6 @@ class _StackPicture extends StatelessWidget {
             if (_cardVisible(tier))
               _StageCard(
                 tier: tier,
-                previous: index > 0 ? tiers[index - 1] : null,
                 card: values[tier.number]!.card,
                 morph: values[tier.number]!.morph,
                 planeTop: target.top(index) + shift,
@@ -534,10 +519,10 @@ class _StackPicture extends StatelessWidget {
             Positioned(
               left: 40,
               top: 760,
-              width: 300,
+              width: 1920,
               child: Text(
                 caption,
-                style: archivo(24, height: 1.3, color: p.text),
+                style: archivo(32, weight: 500, height: 1.25, color: p.text),
               ),
             ),
         ],
@@ -545,18 +530,7 @@ class _StackPicture extends StatelessWidget {
     );
   }
 
-  /// The focused row and how far its details push the rows below it.
-  _Rows _rowsFor() {
-    final focus = switch (view.focus) {
-      final focus? when view.landed => focus,
-      _ when view.expanded.length == 1 => view.expanded.first,
-      _ => null,
-    };
-    if (focus == null || values[focus] == null) return const _Rows();
-    final v = values[focus]!;
-    final amount = view.focus == focus ? v.morph * v.presence : v.expand;
-    return _Rows(focus: focus, extra: _focusDetails * amount);
-  }
+  _Rows _rowsFor() => const _Rows();
 
   /// Moves the stack and the list together so their visible extent is
   /// centered vertically. Weighted by presence, so it glides as planes land.
@@ -581,7 +555,6 @@ class _StackPicture extends StatelessWidget {
       (tier) => values[tier.number]!.presence > .01,
     );
     var rowsBottom = rows.y(lowestRow.number.toDouble()) + 30;
-    if (rows.focus == lowestRow.number) rowsBottom += rows.extra;
     if (view.arcs.any((arc) => arc.origin.isNotEmpty)) {
       rowsBottom = math.max(rowsBottom, rows.y(0) + 20);
     }

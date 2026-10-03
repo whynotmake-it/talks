@@ -196,13 +196,6 @@ class _Schematic extends StatelessWidget {
                     color: (pass.hot ? heat : color).withValues(alpha: .6),
                   ),
                   const SizedBox(width: 8),
-                  for (var call = 0; call < pass.drawCalls; call++)
-                    Container(
-                      width: 9,
-                      height: 24,
-                      margin: const EdgeInsets.only(right: 4),
-                      color: pass.hot ? heat : p.accent,
-                    ),
                 ],
               ),
             ),
