@@ -1,0 +1,17 @@
+<!doctype html><meta charset="utf-8">
+<title>Impeller pass estimate</title>
+<style>body{font-family:ui-monospace,monospace;background:#0f172a;color:#e2e8f0;padding:16px}.pass{display:flex;align-items:center;margin:3px 0;gap:8px}.bar{height:18px;border-radius:3px;min-width:3px}.meta{opacity:.7;font-size:12px}h2{font-size:14px;margin:18px 0 6px}</style>
+<h2>metal-apple4 — 1 passes, 0 flips, ~0.0 MB traffic</h2>
+<div class="pass"><div class="bar" style="width:520.0px;background:#3b82f6"></div><span>EntityPass Root <span class="meta">2400×1800 · root · 2 draws · ~0.0 MB</span></span></div>
+<h2>metal-simulator — 4 passes, 1 flips, ~197.8 MB traffic</h2>
+<div class="pass"><div class="bar" style="width:520.0px;background:#3b82f6"></div><span>EntityPass Root (offscreen) <span class="meta">2400×1800 · root-readback · 1 draws · ~82.4 MB</span></span></div>
+<div class="pass"><div class="bar" style="width:520.0px;background:#f97316"></div><span>advanced blend filter <span class="meta">2400×1800 · blend:saturation · 0 draws · ~33.0 MB</span></span></div>
+<div class="pass"><div class="bar" style="width:520.0px;background:#f59e0b"></div><span>EntityPass Root (offscreen) (restarted) <span class="meta">2400×1800 · flip-restart · 2 draws · ~82.4 MB</span></span></div>
+<div class="pass"><div class="bar" style="width:520.0px;background:#a855f7"></div><span>BlitToOnscreen (blit pass) <span class="meta">2400×1800 · onscreen-blit · 0 draws · ~0.0 MB</span></span></div>
+<h2>vulkan-fbf — 1 passes, 0 flips, ~0.0 MB traffic</h2>
+<div class="pass"><div class="bar" style="width:520.0px;background:#3b82f6"></div><span>EntityPass Root <span class="meta">2400×1800 · root · 2 draws · ~0.0 MB</span></span></div>
+<h2>vulkan-adreno&lt;=630 — 4 passes, 1 flips, ~197.8 MB traffic</h2>
+<div class="pass"><div class="bar" style="width:520.0px;background:#3b82f6"></div><span>EntityPass Root (offscreen) <span class="meta">2400×1800 · root-readback · 1 draws · ~82.4 MB</span></span></div>
+<div class="pass"><div class="bar" style="width:520.0px;background:#f97316"></div><span>advanced blend filter <span class="meta">2400×1800 · blend:saturation · 0 draws · ~33.0 MB</span></span></div>
+<div class="pass"><div class="bar" style="width:520.0px;background:#f59e0b"></div><span>EntityPass Root (offscreen) (restarted) <span class="meta">2400×1800 · flip-restart · 2 draws · ~82.4 MB</span></span></div>
+<div class="pass"><div class="bar" style="width:520.0px;background:#a855f7"></div><span>EntityPass Root Render Pass (onscreen) <span class="meta">2400×1800 · onscreen-copy-pass · 1 draws · ~0.0 MB</span></span></div>

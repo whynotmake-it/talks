@@ -1,0 +1,35 @@
+<!doctype html><meta charset="utf-8">
+<title>Impeller pass estimate</title>
+<style>body{font-family:ui-monospace,monospace;background:#0f172a;color:#e2e8f0;padding:16px}.pass{display:flex;align-items:center;margin:3px 0;gap:8px}.bar{height:18px;border-radius:3px;min-width:3px}.meta{opacity:.7;font-size:12px}h2{font-size:14px;margin:18px 0 6px}</style>
+<h2>metal-apple4 — 7 passes, 1 flips, ~11.9 MB traffic</h2>
+<div class="pass"><div class="bar" style="width:97.5px;background:#64748b"></div><span>EntityPass Subpass <span class="meta">450×450 · Opacity(Opacity ← Positioned ← Stack ← Directionality ← _FocusInheritedScope ← _Focus…) · 1 draws · ~3.9 MB</span></span></div>
+<div class="pass"><div class="bar" style="width:24.48333333333333px;background:#ef4444"></div><span>Gaussian blur downsample <span class="meta">113×113 · backdrop filter · 1 draws · ~0.1 MB</span></span></div>
+<div class="pass"><div class="bar" style="width:24.48333333333333px;background:#ef4444"></div><span>Gaussian blur Y <span class="meta">113×113 · backdrop filter · 1 draws · ~0.1 MB</span></span></div>
+<div class="pass"><div class="bar" style="width:24.48333333333333px;background:#ef4444"></div><span>Gaussian blur X <span class="meta">113×113 · backdrop filter · 1 draws · ~0.1 MB</span></span></div>
+<div class="pass"><div class="bar" style="width:97.5px;background:#64748b"></div><span>EntityPass Subpass <span class="meta">450×450 · BackdropFilter(BackdropFilter ← Positioned ← Stack ← SizedBox ← Opacity ← Positioned ← Stack…) · 2 draws · ~3.9 MB</span></span></div>
+<div class="pass"><div class="bar" style="width:97.5px;background:#f59e0b"></div><span>EntityPass Subpass (restarted) <span class="meta">450×450 · flip-restart · 2 draws · ~3.9 MB</span></span></div>
+<div class="pass"><div class="bar" style="width:520.0px;background:#3b82f6"></div><span>EntityPass Root <span class="meta">2400×1800 · root · 2 draws · ~0.0 MB</span></span></div>
+<h2>metal-simulator — 7 passes, 1 flips, ~11.9 MB traffic</h2>
+<div class="pass"><div class="bar" style="width:97.5px;background:#64748b"></div><span>EntityPass Subpass <span class="meta">450×450 · Opacity(Opacity ← Positioned ← Stack ← Directionality ← _FocusInheritedScope ← _Focus…) · 1 draws · ~3.9 MB</span></span></div>
+<div class="pass"><div class="bar" style="width:24.48333333333333px;background:#ef4444"></div><span>Gaussian blur downsample <span class="meta">113×113 · backdrop filter · 1 draws · ~0.1 MB</span></span></div>
+<div class="pass"><div class="bar" style="width:24.48333333333333px;background:#ef4444"></div><span>Gaussian blur Y <span class="meta">113×113 · backdrop filter · 1 draws · ~0.1 MB</span></span></div>
+<div class="pass"><div class="bar" style="width:24.48333333333333px;background:#ef4444"></div><span>Gaussian blur X <span class="meta">113×113 · backdrop filter · 1 draws · ~0.1 MB</span></span></div>
+<div class="pass"><div class="bar" style="width:97.5px;background:#64748b"></div><span>EntityPass Subpass <span class="meta">450×450 · BackdropFilter(BackdropFilter ← Positioned ← Stack ← SizedBox ← Opacity ← Positioned ← Stack…) · 2 draws · ~3.9 MB</span></span></div>
+<div class="pass"><div class="bar" style="width:97.5px;background:#f59e0b"></div><span>EntityPass Subpass (restarted) <span class="meta">450×450 · flip-restart · 2 draws · ~3.9 MB</span></span></div>
+<div class="pass"><div class="bar" style="width:520.0px;background:#3b82f6"></div><span>EntityPass Root <span class="meta">2400×1800 · root · 2 draws · ~0.0 MB</span></span></div>
+<h2>vulkan-fbf — 7 passes, 1 flips, ~11.9 MB traffic</h2>
+<div class="pass"><div class="bar" style="width:97.5px;background:#64748b"></div><span>EntityPass Subpass <span class="meta">450×450 · Opacity(Opacity ← Positioned ← Stack ← Directionality ← _FocusInheritedScope ← _Focus…) · 1 draws · ~3.9 MB</span></span></div>
+<div class="pass"><div class="bar" style="width:24.48333333333333px;background:#ef4444"></div><span>Gaussian blur downsample <span class="meta">113×113 · backdrop filter · 1 draws · ~0.1 MB</span></span></div>
+<div class="pass"><div class="bar" style="width:24.48333333333333px;background:#ef4444"></div><span>Gaussian blur Y <span class="meta">113×113 · backdrop filter · 1 draws · ~0.1 MB</span></span></div>
+<div class="pass"><div class="bar" style="width:24.48333333333333px;background:#ef4444"></div><span>Gaussian blur X <span class="meta">113×113 · backdrop filter · 1 draws · ~0.1 MB</span></span></div>
+<div class="pass"><div class="bar" style="width:97.5px;background:#64748b"></div><span>EntityPass Subpass <span class="meta">450×450 · BackdropFilter(BackdropFilter ← Positioned ← Stack ← SizedBox ← Opacity ← Positioned ← Stack…) · 2 draws · ~3.9 MB</span></span></div>
+<div class="pass"><div class="bar" style="width:97.5px;background:#f59e0b"></div><span>EntityPass Subpass (restarted) <span class="meta">450×450 · flip-restart · 2 draws · ~3.9 MB</span></span></div>
+<div class="pass"><div class="bar" style="width:520.0px;background:#3b82f6"></div><span>EntityPass Root <span class="meta">2400×1800 · root · 2 draws · ~0.0 MB</span></span></div>
+<h2>vulkan-adreno&lt;=630 — 7 passes, 1 flips, ~11.9 MB traffic</h2>
+<div class="pass"><div class="bar" style="width:97.5px;background:#64748b"></div><span>EntityPass Subpass <span class="meta">450×450 · Opacity(Opacity ← Positioned ← Stack ← Directionality ← _FocusInheritedScope ← _Focus…) · 1 draws · ~3.9 MB</span></span></div>
+<div class="pass"><div class="bar" style="width:24.48333333333333px;background:#ef4444"></div><span>Gaussian blur downsample <span class="meta">113×113 · backdrop filter · 1 draws · ~0.1 MB</span></span></div>
+<div class="pass"><div class="bar" style="width:24.48333333333333px;background:#ef4444"></div><span>Gaussian blur Y <span class="meta">113×113 · backdrop filter · 1 draws · ~0.1 MB</span></span></div>
+<div class="pass"><div class="bar" style="width:24.48333333333333px;background:#ef4444"></div><span>Gaussian blur X <span class="meta">113×113 · backdrop filter · 1 draws · ~0.1 MB</span></span></div>
+<div class="pass"><div class="bar" style="width:97.5px;background:#64748b"></div><span>EntityPass Subpass <span class="meta">450×450 · BackdropFilter(BackdropFilter ← Positioned ← Stack ← SizedBox ← Opacity ← Positioned ← Stack…) · 2 draws · ~3.9 MB</span></span></div>
+<div class="pass"><div class="bar" style="width:97.5px;background:#f59e0b"></div><span>EntityPass Subpass (restarted) <span class="meta">450×450 · flip-restart · 2 draws · ~3.9 MB</span></span></div>
+<div class="pass"><div class="bar" style="width:520.0px;background:#3b82f6"></div><span>EntityPass Root <span class="meta">2400×1800 · root · 2 draws · ~0.0 MB</span></span></div>

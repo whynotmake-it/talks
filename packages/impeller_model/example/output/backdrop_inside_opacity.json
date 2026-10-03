@@ -1,0 +1,478 @@
+{
+  "meta": {
+    "physicalSize": [
+      2400.0,
+      1800.0
+    ],
+    "engineRevision": "flutter-3.47.1",
+    "dpr": 3.0,
+    "opCount": 13,
+    "rootHasBackdropFilter": false,
+    "maxRootBlendMode": "srcOver",
+    "layerTree": {
+      "type": "TransformLayer",
+      "creator": "_RawViewInternal-[_DeprecatedRawViewKey TestFlutterView#b6472] ← RawView ← Vi…",
+      "transform": [
+        3.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        3.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "children": [
+        {
+          "type": "PictureLayer",
+          "picture": 2
+        },
+        {
+          "type": "OpacityLayer",
+          "creator": "Opacity ← Positioned ← Stack ← Directionality ← _FocusInheritedScope ← _Focus…",
+          "offset": [
+            10.0,
+            10.0
+          ],
+          "alpha": 128,
+          "children": [
+            {
+              "type": "OffsetLayer",
+              "creator": "RepaintBoundary ← Stack ← SizedBox ← Opacity ← Positioned ← Stack ← Direction…",
+              "children": [
+                {
+                  "type": "PictureLayer",
+                  "picture": 0
+                }
+              ]
+            },
+            {
+              "type": "BackdropFilterLayer",
+              "creator": "BackdropFilter ← Positioned ← Stack ← SizedBox ← Opacity ← Positioned ← Stack…",
+              "filter": {
+                "kind": "blur",
+                "sigmaX": 5.0,
+                "sigmaY": 5.0,
+                "tileMode": "unspecified"
+              },
+              "blendMode": "srcOver",
+              "children": [
+                {
+                  "type": "OffsetLayer",
+                  "creator": "RepaintBoundary ← BackdropFilter ← Positioned ← Stack ← SizedBox ← Opacity ← …",
+                  "offset": [
+                    50.0,
+                    50.0
+                  ],
+                  "children": [
+                    {
+                      "type": "PictureLayer",
+                      "picture": 1
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "pictures": [
+      [
+        {
+          "op": "drawRect",
+          "bounds": [
+            0.0,
+            0.0,
+            100.0,
+            100.0
+          ],
+          "paint": {
+            "alpha": 0.13333332538604736,
+            "blend": "srcOver"
+          }
+        }
+      ],
+      [
+        {
+          "op": "drawRect",
+          "bounds": [
+            0.0,
+            0.0,
+            100.0,
+            100.0
+          ],
+          "paint": {
+            "alpha": 1.0,
+            "blend": "srcOver"
+          }
+        }
+      ],
+      [
+        {
+          "op": "drawRect",
+          "bounds": [
+            0.0,
+            0.0,
+            800.0,
+            600.0
+          ],
+          "paint": {
+            "alpha": 1.0,
+            "blend": "srcOver"
+          }
+        }
+      ]
+    ]
+  },
+  "profiles": [
+    {
+      "profile": "metal-apple4",
+      "passCount": 7,
+      "renderPassCount": 7,
+      "flips": 1,
+      "estimatedTrafficBytes": 12456456,
+      "passes": [
+        {
+          "label": "EntityPass Subpass",
+          "reason": "Opacity(Opacity ← Positioned ← Stack ← Directionality ← _FocusInheritedScope ← _Focus…)",
+          "size": [
+            450.0,
+            450.0
+          ],
+          "drawCount": 1,
+          "estTrafficBytes": 4050000,
+          "parent": 6
+        },
+        {
+          "label": "Gaussian blur downsample",
+          "reason": "backdrop filter",
+          "size": [
+            113.0,
+            113.0
+          ],
+          "drawCount": 1,
+          "estTrafficBytes": 102152,
+          "parent": 4
+        },
+        {
+          "label": "Gaussian blur Y",
+          "reason": "backdrop filter",
+          "size": [
+            113.0,
+            113.0
+          ],
+          "drawCount": 1,
+          "estTrafficBytes": 102152,
+          "parent": 4
+        },
+        {
+          "label": "Gaussian blur X",
+          "reason": "backdrop filter",
+          "size": [
+            113.0,
+            113.0
+          ],
+          "drawCount": 1,
+          "estTrafficBytes": 102152,
+          "parent": 4
+        },
+        {
+          "label": "EntityPass Subpass",
+          "reason": "BackdropFilter(BackdropFilter ← Positioned ← Stack ← SizedBox ← Opacity ← Positioned ← Stack…)",
+          "size": [
+            450.0,
+            450.0
+          ],
+          "drawCount": 2,
+          "estTrafficBytes": 4050000,
+          "parent": 5
+        },
+        {
+          "label": "EntityPass Subpass (restarted)",
+          "reason": "flip-restart",
+          "size": [
+            450.0,
+            450.0
+          ],
+          "drawCount": 2,
+          "estTrafficBytes": 4050000,
+          "parent": 6
+        },
+        {
+          "label": "EntityPass Root",
+          "reason": "root",
+          "size": [
+            2400.0,
+            1800.0
+          ],
+          "drawCount": 2,
+          "estTrafficBytes": 0
+        }
+      ]
+    },
+    {
+      "profile": "metal-simulator",
+      "passCount": 7,
+      "renderPassCount": 7,
+      "flips": 1,
+      "estimatedTrafficBytes": 12456456,
+      "passes": [
+        {
+          "label": "EntityPass Subpass",
+          "reason": "Opacity(Opacity ← Positioned ← Stack ← Directionality ← _FocusInheritedScope ← _Focus…)",
+          "size": [
+            450.0,
+            450.0
+          ],
+          "drawCount": 1,
+          "estTrafficBytes": 4050000,
+          "parent": 6
+        },
+        {
+          "label": "Gaussian blur downsample",
+          "reason": "backdrop filter",
+          "size": [
+            113.0,
+            113.0
+          ],
+          "drawCount": 1,
+          "estTrafficBytes": 102152,
+          "parent": 4
+        },
+        {
+          "label": "Gaussian blur Y",
+          "reason": "backdrop filter",
+          "size": [
+            113.0,
+            113.0
+          ],
+          "drawCount": 1,
+          "estTrafficBytes": 102152,
+          "parent": 4
+        },
+        {
+          "label": "Gaussian blur X",
+          "reason": "backdrop filter",
+          "size": [
+            113.0,
+            113.0
+          ],
+          "drawCount": 1,
+          "estTrafficBytes": 102152,
+          "parent": 4
+        },
+        {
+          "label": "EntityPass Subpass",
+          "reason": "BackdropFilter(BackdropFilter ← Positioned ← Stack ← SizedBox ← Opacity ← Positioned ← Stack…)",
+          "size": [
+            450.0,
+            450.0
+          ],
+          "drawCount": 2,
+          "estTrafficBytes": 4050000,
+          "parent": 5
+        },
+        {
+          "label": "EntityPass Subpass (restarted)",
+          "reason": "flip-restart",
+          "size": [
+            450.0,
+            450.0
+          ],
+          "drawCount": 2,
+          "estTrafficBytes": 4050000,
+          "parent": 6
+        },
+        {
+          "label": "EntityPass Root",
+          "reason": "root",
+          "size": [
+            2400.0,
+            1800.0
+          ],
+          "drawCount": 2,
+          "estTrafficBytes": 0
+        }
+      ]
+    },
+    {
+      "profile": "vulkan-fbf",
+      "passCount": 7,
+      "renderPassCount": 7,
+      "flips": 1,
+      "estimatedTrafficBytes": 12456456,
+      "passes": [
+        {
+          "label": "EntityPass Subpass",
+          "reason": "Opacity(Opacity ← Positioned ← Stack ← Directionality ← _FocusInheritedScope ← _Focus…)",
+          "size": [
+            450.0,
+            450.0
+          ],
+          "drawCount": 1,
+          "estTrafficBytes": 4050000,
+          "parent": 6
+        },
+        {
+          "label": "Gaussian blur downsample",
+          "reason": "backdrop filter",
+          "size": [
+            113.0,
+            113.0
+          ],
+          "drawCount": 1,
+          "estTrafficBytes": 102152,
+          "parent": 4
+        },
+        {
+          "label": "Gaussian blur Y",
+          "reason": "backdrop filter",
+          "size": [
+            113.0,
+            113.0
+          ],
+          "drawCount": 1,
+          "estTrafficBytes": 102152,
+          "parent": 4
+        },
+        {
+          "label": "Gaussian blur X",
+          "reason": "backdrop filter",
+          "size": [
+            113.0,
+            113.0
+          ],
+          "drawCount": 1,
+          "estTrafficBytes": 102152,
+          "parent": 4
+        },
+        {
+          "label": "EntityPass Subpass",
+          "reason": "BackdropFilter(BackdropFilter ← Positioned ← Stack ← SizedBox ← Opacity ← Positioned ← Stack…)",
+          "size": [
+            450.0,
+            450.0
+          ],
+          "drawCount": 2,
+          "estTrafficBytes": 4050000,
+          "parent": 5
+        },
+        {
+          "label": "EntityPass Subpass (restarted)",
+          "reason": "flip-restart",
+          "size": [
+            450.0,
+            450.0
+          ],
+          "drawCount": 2,
+          "estTrafficBytes": 4050000,
+          "parent": 6
+        },
+        {
+          "label": "EntityPass Root",
+          "reason": "root",
+          "size": [
+            2400.0,
+            1800.0
+          ],
+          "drawCount": 2,
+          "estTrafficBytes": 0
+        }
+      ]
+    },
+    {
+      "profile": "vulkan-adreno<=630",
+      "passCount": 7,
+      "renderPassCount": 7,
+      "flips": 1,
+      "estimatedTrafficBytes": 12456456,
+      "passes": [
+        {
+          "label": "EntityPass Subpass",
+          "reason": "Opacity(Opacity ← Positioned ← Stack ← Directionality ← _FocusInheritedScope ← _Focus…)",
+          "size": [
+            450.0,
+            450.0
+          ],
+          "drawCount": 1,
+          "estTrafficBytes": 4050000,
+          "parent": 6
+        },
+        {
+          "label": "Gaussian blur downsample",
+          "reason": "backdrop filter",
+          "size": [
+            113.0,
+            113.0
+          ],
+          "drawCount": 1,
+          "estTrafficBytes": 102152,
+          "parent": 4
+        },
+        {
+          "label": "Gaussian blur Y",
+          "reason": "backdrop filter",
+          "size": [
+            113.0,
+            113.0
+          ],
+          "drawCount": 1,
+          "estTrafficBytes": 102152,
+          "parent": 4
+        },
+        {
+          "label": "Gaussian blur X",
+          "reason": "backdrop filter",
+          "size": [
+            113.0,
+            113.0
+          ],
+          "drawCount": 1,
+          "estTrafficBytes": 102152,
+          "parent": 4
+        },
+        {
+          "label": "EntityPass Subpass",
+          "reason": "BackdropFilter(BackdropFilter ← Positioned ← Stack ← SizedBox ← Opacity ← Positioned ← Stack…)",
+          "size": [
+            450.0,
+            450.0
+          ],
+          "drawCount": 2,
+          "estTrafficBytes": 4050000,
+          "parent": 5
+        },
+        {
+          "label": "EntityPass Subpass (restarted)",
+          "reason": "flip-restart",
+          "size": [
+            450.0,
+            450.0
+          ],
+          "drawCount": 2,
+          "estTrafficBytes": 4050000,
+          "parent": 6
+        },
+        {
+          "label": "EntityPass Root",
+          "reason": "root",
+          "size": [
+            2400.0,
+            1800.0
+          ],
+          "drawCount": 2,
+          "estTrafficBytes": 0
+        }
+      ]
+    }
+  ]
+}

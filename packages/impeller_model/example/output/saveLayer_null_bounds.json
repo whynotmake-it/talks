@@ -1,0 +1,272 @@
+{
+  "meta": {
+    "physicalSize": [
+      2400.0,
+      1800.0
+    ],
+    "engineRevision": "flutter-3.47.1",
+    "dpr": 3.0,
+    "opCount": 8,
+    "rootHasBackdropFilter": false,
+    "maxRootBlendMode": "multiply",
+    "layerTree": {
+      "type": "TransformLayer",
+      "creator": "_RawViewInternal-[_DeprecatedRawViewKey TestFlutterView#b6472] ← RawView ← Vi…",
+      "transform": [
+        3.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        3.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "children": [
+        {
+          "type": "PictureLayer",
+          "picture": 0
+        }
+      ]
+    },
+    "pictures": [
+      [
+        {
+          "op": "drawRect",
+          "bounds": [
+            0.0,
+            0.0,
+            800.0,
+            600.0
+          ],
+          "paint": {
+            "alpha": 1.0,
+            "blend": "srcOver"
+          }
+        },
+        {
+          "op": "save"
+        },
+        {
+          "op": "saveLayer",
+          "saveLayerPaint": {
+            "alpha": 1.0,
+            "blend": "multiply"
+          }
+        },
+        {
+          "op": "drawRect",
+          "bounds": [
+            10.0,
+            10.0,
+            60.0,
+            60.0
+          ],
+          "paint": {
+            "alpha": 1.0,
+            "blend": "srcOver"
+          }
+        },
+        {
+          "op": "restore"
+        },
+        {
+          "op": "restore"
+        }
+      ]
+    ]
+  },
+  "profiles": [
+    {
+      "profile": "metal-apple4",
+      "passCount": 2,
+      "renderPassCount": 2,
+      "flips": 0,
+      "estimatedTrafficBytes": 450000,
+      "passes": [
+        {
+          "label": "EntityPass Subpass",
+          "reason": "canvas.saveLayer",
+          "size": [
+            150.0,
+            150.0
+          ],
+          "drawCount": 1,
+          "estTrafficBytes": 450000,
+          "parent": 1
+        },
+        {
+          "label": "EntityPass Root",
+          "reason": "root",
+          "size": [
+            2400.0,
+            1800.0
+          ],
+          "drawCount": 2,
+          "estTrafficBytes": 0
+        }
+      ]
+    },
+    {
+      "profile": "metal-simulator",
+      "passCount": 5,
+      "renderPassCount": 4,
+      "flips": 1,
+      "estimatedTrafficBytes": 173430000,
+      "passes": [
+        {
+          "label": "EntityPass Subpass",
+          "reason": "canvas.saveLayer",
+          "size": [
+            150.0,
+            150.0
+          ],
+          "drawCount": 1,
+          "estTrafficBytes": 450000,
+          "parent": 1
+        },
+        {
+          "label": "EntityPass Root (offscreen)",
+          "reason": "root-readback",
+          "size": [
+            2400.0,
+            1800.0
+          ],
+          "drawCount": 1,
+          "estTrafficBytes": 86400000
+        },
+        {
+          "label": "advanced blend filter",
+          "reason": "restore-blend:multiply",
+          "size": [
+            150.0,
+            150.0
+          ],
+          "drawCount": 0,
+          "estTrafficBytes": 180000,
+          "parent": 3
+        },
+        {
+          "label": "EntityPass Root (offscreen) (restarted)",
+          "reason": "flip-restart",
+          "size": [
+            2400.0,
+            1800.0
+          ],
+          "drawCount": 2,
+          "estTrafficBytes": 86400000
+        },
+        {
+          "label": "BlitToOnscreen (blit pass)",
+          "reason": "onscreen-blit",
+          "size": [
+            2400.0,
+            1800.0
+          ],
+          "drawCount": 0,
+          "estTrafficBytes": 0,
+          "isBlit": true
+        }
+      ]
+    },
+    {
+      "profile": "vulkan-fbf",
+      "passCount": 2,
+      "renderPassCount": 2,
+      "flips": 0,
+      "estimatedTrafficBytes": 450000,
+      "passes": [
+        {
+          "label": "EntityPass Subpass",
+          "reason": "canvas.saveLayer",
+          "size": [
+            150.0,
+            150.0
+          ],
+          "drawCount": 1,
+          "estTrafficBytes": 450000,
+          "parent": 1
+        },
+        {
+          "label": "EntityPass Root",
+          "reason": "root",
+          "size": [
+            2400.0,
+            1800.0
+          ],
+          "drawCount": 2,
+          "estTrafficBytes": 0
+        }
+      ]
+    },
+    {
+      "profile": "vulkan-adreno<=630",
+      "passCount": 5,
+      "renderPassCount": 5,
+      "flips": 1,
+      "estimatedTrafficBytes": 173430000,
+      "passes": [
+        {
+          "label": "EntityPass Subpass",
+          "reason": "canvas.saveLayer",
+          "size": [
+            150.0,
+            150.0
+          ],
+          "drawCount": 1,
+          "estTrafficBytes": 450000,
+          "parent": 1
+        },
+        {
+          "label": "EntityPass Root (offscreen)",
+          "reason": "root-readback",
+          "size": [
+            2400.0,
+            1800.0
+          ],
+          "drawCount": 1,
+          "estTrafficBytes": 86400000
+        },
+        {
+          "label": "advanced blend filter",
+          "reason": "restore-blend:multiply",
+          "size": [
+            150.0,
+            150.0
+          ],
+          "drawCount": 0,
+          "estTrafficBytes": 180000,
+          "parent": 3
+        },
+        {
+          "label": "EntityPass Root (offscreen) (restarted)",
+          "reason": "flip-restart",
+          "size": [
+            2400.0,
+            1800.0
+          ],
+          "drawCount": 2,
+          "estTrafficBytes": 86400000
+        },
+        {
+          "label": "EntityPass Root Render Pass (onscreen)",
+          "reason": "onscreen-copy-pass",
+          "size": [
+            2400.0,
+            1800.0
+          ],
+          "drawCount": 1,
+          "estTrafficBytes": 0
+        }
+      ]
+    }
+  ]
+}

@@ -52,6 +52,39 @@ jobs:
           generate_badges: pr
       
   
+  impeller_model:
+    name: Test impeller_model
+    timeout-minutes: 10
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: 📚 Checkout
+        uses: actions/checkout@v4
+
+      - name: 🐦 Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          # The model depends on private engine semantics — pin to the
+          # verified version (see packages/impeller_model/FEASIBILITY.md).
+          flutter-version: '3.47.1'
+          channel: 'stable'
+          cache: true
+
+      - name: 🧪 Test
+        run: flutter test
+        working-directory: packages/impeller_model
+
+      # SwiftShader Vulkan on CI — the flakiest leg; if it ever
+      # flakes, suspect this step first.
+      - name: 🧪 Test under Impeller
+        run: flutter test --enable-impeller
+        working-directory: packages/impeller_model
+
+      - name: 🔍 Analyze
+        run: flutter analyze
+        working-directory: packages/impeller_model
+
   check_generation:
     name: Check Code Generation
     timeout-minutes: 10
