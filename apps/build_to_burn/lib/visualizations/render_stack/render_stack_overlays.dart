@@ -379,15 +379,15 @@ class _FrameTokensState extends State<_FrameTokens> {
   @override
   Widget build(BuildContext context) {
     final layout = widget.layout;
-    if ([1, 3, 6, 7, 8, 9].any((tier) => layout.indexOf(tier) < 0)) {
+    if ([1, 3, 5, 6, 7, 8].any((tier) => layout.indexOf(tier) < 0)) {
       return const SizedBox.shrink();
     }
     final positions = [
       layout.center(layout.indexOf(1)) + 90,
       layout.center(layout.indexOf(3)),
-      _mid(6, 7),
-      _mid(8, 9),
-      layout.top(layout.indexOf(9)) - 70,
+      _mid(5, 6),
+      _mid(7, 8),
+      layout.top(layout.indexOf(8)) - 70,
     ];
     Widget picture(double t) => _TokensPainter(
       positions: positions,

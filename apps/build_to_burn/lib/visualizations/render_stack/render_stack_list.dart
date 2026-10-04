@@ -57,8 +57,8 @@ class _LabelList extends StatelessWidget {
     final y = rows.y(tier.number.toDouble());
     final lit = _lightColors(p, v.light);
     final frameTint = switch (tier.number) {
-      <= 5 => p.accent,
-      <= 7 => ExampleTheme.roseQuartz,
+      <= 4 => p.accent,
+      <= 6 => ExampleTheme.roseQuartz,
       _ => heat,
     };
     final background = Color.lerp(
@@ -197,7 +197,7 @@ class _Gutter extends StatelessWidget {
           slot: slot++,
           from: from,
           to: arc.endTier.toDouble(),
-          color: arc.endTier >= 6 ? heat : p.accent,
+          color: arc.endTier >= 5 ? heat : p.accent,
           label: '${arc.id} · ${arc.label}',
           labelRow: from,
           prominent: arc.prominent,
@@ -219,21 +219,21 @@ class _Gutter extends StatelessWidget {
           _Bracket(
             slot: slot,
             from: 1,
-            to: 5,
+            to: 4,
             color: p.textSecondary,
             label: 'UI thread',
-            labelRow: 3,
+            labelRow: 2.5,
           ),
           thread,
         ))
         ..add((
           _Bracket(
             slot: slot,
-            from: 5.55,
-            to: 7,
+            from: 4.55,
+            to: 6,
             color: p.accent,
             label: 'Raster thread\nsame CPU, 2-slot queue',
-            labelRow: 6.3,
+            labelRow: 5.3,
           ),
           thread,
         ));
@@ -246,21 +246,21 @@ class _Gutter extends StatelessWidget {
           _Bracket(
             slot: slot,
             from: 1,
-            to: 6.9,
+            to: 5.9,
             color: p.textSecondary,
             label: 'CPU encodes',
-            labelRow: 4,
+            labelRow: 3.5,
           ),
           gpu,
         ))
         ..add((
           _Bracket(
             slot: slot,
-            from: 7.1,
-            to: 9,
+            from: 6.1,
+            to: 8,
             color: heat,
-            label: 'GPU executes ↑\ncommit at plane 7',
-            labelRow: 8.2,
+            label: 'GPU executes ↑\ncommit at plane 6',
+            labelRow: 7.2,
           ),
           gpu,
         ));
@@ -271,11 +271,11 @@ class _Gutter extends StatelessWidget {
       result.add((
         _Bracket(
           slot: slot++,
-          from: 9,
-          to: 9.5,
+          from: 8,
+          to: 8.5,
           color: p.textSecondary,
           label: 'present → system compositor',
-          labelRow: 9.5,
+          labelRow: 8.5,
         ),
         present,
       ));
@@ -318,9 +318,9 @@ class _Gutter extends StatelessWidget {
     }
     if (frames > .01 && framesInFlight != null) {
       for (final (from, to, color, label) in [
-        (1.0, 5.0, p.accent, 'N+1 · UI'),
-        (6.0, 7.0, ExampleTheme.roseQuartz, 'N · raster'),
-        (8.0, 9.0, heat, 'N−1 · GPU'),
+        (1.0, 4.0, p.accent, 'N+1 · UI'),
+        (5.0, 6.0, ExampleTheme.roseQuartz, 'N · raster'),
+        (7.0, 8.0, heat, 'N−1 · GPU'),
       ]) {
         result.add((
           _Bracket(

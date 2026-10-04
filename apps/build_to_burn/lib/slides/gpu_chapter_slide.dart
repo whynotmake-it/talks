@@ -6,32 +6,35 @@ import 'package:wnma_talk/slide_number.dart';
 import 'package:wnma_talk/wnma_talk.dart';
 
 /// The GPU chapter: how the GPU paints the demo frame, and why its backdrop
-/// blur sends the picture to memory and back, one beat per step.
+/// blur sends the picture to memory and back, one beat per step. Shows one
+/// frame; the round trip on every frame comes later in the talk.
 class GpuChapterSlide extends FlutterDeckSlideWidget {
   const GpuChapterSlide({super.key})
     : super(
         configuration: const FlutterDeckSlideConfiguration(
           route: '/gpu',
           title: 'On the GPU',
-          steps: 8,
-          speakerNotes: jesperSlideNotesHeader,
+          steps: 7,
+          speakerNotes: timSlideNotesHeader,
         ),
       );
 
+  /// Short titles: the explaining is said, not read.
   static const _captions = {
-    GpuBeat.start: "Now we're on the GPU.",
-    GpuBeat.paint: 'The GPU paints many pixels at the same time.',
-    GpuBeat.needs:
-        'Could the blur be painted now? Part of what it needs is missing.',
-    GpuBeat.finish:
-        "So the GPU first finishes everything behind it. That's one pass.",
-    GpuBeat.store: 'The pass ends, and the picture goes to memory.',
-    GpuBeat.read:
-        'The blur reads it and writes a blurred copy, also in memory.',
-    GpuBeat.back:
-        'A new pass paints it all again, with the blurred copy on top.',
-    GpuBeat.repeat: 'This round trip is the expensive part, on every frame.',
+    GpuBeat.start: 'On the GPU',
+    GpuBeat.paint: 'Tiles, in parallel',
+    GpuBeat.needs: 'The blur needs its neighbours',
+    GpuBeat.finish: 'Pass 1',
+    GpuBeat.store: 'Out to memory',
+    GpuBeat.read: 'The blur',
+    GpuBeat.back: 'Pass 2: back again',
   };
+
+  /// One frame only: the repeat beat waits for the "every frame" slide.
+  static final _beats = [
+    for (final beat in GpuBeat.values)
+      if (beat != GpuBeat.repeat) beat,
+  ];
 
   @override
   Widget build(BuildContext context) {
@@ -40,11 +43,7 @@ class GpuChapterSlide extends FlutterDeckSlideWidget {
         padding: const EdgeInsets.fromLTRB(80, 0, 80, 24),
         child: FlutterDeckSlideStepsBuilder(
           builder: (context, step) {
-            final beat =
-                GpuBeat.values[(step - 1).clamp(
-                  0,
-                  GpuBeat.values.length - 1,
-                )];
+            final beat = _beats[(step - 1).clamp(0, _beats.length - 1)];
             final p = Palette.of(context);
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,

@@ -2,6 +2,7 @@ import 'dart:math' as math;
 import 'dart:ui' show ImageFilter, lerpDouble;
 
 import 'package:build_to_burn/shared/style.dart';
+import 'package:build_to_burn/visualizations/engine_stage.dart';
 import 'package:build_to_burn/visualizations/render_stack/render_stack_content.dart';
 import 'package:build_to_burn/visualizations/render_stack/render_stack_model.dart';
 import 'package:example_design/example_design.dart' show ExampleTheme;
@@ -617,7 +618,7 @@ Matrix4 _quadMatrix(Size src, List<Offset> dst) {
   );
 }
 
-/// Center y of list row [row] with no focus: row 0 is the vsync, rows 1-9
+/// Center y of list row [row] with no focus: row 0 is the vsync, rows 1-8
 /// the tiers.
 double _rowY(double row) => 818 - row * 78;
 
@@ -873,7 +874,7 @@ class _StackPicture extends StatelessWidget {
                               lowestExpanded != null && index > lowestExpanded,
                           emphasis: view.emphasis,
                           pixels: tier.detail is ScreenDetail ? pixels : 0,
-                          tiles: tier.number == 8 ? tiles : 0,
+                          tiles: tier.number == 7 ? tiles : 0,
                           tilePhase: tilePhase,
                         ),
                     if (values[tiers.last.number]!.presence > .01)
@@ -886,18 +887,18 @@ class _StackPicture extends StatelessWidget {
                       ),
                     if (frames > .01 &&
                         (framesInFlight?.limits ?? false) &&
-                        layout.indexOf(5) >= 0)
+                        layout.indexOf(4) >= 0)
                       _PipelineSlots(
                         presence: frames,
-                        tierCenter: layout.center(layout.indexOf(5)),
+                        tierCenter: layout.center(layout.indexOf(4)),
                       ),
                     if (dram > .01 &&
                         tilePhase != null &&
-                        layout.indexOf(8) >= 0)
+                        layout.indexOf(7) >= 0)
                       _DramOverlay(
                         phase: tilePhase!,
                         presence: dram,
-                        tierCenter: layout.center(layout.indexOf(8)),
+                        tierCenter: layout.center(layout.indexOf(7)),
                       ),
                     if (_detailCardTier() case final index?)
                       _DetailCard(
@@ -964,7 +965,7 @@ class _StackPicture extends StatelessWidget {
                 light: values[tier.number]!.light,
                 emphasis: view.emphasis,
                 pixels: tier.detail is ScreenDetail ? pixels : 0,
-                tiles: tier.number == 8 ? tiles : 0,
+                tiles: tier.number == 7 ? tiles : 0,
                 tilePhase: tilePhase,
               ),
           if (dim > .01 && phone != null)

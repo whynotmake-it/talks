@@ -42,7 +42,7 @@ final hookSlide = RenderStackSlide(
   entry: coldOpenScript.last.view,
   backEntry: docsStep.view,
   transition: const FlutterDeckTransition.none(),
-  speakerNotes: jesperSlideNotesHeader,
+  speakerNotes: timSlideNotesHeader,
 );
 
 // § 2a, UI half: one slide per stage. Moving on from a stage lands it on the
@@ -56,7 +56,7 @@ final stage2Slide = _stackSlide(
   [docsStep, codeStep, stage2Step],
   entry: hookScript.last.view,
   backEntry: paintSourceStep.view,
-  speakerNotes: timSlideNotesHeader,
+  speakerNotes: jesperSlideNotesHeader,
 );
 
 // The paint() signatures people know, before the demo's paint calls.
@@ -66,7 +66,7 @@ final paintSourceSlide = _stackSlide(
   [paintSourceStep],
   entry: stage2Step.view,
   backEntry: stage3Step.view,
-  speakerNotes: timSlideNotesHeader,
+  speakerNotes: jesperSlideNotesHeader,
 );
 
 final stage3Slide = _stackSlide(
@@ -74,37 +74,38 @@ final stage3Slide = _stackSlide(
   layerHeading(3),
   [stage3Step],
   entry: paintSourceStep.view,
-  backEntry: stage4Step.view,
-  speakerNotes: timSlideNotesHeader,
+  backEntry: stage4Script.first.view,
+  speakerNotes: jesperSlideNotesHeader,
 );
 
+// The layer tree, then one Scene.
 final stage4Slide = _stackSlide(
   '/stage-4',
   layerHeading(4),
-  [stage4Step],
+  stage4Script,
   entry: stage3Step.view,
-  backEntry: stage5Step.view,
-  speakerNotes: timSlideNotesHeader,
-);
-
-final stage5Slide = _stackSlide(
-  '/stage-5',
-  layerHeading(5),
-  [stage5Step],
-  entry: stage4Step.view,
-  backEntry: stage6Step.view,
+  backEntry: stage5Script.first.view,
   speakerNotes: timSlideNotesHeader,
 );
 
 // § 2b, raster half.
 
+final stage5Slide = _stackSlide(
+  '/stage-5',
+  layerHeading(5),
+  stage5Script,
+  entry: stage4Step.view,
+  backEntry: stage6Script.first.view,
+  speakerNotes: timSlideNotesHeader,
+);
+
 final stage6Slide = _stackSlide(
   '/stage-6',
   layerHeading(6),
-  [stage6Step],
+  stage6Script,
   entry: stage5Step.view,
   backEntry: stage7Step.view,
-  speakerNotes: jesperSlideNotesHeader,
+  speakerNotes: timSlideNotesHeader,
 );
 
 final stage7Slide = _stackSlide(
@@ -121,15 +122,6 @@ final stage8Slide = _stackSlide(
   layerHeading(8),
   [stage8Step],
   entry: stage7Step.view,
-  backEntry: stage9Step.view,
-  speakerNotes: jesperSlideNotesHeader,
-);
-
-final stage9Slide = _stackSlide(
-  '/stage-9',
-  layerHeading(9),
-  [stage9Step],
-  entry: stage8Step.view,
   backEntry: framesStep.view,
   speakerNotes: jesperSlideNotesHeader,
 );
@@ -138,7 +130,7 @@ final framesSlide = _stackSlide(
   '/frames-in-flight',
   'Frames in flight',
   [framesStep],
-  entry: stage9Step.view,
+  entry: stage8Step.view,
   backEntry: limitsStep.view,
   speakerNotes: jesperSlideNotesHeader,
 );

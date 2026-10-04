@@ -40,6 +40,25 @@ class LinesDetail extends TierDetail {
   final List<String> lines;
 }
 
+/// A stage from the layer tree to render passes, told in beats by its own
+/// stage slide.
+enum EngineStage { scene, displayList, passes }
+
+/// An engine stage's animated picture at [beat]; its plane shows [lines].
+@immutable
+class EngineStageDetail extends LinesDetail {
+  const EngineStageDetail(this.stage, this.beat, super.lines);
+  final EngineStage stage;
+  final int beat;
+
+  @override
+  bool operator ==(Object other) =>
+      other is EngineStageDetail && other.stage == stage && other.beat == beat;
+
+  @override
+  int get hashCode => Object.hash(stage, beat);
+}
+
 /// A widget in the demo code, and the color of the render objects it creates.
 enum DemoWidget {
   stack('Stack', Color(0xFF9467BD)),
@@ -253,7 +272,7 @@ class StackTier {
     this.note = '',
   });
 
-  /// 1 (widget code) to 9 (pixels).
+  /// 1 (widget code) to 8 (pixels).
   final int number;
 
   /// The [StackBand.id] it belongs to.
@@ -331,7 +350,7 @@ class LoopArc {
     required this.id,
     required this.label,
     required this.startTier,
-    this.endTier = 9,
+    this.endTier = 8,
     this.perSecond = 0,
     this.rateLabel,
     this.cutNote = '',

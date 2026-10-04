@@ -512,7 +512,7 @@ class _StagePicture extends StatelessWidget {
           child: const _DemoScreen(),
         ),
       ),
-      _ when tier.number == 8 => SizedBox(
+      _ when tier.number == 7 => SizedBox(
         width: 680,
         height: 300,
         child: Row(
@@ -557,6 +557,10 @@ class _StagePicture extends StatelessWidget {
       ),
       LayerTreeDetail(:final root) => _LayerTreeView(root: root),
       SourceDetail(:final excerpts) => _SourceView(excerpts: excerpts),
+      EngineStageDetail(:final stage, :final beat) => EngineStageView(
+        stage: stage,
+        beat: beat,
+      ),
       _ => ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 680),
         child: _Detail(

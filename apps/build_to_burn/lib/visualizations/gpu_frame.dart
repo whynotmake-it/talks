@@ -278,15 +278,6 @@ class _GpuFrameState extends State<GpuFrame> with TickerProviderStateMixin {
             ),
           ),
         ),
-        if (at <= GpuBeat.finish.index && at >= GpuBeat.paint.index)
-          Positioned(
-            left: _phone.left,
-            top: _phone.bottom + 18,
-            child: Text(
-              'Simplified: a real screen has thousands of tiles.',
-              style: archivo(26, color: p.textTertiary),
-            ),
-          ),
         if (at == GpuBeat.needs.index || at == GpuBeat.finish.index)
           Positioned(
             left: _phone.right + 50,
@@ -826,7 +817,8 @@ class _TripsPainter extends CustomPainter {
 }
 
 /// What the blur adds per frame: the trip out, the blur's own read, and the
-/// trip back. Estimates for an iPhone 15 Pro screen.
+/// trip back. Estimates for an iPhone 15 Pro screen in the BGRA10_XR format
+/// of our Xcode capture: 8 bytes per pixel, ≈23 MiB per full-screen texture.
 class _Bill extends StatelessWidget {
   const _Bill({
     required this.blur,
@@ -853,14 +845,14 @@ class _Bill extends StatelessWidget {
           style: archivo(28, color: p.textSecondary),
         ),
         const SizedBox(height: 8),
-        Text('→ out   ≈12 MB', style: line),
+        Text('→ out   ≈24 MB', style: line),
         Opacity(
           opacity: blur ? 1 : 0,
-          child: Text('+ blur  ≈2 MB', style: line),
+          child: Text('+ blur  ≈4 MB', style: line),
         ),
         Opacity(
           opacity: back ? 1 : 0,
-          child: Text('← back  ≈12 MB', style: line),
+          child: Text('← back  ≈24 MB', style: line),
         ),
         if (frames case final frames?)
           Text(

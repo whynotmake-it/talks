@@ -4,14 +4,13 @@ import 'package:build_to_burn/visualizations/render_stack/render_stack_model.dar
 // the tiers, section 7.1 for the stage slides and their handoffs, section 6
 // for frames in flight. Example values are for its demo tree (a frosted card
 // with a focused CupertinoTextField over a blue page) on an iPhone 15 Pro,
-// Flutter 3.47.5, --profile, Impeller Metal. Tiers 1-5 are [measured] (see
-// internal/demo-tree-dumps.md); 6-9 are [estimate]/pending a Metal capture.
+// Flutter 3.47.5, --profile, Impeller Metal. Tiers 1-4 are [measured] (see
+// internal/demo-tree-dumps.md); 5-8 are [estimate]/pending a Metal capture.
 // Keep [verify]/[estimate] values off final slides until they're ticked.
 
 const renderStackBands = [
   StackBand(id: 'code', title: 'Your code'),
   StackBand(id: 'ui', title: 'UI thread', subtitle: 'platform main thread'),
-  StackBand(id: 'handoff', title: 'Handoff', connector: true),
   StackBand(id: 'raster', title: 'Raster thread', subtitle: 'CPU'),
   StackBand(id: 'gpu', title: 'GPU and display'),
 ];
@@ -252,91 +251,24 @@ const renderStackTiers = [
   StackTier(
     number: 4,
     band: 'ui',
-    title: 'Layer tree',
-    stage: 'The pushed layers hold the pictures: a layer tree.',
+    title: 'Layer tree → Scene',
+    stage: 'The layer tree, copied into the engine as one Scene.',
     inputs: 'pictures + layers',
-    outputs: 'layer tree',
-    example: 'BackdropFilterLayer(blur 10) holds picture ② and the field',
-    handoff: 'walked by a SceneBuilder',
-    where: 'UI thread',
-    token: 'Layer',
-    detail: LayerTreeDetail(
-      LayerNode(
-        'OffsetLayer · route boundary',
-        children: [
-          LayerNode(
-            'Picture ①',
-            picture: 1,
-            sources: [DemoWidget.coloredBox],
-          ),
-          LayerNode(
-            'ClipRRectLayer · r 24',
-            widget: DemoWidget.clipRRect,
-            children: [
-              LayerNode(
-                'BackdropFilterLayer · blur 10',
-                widget: DemoWidget.backdropFilter,
-                children: [
-                  LayerNode(
-                    'Picture ②',
-                    picture: 2,
-                    sources: [DemoWidget.container, DemoWidget.textField],
-                  ),
-                  LayerNode(
-                    'OffsetLayer · field',
-                    widget: DemoWidget.textField,
-                    children: [
-                      LayerNode(
-                        'Picture ③',
-                        picture: 3,
-                        sources: [DemoWidget.textField],
-                      ),
-                      LayerNode(
-                        'OffsetLayer · caret',
-                        widget: DemoWidget.textField,
-                        children: [
-                          LayerNode(
-                            'Picture ④',
-                            picture: 4,
-                            sources: [DemoWidget.textField],
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ],
-      ),
-    ),
-  ),
-  StackTier(
-    number: 5,
-    band: 'handoff',
-    title: 'Scene handoff',
-    stage: 'A SceneBuilder packs the layers into one Scene.',
-    inputs: 'layer tree',
     outputs: 'one Scene',
     example: '26 SceneBuilder calls on a caret fade step, 7 on a hold tick',
     handoff: 'FlutterView.render() → a pipeline slot → the raster thread',
-    where: 'UI builds it · the frame pipeline carries it',
+    where: 'UI thread',
     token: 'Scene',
-    detail: TrayDetail(
-      slots: 2,
-      label: 'Frame pipeline · 2 slots',
-      slotLabels: ['N · raster', 'N+1 · UI'],
-      notes: [
-        'SceneBuilder calls cross FFI: the layer tree is built again in C++.',
-        'A slot is taken when the UI thread starts a frame,',
-        'and freed when the raster thread has finished it.',
-        'Two slots: the UI thread builds N+1 while raster draws N.',
-      ],
-    ),
+    detail: EngineStageDetail(EngineStage.scene, 3, [
+      'Scene · in C++',
+      '  TransformLayer',
+      '    ClipRRectLayer',
+      '      BackdropFilterLayer',
+      '→ raster thread',
+    ]),
   ),
   StackTier(
-    number: 6,
+    number: 5,
     band: 'raster',
     title: 'One DisplayList',
     stage: 'The raster thread flattens the Scene into one DisplayList.',
@@ -346,16 +278,17 @@ const renderStackTiers = [
     handoff: 'Impeller canvas dispatch',
     where: 'raster thread · preroll + paint',
     token: 'DisplayList',
-    detail: LinesDetail([
-      'DrawDisplayList 1',
-      'ClipRRect',
-      'SaveLayer · blur',
-      'DrawDisplayList 2 3 4',
-      'Restore',
+    detail: EngineStageDetail(EngineStage.displayList, 3, [
+      'draw picture ①',
+      'save · clipRRect',
+      '  saveLayer · backdrop blur',
+      '    draw picture ② ③ ④',
+      '  restore',
+      'restore',
     ]),
   ),
   StackTier(
-    number: 7,
+    number: 6,
     band: 'raster',
     title: 'Impeller passes',
     stage: 'Impeller turns the DisplayList into render passes.',
@@ -367,33 +300,30 @@ const renderStackTiers = [
     handoff: 'committed to the GPU queue',
     where: 'raster thread encodes · GPU executes after commit',
     token: 'Pass',
-    detail: PassesDetail([
-      StackPass('P1', 'offscreen · clear'),
-      StackPass('P2', 'blur ↓', drawCalls: 1, hot: true),
-      StackPass('P3', 'blur ↕', drawCalls: 1, hot: true),
-      StackPass('P4', 'blur ↔', drawCalls: 1, hot: true),
-      StackPass('P5', 'MSAA backdrop', drawCalls: 3, hot: true),
-      StackPass('P6', 'subpass', drawCalls: 6),
+    detail: EngineStageDetail(EngineStage.passes, 3, [
+      'Pass 1 · behind the blur',
+      'Blur · 3 small passes',
+      'Pass 2 · blurred copy, the rest',
     ]),
   ),
   StackTier(
-    number: 8,
+    number: 7,
     band: 'gpu',
     title: 'GPU execution',
     stage: 'The GPU fills tiles on-chip.',
     inputs: 'command buffers',
     outputs: 'finished drawable',
-    example: 'T0 ≈ 12 MB stored and read back at the pass break  [estimate]',
+    example: 'T0 ≈ 24 MB stored and read back at the pass break  [estimate]',
     handoff: 'present',
     where: 'GPU · tile memory + DRAM',
     token: 'Tile',
     detail: ChipsDetail([
       'tiles stay on-chip',
-      'T0 · ~12 MB to DRAM',
+      'T0 · ~24 MB to DRAM',
     ]),
   ),
   StackTier(
-    number: 9,
+    number: 8,
     band: 'gpu',
     title: 'Pixels',
     stage: 'The frosted card is on screen.',
@@ -419,11 +349,10 @@ const layerTitles = {
   2: 'Render objects',
   3: 'Paint calls',
   4: 'Layer tree',
-  5: 'One Scene',
-  6: 'One DisplayList',
-  7: 'Render passes',
-  8: 'GPU tiles',
-  9: 'Pixels on screen',
+  5: 'One DisplayList',
+  6: 'Render passes',
+  7: 'GPU tiles',
+  8: 'Pixels on screen',
 };
 
 /// The heading of layer [number]'s slide: its number, then its title.
@@ -516,27 +445,70 @@ void paint(Canvas canvas, Size size)'''),
 );
 
 final stage3Step = _stageSlide(3);
-final stage4Step = _stageSlide(4);
-final stage5Step = _stageSlide(5);
 
-// Plane 5 lands across the thread border.
-final stage6Step = _stageSlide(6, borders: {StackBorder.thread});
-final stage7Step = _stageSlide(7);
+/// An engine stage's slide, one step per beat of its `EngineStageView`.
+List<RenderStackStep> _engineScript(
+  int number,
+  EngineStage stage,
+  int beats, {
+  Set<StackBorder> borders = const {},
+  List<String>? captions,
+}) {
+  final lines = (renderStackTiers[number - 1].detail! as LinesDetail).lines;
+  return [
+    for (var beat = 0; beat < beats; beat++)
+      RenderStackStep(
+        RenderStackView(
+          focus: number,
+          borders: borders,
+          focusDetail: EngineStageDetail(stage, beat, lines),
+        ),
+        caption: captions?[beat] ?? layerHeading(number),
+      ),
+  ];
+}
 
-// Plane 7 lands across the GPU border.
-final stage8Step = _stageSlide(8, borders: {StackBorder.gpu});
+// Starts as the layer tree, in Dart only; the SceneBuilder turns it into
+// the Scene.
+final stage4Script = _engineScript(
+  4,
+  EngineStage.scene,
+  4,
+  captions: [
+    layerHeading(4),
+    layerHeading(4),
+    layerHeading(4, 'One Scene'),
+    layerHeading(4, 'One Scene'),
+  ],
+);
+
+// Plane 4 lands across the thread border.
+final stage5Script = _engineScript(
+  5,
+  EngineStage.displayList,
+  4,
+  borders: {StackBorder.thread},
+);
+final stage6Script = _engineScript(6, EngineStage.passes, 4);
+
+final stage4Step = stage4Script.last;
+final stage5Step = stage5Script.last;
+final stage6Step = stage6Script.last;
+
+// Plane 6 lands across the GPU border.
+final stage7Step = _stageSlide(7, borders: {StackBorder.gpu});
 
 /// GPU back-pressure (spec section 6): the raster thread waits on a busy GPU.
 final backpressureStep = RenderStackStep(
   RenderStackView(
-    visibleTiers: _upTo(8),
-    light: const {6: TierLight.dim, 7: TierLight.dim, 8: TierLight.hot},
+    visibleTiers: _upTo(7),
+    light: const {5: TierLight.dim, 6: TierLight.dim, 7: TierLight.hot},
     feedback: true,
   ),
   caption: 'When the GPU falls behind, the raster thread waits.',
 );
 
-final stage9Step = _stageSlide(9);
+final stage8Step = _stageSlide(8);
 
 const framesStep = RenderStackStep(
   RenderStackView(frames: FramesInFlight(animated: true)),
@@ -550,14 +522,14 @@ const limitsStep = RenderStackStep(
 
 const bandsStep = RenderStackStep(
   RenderStackView(showBands: true),
-  caption: 'Zoomed out: five bands, two threads, one GPU.',
+  caption: 'Zoomed out: four bands, two threads, one GPU.',
 );
 
-/// Lighting for a ticker frame (spec section 5): tiers 1-4 off (nothing is
-/// dirty), 5 dim, 6-9 hot.
+/// Lighting for a ticker frame (spec section 5): tiers 1-3 off (nothing is
+/// dirty), 4 dim (the Scene is still sent), 5-8 hot.
 final tickerFrameLight = {
-  5: TierLight.dim,
-  ..._lit([6, 7, 8, 9], TierLight.hot),
+  4: TierLight.dim,
+  ..._lit([5, 6, 7, 8], TierLight.hot),
 };
 
 const _rebuild = LoopArc(id: 'A', label: 'Rebuild', startTier: 1);
@@ -569,7 +541,7 @@ const _tickerFrame = LoopArc(
   id: 'T',
   label: 'Ticker',
   startTier: 1,
-  activeFromTier: 5,
+  activeFromTier: 4,
   prominent: true,
   origin: 'Ticker · every vsync',
 );
@@ -578,7 +550,7 @@ const _tickerFrameRunning = LoopArc(
   id: 'T',
   label: 'Ticker',
   startTier: 1,
-  activeFromTier: 5,
+  activeFromTier: 4,
   prominent: true,
   origin: 'Ticker · every vsync',
   perSecond: 119,
@@ -634,8 +606,8 @@ final ahaScript = [
           id: 'T',
           label: 'Ticker',
           startTier: 1,
-          endTier: 4,
-          activeFromTier: 5,
+          endTier: 3,
+          activeFromTier: 4,
           prominent: true,
           origin: 'Ticker · every vsync',
           perSecond: 119,
@@ -646,8 +618,7 @@ final ahaScript = [
       light: {
         3: .2,
         4: .2,
-        5: .2,
-        ..._lit([6, 7, 8, 9], .3),
+        ..._lit([5, 6, 7, 8], .3),
       },
     ),
     caption:
@@ -660,8 +631,8 @@ final ahaScript = [
           id: 'T',
           label: 'Ticker',
           startTier: 1,
-          endTier: 4,
-          activeFromTier: 5,
+          endTier: 3,
+          activeFromTier: 4,
           origin: 'Ticker · every vsync',
           rateLabel: '',
           cutNote: 'skipped',
@@ -670,9 +641,8 @@ final ahaScript = [
       ],
       light: {
         3: .25,
-        4: .25,
-        5: TierLight.dim,
-        ..._lit([6, 7, 8, 9], 1),
+        4: TierLight.dim,
+        ..._lit([5, 6, 7, 8], 1),
       },
     ),
     caption: 'A spinner paints every tick. The real fix: stop the Ticker.',
@@ -682,15 +652,15 @@ final ahaScript = [
 /// Why an everyday blur costs so much (agenda § 4): the GPU tier's tiles.
 const blurCostScript = [
   RenderStackStep(
-    RenderStackView(light: {8: TierLight.dim}, tiles: TilePhase.fill),
+    RenderStackView(light: {7: TierLight.dim}, tiles: TilePhase.fill),
     caption: 'Mobile GPUs draw in on-chip tiles.',
   ),
   RenderStackStep(
-    RenderStackView(light: {8: TierLight.hot}, tiles: TilePhase.flush),
+    RenderStackView(light: {7: TierLight.hot}, tiles: TilePhase.flush),
     caption: 'The blur needs finished pixels: the pass breaks to DRAM.',
   ),
   RenderStackStep(
-    RenderStackView(light: {8: TierLight.hot}, tiles: TilePhase.reseed),
+    RenderStackView(light: {7: TierLight.hot}, tiles: TilePhase.reseed),
     caption: 'Then a full-screen redraw to resume, 120 times a second.',
   ),
 ];
@@ -712,7 +682,7 @@ const profilingScript = [
     RenderStackView(
       spotlight: ToolSpotlight(
         tool: 'DevTools Performance',
-        tiers: {1: .5, 2: .5, 3: .5, 4: .5, 5: .5, 6: .3, 7: .3},
+        tiers: {1: .5, 2: .5, 3: .5, 4: .5, 5: .3, 6: .3},
         shows: 'UI + raster CPU time',
       ),
     ),
@@ -722,7 +692,7 @@ const profilingScript = [
     RenderStackView(
       spotlight: ToolSpotlight(
         tool: 'Metal System Trace',
-        tiers: {6: .5, 7: .5, 8: .5},
+        tiers: {5: .5, 6: .5, 7: .5},
         shows: 'GPU work every vsync',
       ),
     ),
@@ -732,7 +702,7 @@ const profilingScript = [
     RenderStackView(
       spotlight: ToolSpotlight(
         tool: 'Metal frame capture',
-        tiers: {7: .5, 8: .5},
+        tiers: {6: .5, 7: .5},
         shows: 'passes, draws: structure',
       ),
     ),
@@ -742,7 +712,7 @@ const profilingScript = [
     RenderStackView(
       spotlight: ToolSpotlight(
         tool: 'Power Profiler',
-        tiers: {8: .5, 9: .5},
+        tiers: {7: .5, 8: .5},
         shows: 'power + thermal state',
       ),
     ),
