@@ -60,9 +60,10 @@ device, watches frame demand for a second, and writes
 - render passes and memory traffic per device,
 - which widget causes them, with a fix for each cause,
 - the frames the screen draws while idle, and what requested them,
-- warnings when part of the estimate is a guess.
+- warnings when part of the estimate is a guess,
+- every pass in order with its size and cause, collapsed per device.
 
-The pass timeline and the labels to expect in a GPU capture are in the JSON.
+The labels to expect in a GPU capture are in the JSON.
 
 Custom `Layer` subclasses that push their own clips or filters (for example
 liquid_glass_renderer's `LiquidGlassCapture`) are read from the scene the
