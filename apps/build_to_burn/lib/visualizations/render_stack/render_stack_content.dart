@@ -394,6 +394,30 @@ const _hookVote = HookPhone(
   ],
 );
 
+/// The quiz's answer: the blur and the cursor, together.
+const _hookAnswer = HookPhone(
+  question: 'What keeps the GPU busy?',
+  options: [
+    'A  The blur',
+    'B  The list underneath',
+    'C  The blinking cursor',
+    'D  The keyboard',
+  ],
+  answers: {0, 2},
+);
+
+/// After the demo: the hook's vote again, then its answer.
+const quizAnswerScript = [
+  RenderStackStep(
+    RenderStackView(focus: 1, phone: _hookVote),
+    caption: 'The quiz',
+  ),
+  RenderStackStep(
+    RenderStackView(focus: 1, phone: _hookAnswer),
+    caption: 'Both, together',
+  ),
+];
+
 /// Hook (agenda § 1): the demo's code on the left, the demo on a phone and
 /// the vote on the right. No stack yet.
 const hookScript = [
@@ -489,7 +513,13 @@ final stage5Script = _engineScript(
   4,
   borders: {StackBorder.thread},
 );
-final stage6Script = _engineScript(6, EngineStage.passes, 4);
+// The finished plan in one step: the GPU slide before it told the story.
+final stage6Script = [
+  RenderStackStep(
+    RenderStackView(focus: 6, focusDetail: renderStackTiers[5].detail),
+    caption: layerHeading(6),
+  ),
+];
 
 final stage4Step = stage4Script.last;
 final stage5Step = stage5Script.last;
@@ -532,20 +562,8 @@ final tickerFrameLight = {
   ..._lit([5, 6, 7, 8], TierLight.hot),
 };
 
-const _rebuild = LoopArc(id: 'A', label: 'Rebuild', startTier: 1);
-const _repaint = LoopArc(id: 'C', label: 'Repaint', startTier: 3);
-
 /// The talk's aha: a running Ticker requests a frame every vsync, and every
 /// frame runs Scene, raster and GPU, whether or not anything repainted.
-const _tickerFrame = LoopArc(
-  id: 'T',
-  label: 'Ticker',
-  startTier: 1,
-  activeFromTier: 4,
-  prominent: true,
-  origin: 'Ticker · every vsync',
-);
-
 const _tickerFrameRunning = LoopArc(
   id: 'T',
   label: 'Ticker',
@@ -553,8 +571,8 @@ const _tickerFrameRunning = LoopArc(
   activeFromTier: 4,
   prominent: true,
   origin: 'Ticker · every vsync',
-  perSecond: 119,
-  rateLabel: '119/s',
+  perSecond: 120,
+  rateLabel: '120/s',
 );
 
 /// Measured for the demo's caret: 8 repainting ticks per 1.017 s blink cycle
@@ -567,85 +585,23 @@ const _caretRepaint = LoopArc(
   rateLabel: '8/s',
 );
 
-/// A custom spinner inside a RepaintBoundary (spec section 4.1): it paints
-/// one small picture every tick, so #192128 can't skip its frames.
-const _spinner = LoopArc(
-  id: 'S',
-  label: 'Spinner',
-  startTier: 3,
-  perSecond: 120,
-  prominent: true,
-  rateLabel: '120/s',
-);
-
-/// Aha (agenda § 3): a running Ticker means a full frame every vsync; the
-/// RepaintBoundary myth; #192128 as a partial fix; the spinner it can't cut.
+/// Aha (agenda § 3): what we'd expect from a caret that changes 8 times a
+/// second, then what its Ticker really does: a full frame every vsync.
 final ahaScript = [
-  const RenderStackStep(
-    RenderStackView(arcs: [_rebuild, _repaint, _tickerFrame]),
-    caption: 'Three loops: rebuild, repaint, and the ticker frame.',
+  // First what we'd expect: the caret changes 8 times a second.
+  RenderStackStep(
+    RenderStackView(
+      arcs: const [_caretRepaint],
+      light: _lit([3, 4, 5, 6, 7, 8], TierLight.dim),
+    ),
+    caption: 'Expected: 8 new frames a second',
   ),
   RenderStackStep(
     RenderStackView(
       arcs: const [_tickerFrameRunning, _caretRepaint],
       light: tickerFrameLight,
     ),
-    caption: 'A running Ticker means a full frame every vsync.',
-  ),
-  RenderStackStep(
-    RenderStackView(
-      arcs: const [_tickerFrameRunning],
-      light: tickerFrameLight,
-    ),
-    caption: "RepaintBoundary can't help. Nothing is repainting.",
-  ),
-  RenderStackStep(
-    RenderStackView(
-      arcs: const [
-        LoopArc(
-          id: 'T',
-          label: 'Ticker',
-          startTier: 1,
-          endTier: 3,
-          activeFromTier: 4,
-          prominent: true,
-          origin: 'Ticker · every vsync',
-          perSecond: 119,
-          cutNote: 'skipped',
-        ),
-        _caretRepaint,
-      ],
-      light: {
-        3: .2,
-        4: .2,
-        ..._lit([5, 6, 7, 8], .3),
-      },
-    ),
-    caption:
-        'Partial fix (expected in 3.50): skip frames that painted nothing.',
-  ),
-  RenderStackStep(
-    RenderStackView(
-      arcs: const [
-        LoopArc(
-          id: 'T',
-          label: 'Ticker',
-          startTier: 1,
-          endTier: 3,
-          activeFromTier: 4,
-          origin: 'Ticker · every vsync',
-          rateLabel: '',
-          cutNote: 'skipped',
-        ),
-        _spinner,
-      ],
-      light: {
-        3: .25,
-        4: TierLight.dim,
-        ..._lit([5, 6, 7, 8], 1),
-      },
-    ),
-    caption: 'A spinner paints every tick. The real fix: stop the Ticker.',
+    caption: 'Reality: 120 frames a second',
   ),
 ];
 
@@ -665,7 +621,8 @@ const blurCostScript = [
   ),
 ];
 
-/// Profiling (agenda § 5): each tool marks the layers it can see.
+/// Profiling (agenda § 5): each tool marks the layers it can see, next to
+/// our own capture of it running on the demo.
 const profilingScript = [
   RenderStackStep(
     RenderStackView(
@@ -673,10 +630,10 @@ const profilingScript = [
         tool: 'Highlight repaints',
         tiers: {3: TierLight.dim},
         shows: 'which boundaries repaint',
+        image: 'assets/images/tools/highlight_repaints.png',
       ),
     ),
-    caption:
-        'Highlight repaints sees paint only. For the caret: almost nothing.',
+    caption: 'Highlight repaints',
   ),
   RenderStackStep(
     RenderStackView(
@@ -684,9 +641,10 @@ const profilingScript = [
         tool: 'DevTools Performance',
         tiers: {1: .5, 2: .5, 3: .5, 4: .5, 5: .3, 6: .3},
         shows: 'UI + raster CPU time',
+        image: 'assets/images/tools/devtools_performance.png',
       ),
     ),
-    caption: "DevTools' raster bar is CPU time, not GPU time.",
+    caption: 'DevTools Performance',
   ),
   RenderStackStep(
     RenderStackView(
@@ -694,9 +652,10 @@ const profilingScript = [
         tool: 'Metal System Trace',
         tiers: {5: .5, 6: .5, 7: .5},
         shows: 'GPU work every vsync',
+        image: 'assets/images/tools/metal_system_trace.png',
       ),
     ),
-    caption: 'Metal System Trace shows GPU work every vsync.',
+    caption: 'Metal System Trace',
   ),
   RenderStackStep(
     RenderStackView(
@@ -706,16 +665,17 @@ const profilingScript = [
         shows: 'passes, draws: structure',
       ),
     ),
-    caption: "A Metal frame capture shows one frame's passes and draws.",
+    caption: 'Metal frame capture',
   ),
   RenderStackStep(
     RenderStackView(
       spotlight: ToolSpotlight(
-        tool: 'Power Profiler',
+        tool: 'Energy Impact',
         tiers: {7: .5, 8: .5},
-        shows: 'power + thermal state',
+        shows: 'what it all costs',
+        image: 'assets/images/tools/energy_impact.png',
       ),
     ),
-    caption: 'Power Profiler shows the cost in power and heat.',
+    caption: 'Energy Impact',
   ),
 ];

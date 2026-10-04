@@ -69,6 +69,60 @@ const flowNotes = {
         'frame. Together: one Scene.',
     transition: 'The raster thread takes the Scene. What does it do with it?',
   ),
+  '/stage-5': FlowNote(
+    question: 'What does the raster thread do with the Scene?',
+    takeaway:
+        'The tree is built for change, the GPU takes lists. Every layer '
+        'becomes a rule, every picture a line. The blur is one line.',
+    transition: 'Remember that line: the GPU has to stop right there.',
+  ),
+  '/gpu': FlowNote(
+    question: 'Why is that one blur line expensive?',
+    takeaway:
+        'The GPU paints tiles in parallel, on chip. The blur needs finished '
+        'neighbours, so the frame goes out to memory and back.',
+    transition: "Impeller plans this ahead. Let's see it in our list.",
+  ),
+  '/stage-6': FlowNote(
+    question: 'Where does the work get cut?',
+    takeaway:
+        'Impeller cuts the list at the blur: pass 1, the blur, pass 2. Six '
+        'passes in our capture.',
+    transition: 'Now we know what one frame costs. Mystery solved? Live.',
+  ),
+  '/live': FlowNote(
+    question: 'Is the blur the answer?',
+    takeaway:
+        'Not alone: unfocused, the needle sits in green. Focused, it goes '
+        'to yellow and stays.',
+    transition: 'Same screen, same blur. What changed?',
+  ),
+  '/every-frame': FlowNote(
+    question: 'What does the spike mean?',
+    takeaway: 'The round trip now runs every frame, 120 times a second.',
+    transition: 'But why every frame? Who keeps asking?',
+  ),
+  '/quiz-answer': FlowNote(
+    question: 'So what keeps the GPU busy?',
+    takeaway:
+        'Both: the blur makes each frame expensive, the cursor makes many '
+        'frames.',
+    transition: 'Is the cursor why we run at full frame rate?',
+  ),
+  '/paint-vs-composite': FlowNote(
+    question: 'Why 120 frames for a caret that changes 8 times a second?',
+    takeaway:
+        'Repaints are 8 a second, but the ticker asks for a frame every '
+        'vsync, and each frame runs the Scene, raster and GPU.',
+    transition: 'Why did no tool warn us?',
+  ),
+  '/fast-not-cheap': FlowNote(
+    question: 'Why did DevTools look fine?',
+    takeaway:
+        'DevTools answers "is it fast?". GPU and energy tools answer '
+        '"is it cheap?". You need both.',
+    transition: 'So how do you measure the price? The GPU tools.',
+  ),
 };
 
 /// Whether the flow notes show. Toggled with F.

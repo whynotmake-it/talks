@@ -104,7 +104,7 @@ final stage6Slide = _stackSlide(
   layerHeading(6),
   stage6Script,
   entry: stage5Step.view,
-  backEntry: stage7Step.view,
+  backEntry: ahaScript.first.view,
   speakerNotes: timSlideNotesHeader,
 );
 
@@ -153,13 +153,18 @@ final bandsSlide = _stackSlide(
   speakerNotes: jesperSlideNotesHeader,
 );
 
+// After the demo: the hook's vote, answered.
+final quizAnswerSlide = RenderStackSlide(
+  route: '/quiz-answer',
+  title: 'Quiz answer',
+  script: quizAnswerScript,
+  speakerNotes: jesperSlideNotesHeader,
+);
+
 final ahaSlide = RenderStackSlide(
   route: '/paint-vs-composite',
   title: 'Paint vs composite',
   script: ahaScript,
-  entry: bandsStep.view,
-  backEntry: blurCostScript.first.view,
-  transition: const FlutterDeckTransition.none(),
   speakerNotes: timSlideNotesHeader,
 );
 
@@ -177,7 +182,6 @@ final profilingSlide = RenderStackSlide(
   route: '/profiling',
   title: 'Profiling',
   script: profilingScript,
-  entry: blurCostScript.last.view,
   transition: const FlutterDeckTransition.none(),
   speakerNotes: timSlideNotesHeader,
 );

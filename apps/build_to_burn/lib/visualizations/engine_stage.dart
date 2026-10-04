@@ -17,7 +17,8 @@ import 'package:flutter/material.dart';
 ///   one DisplayList; read in order, it describes the screen; the backdrop
 ///   blur is one line in it.
 /// - [EngineStage.passes]: Impeller reads that list into render passes, and
-///   the backdrop blur ends the first one.
+///   the backdrop blur ends the first one. The slide shows the finished plan
+///   ([beat] 3) at once and announces the live demo.
 ///
 /// The screen the list describes is sketched in outlines, not pixels:
 /// nothing is drawn until the GPU.
@@ -38,9 +39,11 @@ class EngineStageView extends StatefulWidget {
 
 class _EngineStageViewState extends State<EngineStageView>
     with SingleTickerProviderStateMixin {
+  // The passes slide shows its finished plan at once, without a reveal.
   late final _t = AnimationController(
     vsync: this,
     duration: _duration(widget.stage, widget.beat),
+    value: widget.stage == EngineStage.passes ? 1 : 0,
   )..forward();
 
   static Duration _duration(EngineStage stage, int beat) => Duration(
@@ -1090,7 +1093,11 @@ class _PassesStage extends StatelessWidget {
         _listX - 26,
         _opY(0) + read * _opStep + 4,
         Text('▶', style: mono(24, color: p.accent)),
-        opacity: beat == 2 ? .3 : 1,
+        opacity: switch (beat) {
+          2 => .3,
+          >= 3 => 0,
+          _ => 1,
+        },
       ),
       // Pass 1.
       _bracket(_opY(0) - 6, pass1Bottom, p.accent),
@@ -1186,6 +1193,33 @@ class _PassesStage extends StatelessWidget {
             opacity: _seg(pass2, .3, .8),
           ),
         );
+    }
+
+    // The finished plan leads into the live demo.
+    if (beat >= 3) {
+      children.add(
+        Positioned(
+          right: 0,
+          top: 900,
+          child: Row(
+            children: [
+              Container(
+                width: 18,
+                height: 18,
+                decoration: const BoxDecoration(
+                  color: heat,
+                  shape: BoxShape.circle,
+                ),
+              ),
+              const SizedBox(width: 14),
+              Text(
+                'NEXT: LIVE ON THE PHONE',
+                style: mono(28, weight: 700, color: heat),
+              ),
+            ],
+          ),
+        ),
+      );
     }
 
     return Stack(clipBehavior: Clip.none, children: children);

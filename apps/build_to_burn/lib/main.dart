@@ -3,6 +3,7 @@ import 'package:build_to_burn/shared/deck_theme.dart';
 import 'package:build_to_burn/shared/flow_notes.dart';
 import 'package:build_to_burn/shared/style.dart';
 import 'package:build_to_burn/slides/gpu_chapter_slide.dart';
+import 'package:build_to_burn/slides/live_slides.dart';
 import 'package:build_to_burn/slides/render_stack_slides.dart';
 import 'package:build_to_burn/slides/skeleton.dart';
 import 'package:build_to_burn/slides/title_slide.dart';
@@ -47,17 +48,18 @@ class BuildToBurnTalk extends StatelessWidget {
               stage5Slide,
               const GpuChapterSlide(),
               stage6Slide,
-              stage7Slide,
-              stage8Slide,
-              framesSlide,
-              limitsSlide,
-              bandsSlide,
+              const LiveSlide(),
+              const EveryFrameSlide(),
+              quizAnswerSlide,
               ahaSlide,
-              blurCostSlide,
+              const FastNotCheapSlide(),
               profilingSlide,
               fixesSlide,
               productionSlide,
               closeSlide,
+              // Backup, for questions.
+              framesSlide,
+              limitsSlide,
             ],
           ),
         ),

@@ -42,6 +42,8 @@ flutter:
   assets:
     # From docs.flutter.dev/resources/architectural-overview.
     - assets/images/flutter_docs_trees.png
+    # Our own captures of the demo, one per profiling tool.
+    - assets/images/tools/
 
   fonts:
     - family: Archivo

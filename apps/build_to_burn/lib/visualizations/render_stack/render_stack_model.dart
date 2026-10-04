@@ -421,9 +421,14 @@ class ToolSpotlight {
     required this.tool,
     required this.tiers,
     required this.shows,
+    this.image,
   });
 
   final String tool;
+
+  /// A screenshot of the tool, shown left of the stack; the stack moves
+  /// right to make room.
+  final String? image;
 
   /// Lit tiers and how brightly (see [TierLight]).
   final Map<int, double> tiers;
@@ -435,16 +440,22 @@ class ToolSpotlight {
       other is ToolSpotlight &&
       other.tool == tool &&
       mapEquals(other.tiers, tiers) &&
-      other.shows == shows;
+      other.shows == shows &&
+      other.image == image;
 
   @override
-  int get hashCode => Object.hash(tool, shows, Object.hashAll(tiers.keys));
+  int get hashCode =>
+      Object.hash(tool, shows, image, Object.hashAll(tiers.keys));
 }
 
 /// The demo on a phone in front of the dimmed stack, with an optional vote.
 @immutable
 class HookPhone {
-  const HookPhone({this.question = '', this.options = const []});
+  const HookPhone({
+    this.question = '',
+    this.options = const [],
+    this.answers = const {},
+  });
 
   /// The vote's question. Empty shows the phone without a vote.
   final String question;
@@ -452,14 +463,22 @@ class HookPhone {
   /// The vote's answers, e.g. `A  The blur`.
   final List<String> options;
 
+  /// Indexes into [options] revealed as right; the others fade.
+  final Set<int> answers;
+
   @override
   bool operator ==(Object other) =>
       other is HookPhone &&
       other.question == question &&
-      listEquals(other.options, options);
+      listEquals(other.options, options) &&
+      setEquals(other.answers, answers);
 
   @override
-  int get hashCode => Object.hash(question, Object.hashAll(options));
+  int get hashCode => Object.hash(
+    question,
+    Object.hashAll(options),
+    Object.hashAllUnordered(answers),
+  );
 }
 
 /// What the GPU tier's tile memory is doing, for why a blur costs.

@@ -233,7 +233,9 @@ class _RenderStackState extends State<RenderStack> {
         'border ${border.name}': view.borders.contains(border) ? 1.0 : 0.0,
       'pixels': view.showPixels ? 1.0 : 0.0,
       'dim': view.phone != null ? 1.0 : 0.0,
-      'compress': view.focus != null ? 1.0 : 0.0,
+      'compress': view.focus != null || view.spotlight?.image != null
+          ? 1.0
+          : 0.0,
       // Plane 1's card is the whole picture until a phone or plane 2 joins.
       'wide': view.focus == 1 && view.phone == null ? 1.0 : 0.0,
       'colors': view.widgetColors ? 1.0 : 0.0,
@@ -971,6 +973,11 @@ class _StackPicture extends StatelessWidget {
           if (dim > .01 && phone != null)
             _HookPhoneOverlay(phone: phone!, presence: dim),
           if (docs > .01) _DocsOverlay(presence: docs),
+          if (view.spotlight?.image case final image?)
+            Positioned.fromRect(
+              rect: _focusCardRect,
+              child: _ToolShot(image: image),
+            ),
           if (caption case final caption?)
             Positioned(
               left: 40,

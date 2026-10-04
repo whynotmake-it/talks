@@ -54,20 +54,36 @@ class _HookPhoneOverlay extends StatelessWidget {
                           style: archivo(40, weight: 500, color: p.text),
                         ),
                         const SizedBox(height: 28),
-                        for (final option in phone.options)
-                          Container(
-                            margin: const EdgeInsets.only(bottom: 14),
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 20,
-                              vertical: 12,
-                            ),
-                            decoration: BoxDecoration(
-                              color: p.surface,
-                              border: Border.all(color: p.border, width: 2),
-                            ),
-                            child: Text(
-                              option,
-                              style: archivo(34, color: p.text),
+                        for (final (index, option) in phone.options.indexed)
+                          AnimatedOpacity(
+                            duration: const Duration(milliseconds: 400),
+                            opacity:
+                                phone.answers.isEmpty ||
+                                    phone.answers.contains(index)
+                                ? 1
+                                : .3,
+                            child: AnimatedContainer(
+                              duration: const Duration(milliseconds: 400),
+                              margin: const EdgeInsets.only(bottom: 14),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 20,
+                                vertical: 12,
+                              ),
+                              decoration: BoxDecoration(
+                                color: phone.answers.contains(index)
+                                    ? _correct.withValues(alpha: .14)
+                                    : p.surface,
+                                border: Border.all(
+                                  color: phone.answers.contains(index)
+                                      ? _correct
+                                      : p.border,
+                                  width: phone.answers.contains(index) ? 4 : 2,
+                                ),
+                              ),
+                              child: Text(
+                                option,
+                                style: archivo(34, color: p.text),
+                              ),
                             ),
                           ),
                       ],
@@ -81,6 +97,9 @@ class _HookPhoneOverlay extends StatelessWidget {
     );
   }
 }
+
+/// A right answer in the vote.
+const _correct = Color(0xFF2CA02C);
 
 /// The spec's demo at phone size: a blue page, a frosted card with a white
 /// field and hairline border, and a fading iOS caret.
@@ -643,6 +662,35 @@ class _PipelineSlots extends StatelessWidget {
                 ),
               ],
             ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// A profiling tool's screenshot, in the stage slide's left column; a new
+/// one crossfades in.
+class _ToolShot extends StatelessWidget {
+  const _ToolShot({required this.image});
+
+  final String image;
+
+  @override
+  Widget build(BuildContext context) {
+    final p = Palette.of(context);
+    return AnimatedSwitcher(
+      duration: const Duration(milliseconds: 400),
+      child: Center(
+        key: ValueKey(image),
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            color: p.surface,
+            border: Border.all(color: p.border, width: 2),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Image.asset(image, fit: BoxFit.contain),
           ),
         ),
       ),
