@@ -122,10 +122,8 @@ Future<GpuReport> estimateGpu(
       targets.first,
       () => snap(
         name: reportName,
-        settings: SnaptestSettings.rendered(
-          devices: [targets.first.screen],
-          pathPrefix: outputDir,
-        ),
+        device: targets.first.screen,
+        settings: SnaptestSettings.rendered(pathPrefix: outputDir),
       ),
     );
     if (files.isNotEmpty) {

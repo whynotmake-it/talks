@@ -31,7 +31,7 @@ Future<T> onDevice<T>(
 ) async {
   final previousOverride = debugDefaultTargetPlatformOverride;
   final builtFor = defaultTargetPlatform;
-  final restoreView = setTestViewToFakeDevice(
+  final restoreView = setTestViewForDevice(
     device.screen,
     Orientation.portrait,
   );
@@ -43,7 +43,7 @@ Future<T> onDevice<T>(
   try {
     return await body();
   } finally {
-    // snaptest's restore clears the override; put back the test's own.
+    // Put back the test's own override (snaptest 0.3 cleared it).
     restoreView();
     debugDefaultTargetPlatformOverride = previousOverride;
     if (defaultTargetPlatform != device.platform) {

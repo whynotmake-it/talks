@@ -12,6 +12,7 @@ import 'frame_requests.dart';
 import 'layer_walk.dart';
 import 'recorded_op.dart';
 import 'recording_canvas.dart';
+import 'scene_recording.dart';
 
 /// Everything captured for one frame: the composited layer tree with every
 /// picture's recorded ops attached.
@@ -21,6 +22,8 @@ class FrameCapture {
     required this.physicalSize,
     required this.devicePixelRatio,
     required this.missingPictures,
+    this.sceneLayers = const {},
+    this.unmodeledLayers = const {},
   });
 
   /// Root of the layer tree (a TransformLayer carrying the device pixel
@@ -33,6 +36,13 @@ class FrameCapture {
   /// PictureLayers whose picture was not recorded through the binding, so
   /// their draws are unknown to the model. 0 in normal widget tests.
   final int missingPictures;
+
+  /// Custom layer types read from the pushes they sent to the engine.
+  final Set<String> sceneLayers;
+
+  /// Custom layer types whose effect is unknown; estimated as plain
+  /// containers.
+  final Set<String> unmodeledLayers;
 }
 
 /// What happened in one drawn frame, reported to frame listeners.
@@ -124,7 +134,22 @@ class ImpellerModelBinding extends AutomatedTestWidgetsFlutterBinding {
 
   final Expando<List<RecordedOp>> _opsByPicture = Expando('recorded ops');
 
-  late final LayerWalker _walker = LayerWalker((p) => _opsByPicture[p]);
+  final Expando<SceneNode> _sceneByEngineLayer = Expando('scene node');
+
+  SceneNode? _lastScene;
+
+  late final LayerWalker _walker = LayerWalker(
+    (p) => _opsByPicture[p],
+    sceneFor: (e) => _sceneByEngineLayer[e],
+    lastScene: () => _lastScene,
+  );
+
+  @override
+  ui.SceneBuilder createSceneBuilder() => RecordingSceneBuilder(
+    super.createSceneBuilder(),
+    _sceneByEngineLayer,
+    (scene) => _lastScene = scene,
+  );
 
   int _picturesThisFrame = 0;
 
@@ -155,6 +180,8 @@ class ImpellerModelBinding extends AutomatedTestWidgetsFlutterBinding {
       physicalSize: renderView.flutterView.physicalSize,
       devicePixelRatio: renderView.flutterView.devicePixelRatio,
       missingPictures: _walker.missingPictures,
+      sceneLayers: Set.of(_walker.sceneLayers),
+      unmodeledLayers: Set.of(_walker.unmodeledLayers),
     );
   }
 

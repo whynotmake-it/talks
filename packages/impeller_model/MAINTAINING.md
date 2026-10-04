@@ -9,7 +9,7 @@ built to make an SDK upgrade a mechanical review.
 | Directory | Contents | Coupled to |
 | --- | --- | --- |
 | `lib/src/engine/` | Ports of Impeller and DisplayList decisions: `canvas.dart` (`Canvas` save/restore/flip), `display_list.dart` (layer tree to ops, `dl_builder` bookkeeping), `dl_dispatcher.dart`, `gaussian_blur.dart`, `color_filter.dart`, `capabilities.dart` (formats, framebuffer fetch per backend), `labels.dart` (debug labels). | Engine source |
-| `lib/src/capture/` | `ImpellerModelBinding`: canvas recording, layer walk, frame-request attribution, ticker discovery, widget creation locations. | Framework internals (`createCanvas`, `debugLayer`, layer fields, `Ticker` diagnostics) |
+| `lib/src/capture/` | `ImpellerModelBinding`: canvas and scene recording, layer walk, frame-request attribution, ticker discovery, widget creation locations. | Framework internals (`createCanvas`, `createSceneBuilder`, `debugLayer`, layer fields and `engineLayer`, `Ticker` diagnostics) |
 | `lib/src/model/` | Memory traffic arithmetic over the pass list. | Engine types only (`ModelPass`), no engine logic |
 | `lib/src/api/` | Public API: `estimateGpu`, `measureFrameDemand`, device presets, JSON/HTML report. | `flutter_test` pumping (`frame_demand.dart`), per-platform widget defaults (`on_device.dart`), both quoted |
 | `tool/engine_refs.dart` | Quote checker and upgrade diff. | |

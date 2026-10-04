@@ -37,6 +37,8 @@ class FrameEstimate {
     required this.traffic,
     required this.layerTree,
     required this.missingPictures,
+    required this.sceneLayers,
+    required this.unmodeledLayers,
   });
 
   final GpuDevice device;
@@ -46,6 +48,14 @@ class FrameEstimate {
 
   /// Picture layers whose draws were unknown (should be 0).
   final int missingPictures;
+
+  /// Custom layer types (a package's own `Layer` subclasses) that were read
+  /// from the clips and filters they pushed to the engine.
+  final Set<String> sceneLayers;
+
+  /// Custom layer types whose effect is unknown; estimated as plain
+  /// containers. Verify a frame with any of these on a device.
+  final Set<String> unmodeledLayers;
 
   List<ModelPass> get passes => timeline.passes;
 
@@ -86,6 +96,8 @@ class FrameEstimate {
     'flips': flips,
     'traffic': traffic.toJson(),
     if (missingPictures > 0) 'missingPictures': missingPictures,
+    if (sceneLayers.isNotEmpty) 'sceneLayers': sceneLayers.toList(),
+    if (unmodeledLayers.isNotEmpty) 'unmodeledLayers': unmodeledLayers.toList(),
     'costCenters': [for (final c in costCenters) c.toJson()],
     'passes': [for (final p in passes) p.toJson()],
     'roles': {
@@ -126,5 +138,7 @@ FrameEstimate estimateFrame(FrameCapture capture, GpuDevice device) {
     traffic: MemoryTraffic.of(timeline, capture.physicalSize),
     layerTree: capture.root,
     missingPictures: capture.missingPictures,
+    sceneLayers: capture.sceneLayers,
+    unmodeledLayers: capture.unmodeledLayers,
   );
 }

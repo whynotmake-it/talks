@@ -17,7 +17,7 @@ dependencies:
   flutter_test:
     sdk: flutter
   path: ^1.9.0
-  snaptest: ^0.3.1
+  snaptest: ^1.0.0-dev.3
   vector_math: ^2.1.4
 
 dev_dependencies:

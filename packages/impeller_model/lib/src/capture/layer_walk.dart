@@ -5,6 +5,7 @@ import 'package:flutter/widgets.dart' show DebugCreator;
 
 import 'creation_location.dart';
 import 'recorded_op.dart';
+import 'scene_recording.dart';
 
 /// A node in the captured layer tree, with the properties the Impeller
 /// model reads. Mirrors `Layer` subclasses in
@@ -141,26 +142,119 @@ class CapturedLayer {
   };
 }
 
+/// The engine layer [layer]'s last `addToScene` pushed, which keys its
+/// recorded scene node.
+///
+/// `Layer.engineLayer` is protected and visible for testing; this package only
+/// runs inside widget tests, and reading it changes nothing.
+ui.EngineLayer? _engineLayerOf(Layer layer) =>
+    // ignore: invalid_use_of_protected_member, invalid_use_of_visible_for_testing_member
+    layer.engineLayer;
+
 /// Walks the composited layer tree after a pump.
 ///
 /// Traversal uses `ContainerLayer.firstChild` / `Layer.nextSibling`; each
 /// PictureLayer's ops are found by picture identity through [opsFor].
+///
+/// Framework layer types are read from their fields. Any other layer type
+/// (a package's own `Layer` subclass) is rebuilt from the pushes it sent to
+/// the engine, found through [sceneFor] by its `engineLayer`.
 class LayerWalker {
-  LayerWalker(this.opsFor);
+  LayerWalker(this.opsFor, {this.sceneFor, this.lastScene});
 
   /// Looks up the ops recorded for a picture, or null if it was recorded
   /// outside the binding.
   final List<RecordedOp>? Function(ui.Picture picture) opsFor;
 
+  /// Looks up what an engine layer's push recorded.
+  final SceneNode? Function(ui.EngineLayer engineLayer)? sceneFor;
+
+  /// The scene the engine received for the last frame.
+  final SceneNode? Function()? lastScene;
+
   /// Number of PictureLayers in the last walk whose ops were unknown.
   int missingPictures = 0;
 
+  /// Custom layer types in the last walk that were read from their scene
+  /// pushes.
+  final Set<String> sceneLayers = {};
+
+  /// Custom layer types in the last walk whose effect is unknown: they kept
+  /// no engine layer, and the scene holds pushes no layer accounts for. The
+  /// model treats them as plain containers.
+  final Set<String> unmodeledLayers = {};
+
+  /// Engine layers the walk accounted for: framework layers' own and every
+  /// push read for a custom layer.
+  final Set<ui.EngineLayer> _accounted = {};
+
   CapturedLayer walk(Layer root) {
     missingPictures = 0;
-    return _node(root);
+    sceneLayers.clear();
+    unmodeledLayers.clear();
+    _accounted.clear();
+    final captured = _node(root);
+    // A custom layer without an engine layer usually pushed nothing (it only
+    // added its children), which is exactly how the model treats it. It is
+    // unmodeled only if the scene holds a push nobody accounts for.
+    final scene = lastScene?.call();
+    if (unmodeledLayers.isNotEmpty && scene != null && !_hasOrphanPush(scene)) {
+      unmodeledLayers.clear();
+    }
+    return captured;
   }
 
+  bool _hasOrphanPush(SceneNode node) {
+    final engineLayer = node.engineLayer;
+    if (engineLayer != null && !_accounted.contains(engineLayer)) {
+      return true;
+    }
+    return node.children.any(_hasOrphanPush);
+  }
+
+  /// The framework's own layer types: the model reads their fields.
+  static const _frameworkTypes = {
+    'ContainerLayer',
+    'OffsetLayer',
+    'TransformLayer',
+    'OpacityLayer',
+    'ClipRectLayer',
+    'ClipRRectLayer',
+    'ClipRSuperellipseLayer',
+    'ClipPathLayer',
+    'ColorFilterLayer',
+    'ImageFilterLayer',
+    'BackdropFilterLayer',
+    'ShaderMaskLayer',
+    'PictureLayer',
+    'TextureLayer',
+    'PlatformViewLayer',
+    'PerformanceOverlayLayer',
+    'LeaderLayer',
+    'FollowerLayer',
+  };
+
+  static bool _isFrameworkType(String type) =>
+      _frameworkTypes.contains(type) || type.startsWith('AnnotatedRegionLayer');
+
   CapturedLayer _node(Layer layer) {
+    final own = _engineLayerOf(layer);
+    if (own != null) {
+      _accounted.add(own);
+    }
+    final type = layer.runtimeType.toString();
+    if (!_isFrameworkType(type)) {
+      final engineLayer = _engineLayerOf(layer);
+      final recorded = engineLayer == null ? null : sceneFor?.call(engineLayer);
+      if (recorded != null) {
+        sceneLayers.add(type);
+        return _fromScene(recorded, layer, _frameworkDescendants(layer));
+      }
+      if (layer is ContainerLayer) {
+        unmodeledLayers.add(type);
+      }
+    }
+
     final children = <CapturedLayer>[];
     if (layer is ContainerLayer) {
       var child = layer.firstChild;
@@ -197,10 +291,7 @@ class LayerWalker {
       }
     }
 
-    final dc = layer.debugCreator;
-    final origin = dc is DebugCreator
-        ? (_origins[dc] ??= describeCreator(dc))
-        : null;
+    final origin = _originOf(layer);
 
     return CapturedLayer(
       type: layer.runtimeType.toString(),
@@ -222,7 +313,7 @@ class LayerWalker {
           ? layer.blendMode
           : null,
       backdropKeyIdentity: layer is BackdropFilterLayer
-          ? layer.backdropKey
+          ? _backdropIdentity(layer)
           : null,
       clipBounds: clipBounds,
       clipBehaviorName: clipBehavior,
@@ -246,4 +337,140 @@ class LayerWalker {
   /// Origins per creator object: the same render object keeps its creator
   /// across frames, and describing it walks the element ancestry.
   final Expando<WidgetOrigin> _origins = Expando();
+
+  WidgetOrigin? _originOf(Layer layer) {
+    final dc = layer.debugCreator;
+    return dc is DebugCreator ? (_origins[dc] ??= describeCreator(dc)) : null;
+  }
+
+  /// [layer]'s own origin, or its type inside the nearest ancestor that has
+  /// one: custom layers rarely set `debugCreator`.
+  WidgetOrigin _customOrigin(Layer layer) {
+    final own = _originOf(layer);
+    if (own != null) {
+      return own;
+    }
+    final type = layer.runtimeType.toString();
+    for (Layer? a = layer.parent; a != null; a = a.parent) {
+      final origin = _originOf(a);
+      if (origin != null) {
+        return WidgetOrigin(
+          widget: '$type in ${origin.widget}',
+          path: [type, ...origin.path],
+          location: origin.location,
+        );
+      }
+    }
+    return WidgetOrigin(widget: type, path: [type]);
+  }
+
+  /// The id the engine groups backdrops by. Recorded pushes carry the int
+  /// id, so framework layers use it too when their push was recorded.
+  Object? _backdropIdentity(BackdropFilterLayer layer) {
+    final engineLayer = _engineLayerOf(layer);
+    final recorded = engineLayer == null ? null : sceneFor?.call(engineLayer);
+    return recorded?.backdropId ?? layer.backdropKey;
+  }
+
+  /// The framework layers below [layer], by the engine layer or picture
+  /// their own scene node is keyed by.
+  ({Map<ui.EngineLayer, Layer> byEngineLayer, Map<ui.Picture, Layer> byPicture})
+  _frameworkDescendants(Layer layer) {
+    final byEngineLayer = <ui.EngineLayer, Layer>{};
+    final byPicture = <ui.Picture, Layer>{};
+    void visit(Layer l) {
+      if (l is PictureLayer) {
+        final picture = l.picture;
+        if (picture != null) {
+          byPicture[picture] = l;
+        }
+        return;
+      }
+      final engineLayer = _engineLayerOf(l);
+      if (engineLayer != null) {
+        byEngineLayer[engineLayer] = l;
+      }
+      if (l is ContainerLayer) {
+        var child = l.firstChild;
+        while (child != null) {
+          visit(child);
+          child = child.nextSibling;
+        }
+      }
+    }
+
+    if (layer is ContainerLayer) {
+      var child = layer.firstChild;
+      while (child != null) {
+        visit(child);
+        child = child.nextSibling;
+      }
+    }
+    return (byEngineLayer: byEngineLayer, byPicture: byPicture);
+  }
+
+  /// A custom layer's pushes as layers the model reads. Children that are
+  /// framework layers are walked as usual, so they keep their origins; the
+  /// rest carries [owner]'s origin.
+  CapturedLayer _fromScene(
+    SceneNode node,
+    Layer owner,
+    ({
+      Map<ui.EngineLayer, Layer> byEngineLayer,
+      Map<ui.Picture, Layer> byPicture,
+    })
+    framework,
+  ) {
+    final nodeEngineLayer = node.engineLayer;
+    if (nodeEngineLayer != null) {
+      _accounted.add(nodeEngineLayer);
+    }
+    final children = <CapturedLayer>[];
+    for (final child in node.children) {
+      final childEngineLayer = child.engineLayer;
+      final childPicture = child.picture;
+      final layer = childEngineLayer != null
+          ? framework.byEngineLayer[childEngineLayer]
+          : childPicture != null
+          ? framework.byPicture[childPicture]
+          : null;
+      children.add(
+        layer != null && layer != owner
+            ? _node(layer)
+            : _fromScene(child, owner, framework),
+      );
+    }
+
+    List<RecordedOp>? pictureOps;
+    var pictureMissing = false;
+    final picture = node.picture;
+    if (picture != null) {
+      pictureOps = opsFor(picture);
+      if (pictureOps == null) {
+        pictureMissing = true;
+        missingPictures++;
+      }
+    }
+
+    return CapturedLayer(
+      type: node.type,
+      children: children,
+      pictureOps: pictureOps,
+      pictureMissing: pictureMissing,
+      origin: _customOrigin(owner),
+      offset: node.offset,
+      transform: node.transform,
+      alpha: node.alpha,
+      filter: node.filter,
+      blendMode: node.blendMode,
+      backdropKeyIdentity: node.backdropId,
+      clipBounds: node.clipBounds,
+      clipBehaviorName: node.clipBehaviorName,
+      maskRect: node.maskRect,
+      hasShader: node.hasShader,
+      colorFilterAffectsTransparentBlack:
+          node.colorFilterAffectsTransparentBlack,
+      rect: node.rect,
+    );
+  }
 }
