@@ -8,6 +8,7 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:impeller_model/impeller_model.dart';
+import 'package:impeller_model/src/capture/layer_walk.dart' show LayerWalker;
 
 import 'cases_test.dart' show captureNow, dir, timelineFor;
 
@@ -22,6 +23,9 @@ enum _Push {
 
   /// A backdrop whose engine layer it does not keep.
   untrackedBackdrop,
+
+  /// A clip it keeps, then a sibling backdrop it does not keep.
+  clipThenSiblingBackdrop,
 }
 
 class _CustomLayer extends ContainerLayer {
@@ -48,6 +52,15 @@ class _CustomLayer extends ContainerLayer {
         builder.pushBackdropFilter(
           ui.ImageFilter.matrix(Matrix4.identity().storage),
         );
+        addChildrenToScene(builder);
+        builder.pop();
+      case _Push.clipThenSiblingBackdrop:
+        engineLayer = builder.pushClipRect(clip, clipBehavior: Clip.hardEdge);
+        builder
+          ..pop()
+          ..pushBackdropFilter(
+            ui.ImageFilter.matrix(Matrix4.identity().storage),
+          );
         addChildrenToScene(builder);
         builder.pop();
     }
@@ -79,6 +92,51 @@ class _RenderCustomLayer extends RenderProxyBox {
       super.paint,
       Offset.zero,
     );
+  }
+}
+
+/// A PictureLayer subclass, as a package might use to cache a picture.
+class _CachedPictureLayer extends PictureLayer {
+  _CachedPictureLayer(super.canvasBounds);
+}
+
+/// Paints a full-size blur into a [_CachedPictureLayer] when [subclass], else
+/// into a plain PictureLayer.
+class _BlurPicture extends LeafRenderObjectWidget {
+  const _BlurPicture({required this.subclass});
+
+  final bool subclass;
+
+  @override
+  RenderObject createRenderObject(BuildContext context) =>
+      _RenderBlurPicture(subclass: subclass);
+}
+
+class _RenderBlurPicture extends RenderBox {
+  _RenderBlurPicture({required this.subclass});
+
+  final bool subclass;
+
+  @override
+  bool get sizedByParent => true;
+
+  @override
+  Size computeDryLayout(BoxConstraints constraints) => constraints.biggest;
+
+  @override
+  void paint(PaintingContext context, Offset offset) {
+    final bounds = offset & size;
+    final recorder = RendererBinding.instance.createPictureRecorder();
+    RendererBinding.instance
+        .createCanvas(recorder)
+        .drawRect(
+          bounds,
+          Paint()
+            ..color = const Color(0xFF3366CC)
+            ..imageFilter = ui.ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+        );
+    final layer = subclass ? _CachedPictureLayer(bounds) : PictureLayer(bounds);
+    context.addLayer(layer..picture = recorder.endRecording());
   }
 }
 
@@ -168,5 +226,51 @@ void main() {
     );
     final capture = captureNow();
     expect(capture.unmodeledLayers, {'_CustomLayer'});
+  });
+
+  testWidgets('pushes a layer does not keep are flagged', (tester) async {
+    await tester.pumpWidget(
+      _scene(
+        (blurs) => _CustomLayerWidget(
+          push: _Push.clipThenSiblingBackdrop,
+          child: blurs,
+        ),
+      ),
+    );
+    final capture = captureNow();
+    expect(capture.unmodeledLayers, {LayerWalker.unattributedPushes});
+  });
+
+  testWidgets('a custom layer is still read after a toImage snapshot', (
+    tester,
+  ) async {
+    final boundary = GlobalKey();
+    await tester.pumpWidget(
+      RepaintBoundary(
+        key: boundary,
+        child: _scene(
+          (blurs) =>
+              _CustomLayerWidget(push: _Push.clipAndBackdrop, child: blurs),
+        ),
+      ),
+    );
+    final render =
+        boundary.currentContext!.findRenderObject()! as RenderRepaintBoundary;
+    await tester.runAsync(() async => (await render.toImage()).dispose());
+    await tester.pump();
+    final capture = captureNow();
+    expect(capture.sceneLayers, {'_CustomLayer'});
+    expect(capture.unmodeledLayers, isEmpty);
+  });
+
+  testWidgets('a PictureLayer subclass draws like a PictureLayer', (
+    tester,
+  ) async {
+    await tester.pumpWidget(const _BlurPicture(subclass: false));
+    final plain = captureNow();
+    await tester.pumpWidget(const _BlurPicture(subclass: true));
+    final subclass = captureNow();
+    expect(_shape(plain).length, greaterThan(1));
+    expect(_shape(subclass), _shape(plain));
   });
 }

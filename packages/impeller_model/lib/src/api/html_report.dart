@@ -100,7 +100,8 @@ for (const f of frames) {
   const approx = (f.passes || []).filter((p) => p.approximate).length;
   if (approx) warn(approx + ' pass' + (approx === 1 ? '' : 'es') + ' with a guessed size (shader filters). Measure on a device before acting on their size.', f.device.name);
   for (const o of f.missingPictureOrigins || []) warn('Draws not counted: a picture recorded with Canvas(PictureRecorder()) in ' + o + '.', f.device.name);
-  for (const t of f.unmodeledLayers || []) warn('Custom layer ' + t + ' pushes effects the model cannot read; counted as a plain container.', f.device.name);
+  for (const t of f.unmodeledLayers || []) warn((t.startsWith('(') ? 'A custom layer' : 'Custom layer ' + t) +
+    ' pushes effects the model cannot read; counted as a plain container.', f.device.name);
 }
 for (const [text, devices] of warnings) {
   const where = devices.size === frames.length ? '' : ' (' + [...devices].join(', ') + ')';
@@ -156,7 +157,8 @@ if (fd) {
   byId('verdict').textContent = fd.verdict === 'idle'
     ? 'None: the screen draws nothing while nobody touches it.'
     : fps + ' frames per second while nothing is touched (' + fd.unchangedFrames + ' of ' + fd.framesDrawn +
-      ' drew exactly the previous frame). Every frame repeats the passes above.';
+      ' drew exactly the previous frame). Every frame repeats the passes above.' +
+      (fd.stillRequesting ? ' It does not stop on its own.' : '');
   const sources = fd.sources || [];
   const tickers = (fd.tickers || []).filter((t) => t.active && !t.muted);
   if (fd.verdict !== 'idle' && (sources.length || tickers.length)) {

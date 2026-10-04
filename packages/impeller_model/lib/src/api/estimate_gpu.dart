@@ -114,6 +114,20 @@ Future<GpuReport> estimateGpu(
   final dir = _outputDirectory(outputDir);
   final written = <File>[];
 
+  FrameDemand? demand;
+  if (frameDemandWindow != null) {
+    demand = await measureFrameDemand(
+      tester,
+      window: frameDemandWindow,
+      settle: frameDemandSettle,
+      refreshRate: refreshRate,
+      device: targets.first,
+    );
+  }
+
+  // After the frame demand: the screenshot renders the layer tree into a
+  // scene the binding does not record (OffsetLayer.toImage), and frames
+  // estimated after it could not read custom layers' pushes.
   String? screenshotPath;
   if (screenshot && writeFiles) {
     // Built for the first device's platform, like its estimate.
@@ -130,17 +144,6 @@ Future<GpuReport> estimateGpu(
       written.add(files.first);
       screenshotPath = p.relative(files.first.path, from: dir.path);
     }
-  }
-
-  FrameDemand? demand;
-  if (frameDemandWindow != null) {
-    demand = await measureFrameDemand(
-      tester,
-      window: frameDemandWindow,
-      settle: frameDemandSettle,
-      refreshRate: refreshRate,
-      device: targets.first,
-    );
   }
 
   final report = GpuReport(

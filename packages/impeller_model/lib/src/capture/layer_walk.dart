@@ -182,14 +182,37 @@ class LayerWalker {
   /// pushes.
   final Set<String> sceneLayers = {};
 
-  /// Custom layer types in the last walk whose effect is unknown: they kept
-  /// no engine layer, and the scene holds pushes no layer accounts for. The
-  /// model treats them as plain containers.
+  /// Custom layer types in the last walk whose effect is unknown, estimated
+  /// as plain containers: their engine layer came from a scene the binding
+  /// did not record (a `toImage` snapshot), or the scene holds pushes no
+  /// layer accounts for. [unattributedPushes] stands for pushes whose layer
+  /// cannot be named.
   final Set<String> unmodeledLayers = {};
+
+  /// The [unmodeledLayers] entry for pushes no layer accounts for.
+  static const unattributedPushes = '(unattributed scene pushes)';
 
   /// Engine layers the walk accounted for: framework layers' own and every
   /// push read for a custom layer.
   final Set<ui.EngineLayer> _accounted = {};
+
+  /// Custom container types without an engine layer. Usually they pushed
+  /// nothing (only their children), which is how the model treats them.
+  final Set<String> _pushless = {};
+
+  /// Framework layers by the engine layer or picture their scene node is
+  /// keyed by, for the whole tree of the current walk.
+  final Map<ui.EngineLayer, Layer> _layerByEngineLayer = {};
+  final Map<ui.Picture, Layer> _layerByPicture = {};
+
+  /// Whether some framework layer holds an engine layer the last recorded
+  /// scene does not contain: a `toImage` snapshot replaced it after that
+  /// scene was built. The scene then cannot be matched against the tree.
+  bool _staleScene = false;
+
+  /// `BackdropKey`s by the int id the engine received, so framework and
+  /// scene-read backdrops compare by the same identity. Kept across walks.
+  final Map<int, Object> _backdropKeys = {};
 
   CapturedLayer walk(Layer root) {
     missingPictures = 0;
@@ -197,13 +220,19 @@ class LayerWalker {
     sceneLayers.clear();
     unmodeledLayers.clear();
     _accounted.clear();
+    _pushless.clear();
+    _layerByEngineLayer.clear();
+    _layerByPicture.clear();
+    _staleScene = false;
+    if (sceneFor != null) {
+      _indexFramework(root);
+    }
     final captured = _node(root);
-    // A custom layer without an engine layer usually pushed nothing (it only
-    // added its children), which is exactly how the model treats it. It is
-    // unmodeled only if the scene holds a push nobody accounts for.
     final scene = lastScene?.call();
-    if (unmodeledLayers.isNotEmpty && scene != null && !_hasOrphanPush(scene)) {
-      unmodeledLayers.clear();
+    if (scene != null && !_staleScene && _hasOrphanPush(scene)) {
+      unmodeledLayers.addAll(
+        _pushless.isEmpty ? const {unattributedPushes} : _pushless,
+      );
     }
     return captured;
   }
@@ -214,6 +243,37 @@ class LayerWalker {
       return true;
     }
     return node.children.any(_hasOrphanPush);
+  }
+
+  /// Fills [_layerByEngineLayer], [_layerByPicture] and [_backdropKeys].
+  void _indexFramework(Layer layer) {
+    if (layer is PictureLayer) {
+      final picture = layer.picture;
+      if (picture != null) {
+        _layerByPicture[picture] = layer;
+      }
+      return;
+    }
+    final engineLayer = _engineLayerOf(layer);
+    if (engineLayer != null) {
+      _layerByEngineLayer[engineLayer] = layer;
+      final recorded = sceneFor?.call(engineLayer);
+      if (recorded == null) {
+        _staleScene = true;
+      }
+      final key = layer is BackdropFilterLayer ? layer.backdropKey : null;
+      final id = recorded?.backdropId;
+      if (key != null && id != null) {
+        _backdropKeys[id] = key;
+      }
+    }
+    if (layer is ContainerLayer) {
+      var child = layer.firstChild;
+      while (child != null) {
+        _indexFramework(child);
+        child = child.nextSibling;
+      }
+    }
   }
 
   /// The framework's own layer types: the model reads their fields.
@@ -241,22 +301,36 @@ class LayerWalker {
   static bool _isFrameworkType(String type) =>
       _frameworkTypes.contains(type) || type.startsWith('AnnotatedRegionLayer');
 
+  /// The framework type a leaf layer subclass is read as. Containers keep
+  /// their own type: a subclass may push nothing of its base class's effect.
+  static String? _leafTypeOf(Layer layer) => switch (layer) {
+    PictureLayer() => 'PictureLayer',
+    TextureLayer() => 'TextureLayer',
+    PlatformViewLayer() => 'PlatformViewLayer',
+    PerformanceOverlayLayer() => 'PerformanceOverlayLayer',
+    _ => null,
+  };
+
   CapturedLayer _node(Layer layer) {
     final own = _engineLayerOf(layer);
     if (own != null) {
       _accounted.add(own);
     }
-    final type = layer.runtimeType.toString();
+    var type = layer.runtimeType.toString();
     if (!_isFrameworkType(type)) {
-      final engineLayer = _engineLayerOf(layer);
-      final recorded = engineLayer == null ? null : sceneFor?.call(engineLayer);
-      if (recorded != null) {
-        sceneLayers.add(type);
-        return _fromScene(recorded, layer, _frameworkDescendants(layer));
-      }
-      if (layer is ContainerLayer) {
+      if (own != null) {
+        final recorded = sceneFor?.call(own);
+        if (recorded != null) {
+          sceneLayers.add(type);
+          return _fromScene(recorded, layer, _customOrigin(layer));
+        }
+        // Its engine layer came from a scene the binding did not record.
         unmodeledLayers.add(type);
+      } else if (layer is ContainerLayer) {
+        _pushless.add(type);
       }
+      // A leaf subclass draws like its framework type.
+      type = _leafTypeOf(layer) ?? type;
     }
 
     final children = <CapturedLayer>[];
@@ -299,7 +373,7 @@ class LayerWalker {
     final origin = _originOf(layer);
 
     return CapturedLayer(
-      type: layer.runtimeType.toString(),
+      type: type,
       children: children,
       pictureOps: pictureOps,
       pictureMissing: pictureMissing,
@@ -369,63 +443,13 @@ class LayerWalker {
     return WidgetOrigin(widget: type, path: [type]);
   }
 
-  /// The id the engine groups backdrops by. Recorded pushes carry the int
-  /// id, so framework layers use it too when their push was recorded.
-  Object? _backdropIdentity(BackdropFilterLayer layer) {
-    final engineLayer = _engineLayerOf(layer);
-    final recorded = engineLayer == null ? null : sceneFor?.call(engineLayer);
-    return recorded?.backdropId ?? layer.backdropKey;
-  }
-
-  /// The framework layers below [layer], by the engine layer or picture
-  /// their own scene node is keyed by.
-  ({Map<ui.EngineLayer, Layer> byEngineLayer, Map<ui.Picture, Layer> byPicture})
-  _frameworkDescendants(Layer layer) {
-    final byEngineLayer = <ui.EngineLayer, Layer>{};
-    final byPicture = <ui.Picture, Layer>{};
-    void visit(Layer l) {
-      if (l is PictureLayer) {
-        final picture = l.picture;
-        if (picture != null) {
-          byPicture[picture] = l;
-        }
-        return;
-      }
-      final engineLayer = _engineLayerOf(l);
-      if (engineLayer != null) {
-        byEngineLayer[engineLayer] = l;
-      }
-      if (l is ContainerLayer) {
-        var child = l.firstChild;
-        while (child != null) {
-          visit(child);
-          child = child.nextSibling;
-        }
-      }
-    }
-
-    if (layer is ContainerLayer) {
-      var child = layer.firstChild;
-      while (child != null) {
-        visit(child);
-        child = child.nextSibling;
-      }
-    }
-    return (byEngineLayer: byEngineLayer, byPicture: byPicture);
-  }
+  /// The identity the model groups backdrops by: the layer's `BackdropKey`.
+  Object? _backdropIdentity(BackdropFilterLayer layer) => layer.backdropKey;
 
   /// A custom layer's pushes as layers the model reads. Children that are
   /// framework layers are walked as usual, so they keep their origins; the
-  /// rest carries [owner]'s origin.
-  CapturedLayer _fromScene(
-    SceneNode node,
-    Layer owner,
-    ({
-      Map<ui.EngineLayer, Layer> byEngineLayer,
-      Map<ui.Picture, Layer> byPicture,
-    })
-    framework,
-  ) {
+  /// rest carries [origin], the owner's.
+  CapturedLayer _fromScene(SceneNode node, Layer owner, WidgetOrigin origin) {
     final nodeEngineLayer = node.engineLayer;
     if (nodeEngineLayer != null) {
       _accounted.add(nodeEngineLayer);
@@ -435,14 +459,14 @@ class LayerWalker {
       final childEngineLayer = child.engineLayer;
       final childPicture = child.picture;
       final layer = childEngineLayer != null
-          ? framework.byEngineLayer[childEngineLayer]
+          ? _layerByEngineLayer[childEngineLayer]
           : childPicture != null
-          ? framework.byPicture[childPicture]
+          ? _layerByPicture[childPicture]
           : null;
       children.add(
         layer != null && layer != owner
             ? _node(layer)
-            : _fromScene(child, owner, framework),
+            : _fromScene(child, owner, origin),
       );
     }
 
@@ -454,7 +478,7 @@ class LayerWalker {
       if (pictureOps == null) {
         pictureMissing = true;
         missingPictures++;
-        missingPictureOrigins.add(_customOrigin(owner).label);
+        missingPictureOrigins.add(origin.label);
       }
     }
 
@@ -463,13 +487,16 @@ class LayerWalker {
       children: children,
       pictureOps: pictureOps,
       pictureMissing: pictureMissing,
-      origin: _customOrigin(owner),
+      origin: origin,
       offset: node.offset,
       transform: node.transform,
       alpha: node.alpha,
       filter: node.filter,
       blendMode: node.blendMode,
-      backdropKeyIdentity: node.backdropId,
+      backdropKeyIdentity: switch (node.backdropId) {
+        final id? => _backdropKeys[id] ?? id,
+        null => null,
+      },
       clipBounds: node.clipBounds,
       clipBehaviorName: node.clipBehaviorName,
       maskRect: node.maskRect,
