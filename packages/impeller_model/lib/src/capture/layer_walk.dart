@@ -175,6 +175,9 @@ class LayerWalker {
   /// Number of PictureLayers in the last walk whose ops were unknown.
   int missingPictures = 0;
 
+  /// Where those pictures sit: their own or nearest ancestor's widget.
+  final Set<String> missingPictureOrigins = {};
+
   /// Custom layer types in the last walk that were read from their scene
   /// pushes.
   final Set<String> sceneLayers = {};
@@ -190,6 +193,7 @@ class LayerWalker {
 
   CapturedLayer walk(Layer root) {
     missingPictures = 0;
+    missingPictureOrigins.clear();
     sceneLayers.clear();
     unmodeledLayers.clear();
     _accounted.clear();
@@ -288,6 +292,7 @@ class LayerWalker {
       if (pictureOps == null) {
         pictureMissing = true;
         missingPictures++;
+        missingPictureOrigins.add(_customOrigin(layer).label);
       }
     }
 
@@ -449,6 +454,7 @@ class LayerWalker {
       if (pictureOps == null) {
         pictureMissing = true;
         missingPictures++;
+        missingPictureOrigins.add(_customOrigin(owner).label);
       }
     }
 

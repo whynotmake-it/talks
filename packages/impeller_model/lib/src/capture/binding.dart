@@ -22,6 +22,7 @@ class FrameCapture {
     required this.physicalSize,
     required this.devicePixelRatio,
     required this.missingPictures,
+    this.missingPictureOrigins = const {},
     this.sceneLayers = const {},
     this.unmodeledLayers = const {},
   });
@@ -36,6 +37,9 @@ class FrameCapture {
   /// PictureLayers whose picture was not recorded through the binding, so
   /// their draws are unknown to the model. 0 in normal widget tests.
   final int missingPictures;
+
+  /// Where the pictures without recorded ops sit (widget labels).
+  final Set<String> missingPictureOrigins;
 
   /// Custom layer types read from the pushes they sent to the engine.
   final Set<String> sceneLayers;
@@ -180,6 +184,7 @@ class ImpellerModelBinding extends AutomatedTestWidgetsFlutterBinding {
       physicalSize: renderView.flutterView.physicalSize,
       devicePixelRatio: renderView.flutterView.devicePixelRatio,
       missingPictures: _walker.missingPictures,
+      missingPictureOrigins: Set.of(_walker.missingPictureOrigins),
       sceneLayers: Set.of(_walker.sceneLayers),
       unmodeledLayers: Set.of(_walker.unmodeledLayers),
     );

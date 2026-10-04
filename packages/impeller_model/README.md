@@ -55,12 +55,18 @@ testWidgets('name dialog', (tester) async {
 
 `estimateGpu` resizes the test view to each device, captures one frame per
 device, watches frame demand for a second, and writes
-`test/.impeller_model/<test name>.{json,html,png}`. Open the HTML file:
+`test/.impeller_model/<test name>.{json,html,png}`. The HTML file shows:
 
-- the cost centers (which widget costs how many passes and bytes),
-- the pass timeline with the reason for every pass,
-- the labels to expect in a Metal capture,
-- all devices side by side, and frame demand with its sources and tickers.
+- render passes and memory traffic per device,
+- which widget causes them, with a fix for each cause,
+- the frames the screen draws while idle, and what requested them,
+- warnings when part of the estimate is a guess.
+
+The pass timeline and the labels to expect in a GPU capture are in the JSON.
+
+Custom `Layer` subclasses that push their own clips or filters (for example
+liquid_glass_renderer's `LiquidGlassCapture`) are read from the scene the
+engine receives, so they count like the framework's layers.
 
 See [`example/`](example/) for the talk's hook screen and a `fixed_ticker`
 comparison; [`doc/hook_screen_with_the_name_dialog.html`](doc/hook_screen_with_the_name_dialog.html)

@@ -37,6 +37,7 @@ class FrameEstimate {
     required this.traffic,
     required this.layerTree,
     required this.missingPictures,
+    required this.missingPictureOrigins,
     required this.sceneLayers,
     required this.unmodeledLayers,
   });
@@ -48,6 +49,10 @@ class FrameEstimate {
 
   /// Picture layers whose draws were unknown (should be 0).
   final int missingPictures;
+
+  /// Where the pictures without recorded draws sit: drawn with a
+  /// `Canvas(PictureRecorder())` the binding cannot see.
+  final Set<String> missingPictureOrigins;
 
   /// Custom layer types (a package's own `Layer` subclasses) that were read
   /// from the clips and filters they pushed to the engine.
@@ -96,6 +101,8 @@ class FrameEstimate {
     'flips': flips,
     'traffic': traffic.toJson(),
     if (missingPictures > 0) 'missingPictures': missingPictures,
+    if (missingPictureOrigins.isNotEmpty)
+      'missingPictureOrigins': missingPictureOrigins.toList(),
     if (sceneLayers.isNotEmpty) 'sceneLayers': sceneLayers.toList(),
     if (unmodeledLayers.isNotEmpty) 'unmodeledLayers': unmodeledLayers.toList(),
     'costCenters': [for (final c in costCenters) c.toJson()],
@@ -138,6 +145,7 @@ FrameEstimate estimateFrame(FrameCapture capture, GpuDevice device) {
     traffic: MemoryTraffic.of(timeline, capture.physicalSize),
     layerTree: capture.root,
     missingPictures: capture.missingPictures,
+    missingPictureOrigins: capture.missingPictureOrigins,
     sceneLayers: capture.sceneLayers,
     unmodeledLayers: capture.unmodeledLayers,
   );

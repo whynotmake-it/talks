@@ -5,579 +5,144 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>GPU estimate</title>
 <style>
-:root {
-  color-scheme: light dark;
-  --bg: #f2f3f5;
-  --surface: #ffffff;
-  --ink: #13151a;
-  --muted: #5d6471;
-  --faint: #8b919c;
-  --line: #e1e4e9;
-  --track: #eaecf0;
-  --heat: #d9480f;
-  --heat-soft: #fde6da;
-  --cool: #2e52e0;
-  --cool-soft: #e3e8fc;
-  --good: #0b7a53;
-  --good-soft: #daf1e6;
-  --amber: #a15c00;
-  --amber-soft: #fbedd5;
-  --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
-  --sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
-}
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg: #0e1014;
-    --surface: #171a20;
-    --ink: #e9ebef;
-    --muted: #99a0ad;
-    --faint: #6c7380;
-    --line: #272b34;
-    --track: #22262e;
-    --heat: #ff7b42;
-    --heat-soft: #3a2116;
-    --cool: #7d95ff;
-    --cool-soft: #1e2542;
-    --good: #43cf95;
-    --good-soft: #13301f;
-    --amber: #f0b44c;
-    --amber-soft: #332612;
-  }
-}
-* { box-sizing: border-box; }
-html { background: var(--bg); }
-body {
-  margin: 0;
-  color: var(--ink);
-  font: 15px/1.5 var(--sans);
-  font-variant-numeric: tabular-nums;
-  -webkit-font-smoothing: antialiased;
-}
-main { max-width: 1100px; margin: 0 auto; padding: 40px 32px 64px; }
-h1, h2, h3, p { margin: 0; }
-button { font: inherit; color: inherit; }
-:focus-visible { outline: 2px solid var(--cool); outline-offset: 2px; border-radius: 4px; }
-.mono { font-family: var(--mono); font-size: 0.86em; }
-.muted { color: var(--muted); }
-
-/* Header */
-header { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 18px; padding-bottom: 22px; border-bottom: 1px solid var(--line); }
-.eyebrow { width: 100%; color: var(--muted); font-size: 13px; font-weight: 500; letter-spacing: 0.02em; }
-h1 { font-size: 34px; line-height: 1.15; font-weight: 700; letter-spacing: -0.02em; }
-.meta { color: var(--muted); font-size: 14px; }
-.disclaimer { width: 100%; color: var(--muted); font-size: 14px; max-width: 72ch; }
-
-/* Sections */
-section { margin-top: 44px; }
-.section-head { margin-bottom: 14px; }
-.section-head .lede { margin-top: 4px; }
-h2 { font-size: 21px; font-weight: 650; letter-spacing: -0.01em; }
-h3 { font-size: 15px; font-weight: 650; margin-bottom: 8px; }
-.lede { color: var(--muted); font-size: 14px; max-width: 70ch; }
-.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; }
-
-/* Hero: screenshot + device summary */
-.hero { display: grid; grid-template-columns: 1fr; gap: 28px; margin-top: 28px; align-items: start; }
-.hero.has-shot { grid-template-columns: 200px 1fr; }
-.shot { margin: 0; }
-.shot img { display: block; width: 100%; height: auto; border-radius: 18px; border: 1px solid var(--line); background: var(--surface); }
-.shot figcaption { margin-top: 8px; color: var(--muted); font-size: 12px; text-align: center; }
-
-.tabs { display: flex; flex-wrap: wrap; gap: 6px; }
-.tab { display: flex; flex-direction: column; align-items: flex-start; gap: 1px; padding: 8px 14px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); cursor: pointer; text-align: left; }
-.tab small { color: var(--muted); font-size: 12px; }
-.tab[aria-selected="true"] { border-color: var(--cool); box-shadow: inset 0 0 0 1px var(--cool); background: var(--cool-soft); }
-.device-line { margin-top: 12px; color: var(--muted); font-size: 13px; }
-
-.cards { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 16px; }
-.card { padding: 16px 16px 14px; }
-.card.lead { grid-column: span 2; }
-.card-label { color: var(--muted); font-size: 13px; font-weight: 500; }
-.big { display: block; margin-top: 4px; font-size: 40px; line-height: 1.05; font-weight: 700; letter-spacing: -0.03em; }
-.lead .big { font-size: 56px; color: var(--heat); }
-.big .unit { font-size: 0.45em; font-weight: 600; letter-spacing: 0; color: var(--ink); margin-left: 6px; }
-.card-sub { margin-top: 6px; color: var(--muted); font-size: 13px; }
-.facts { display: grid; grid-template-columns: auto 1fr; gap: 3px 12px; margin-top: 8px; font-size: 14px; }
-.facts dt { color: var(--muted); }
-.facts dd { margin: 0; font-weight: 550; }
-.note { margin-top: 10px; padding: 10px 14px; border-radius: 10px; font-size: 13px; background: var(--amber-soft); color: var(--ink); }
-.note.warn { background: var(--heat-soft); }
-
-/* Cost centers */
-.costs { list-style: none; margin: 0; padding: 6px 20px; }
-.cost { display: grid; grid-template-columns: 1fr auto; gap: 6px 20px; padding: 16px 0; border-top: 1px solid var(--line); }
-.cost:first-child { border-top: 0; }
-.cost-name { font-size: 17px; font-weight: 650; }
-.cost-where { margin-left: 8px; color: var(--muted); font-size: 13px; }
-.cost-share { font-size: 28px; line-height: 1; font-weight: 700; letter-spacing: -0.02em; text-align: right; }
-.bar { grid-column: 1 / -1; height: 10px; border-radius: 5px; background: var(--track); overflow: hidden; }
-.bar > span { display: block; height: 100%; border-radius: inherit; background: var(--heat); min-width: 3px; }
-.cost-meta { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 4px 14px; color: var(--muted); font-size: 13px; }
-.cost-meta b { color: var(--ink); font-weight: 600; }
-.chips { display: flex; flex-wrap: wrap; gap: 4px; }
-.chip { display: inline-block; padding: 1px 8px; border-radius: 999px; border: 1px solid var(--line); color: var(--muted); font-size: 12px; white-space: nowrap; }
-.chip.heat { border-color: transparent; background: var(--heat-soft); color: var(--heat); }
-.chip.cool { border-color: transparent; background: var(--cool-soft); color: var(--cool); }
-.empty { padding: 18px 20px; color: var(--muted); }
-
-/* Pass timeline */
-.passes { list-style: none; margin: 0; padding: 0; }
-.pass { border-top: 1px solid var(--line); }
-.pass:first-child { border-top: 0; }
-.pass summary { display: grid; grid-template-columns: 2.2em 1fr auto; gap: 4px 12px; padding: 14px 20px; cursor: pointer; list-style: none; }
-.pass summary::-webkit-details-marker { display: none; }
-.pass summary:hover { background: color-mix(in srgb, var(--track) 45%, transparent); }
-.pass-index { color: var(--faint); font-size: 13px; padding-top: 2px; }
-.pass-title { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; }
-.pass-title strong { font-weight: 650; }
-.badge { font-family: var(--mono); font-size: 12px; padding: 2px 8px; border-radius: 6px; background: var(--track); color: var(--ink); white-space: nowrap; }
-.cb { color: var(--faint); font-size: 12px; }
-.pass-size { font-family: var(--mono); font-size: 13px; color: var(--muted); text-align: right; padding-top: 2px; }
-.pass-bar { grid-column: 2 / -1; display: flex; align-items: center; gap: 10px; }
-.pass-bar .bar { flex: 1; height: 8px; }
-.pass-bar .bar > span { background: var(--cool); }
-.pass-bar small { color: var(--muted); font-size: 12px; width: 8.5em; text-align: right; }
-.pass-why { grid-column: 2 / -1; display: flex; flex-wrap: wrap; gap: 4px 12px; color: var(--muted); font-size: 13px; }
-.pass-why .ended { color: var(--heat); }
-.pass-explain { margin: 0 20px 14px calc(20px + 2.2em + 12px); padding: 10px 14px; border-left: 2px solid var(--cool); background: var(--cool-soft); border-radius: 0 8px 8px 0; font-size: 14px; max-width: 75ch; }
-.pass.surface .pass-bar .bar > span { background: var(--faint); }
-.pass.blit summary { background: repeating-linear-gradient(135deg, transparent 0 8px, color-mix(in srgb, var(--track) 60%, transparent) 8px 16px); }
-.pass.blit .badge { background: transparent; border: 1px dashed var(--faint); }
-.pass.blit .pass-bar .bar > span { background: transparent; border: 1px dashed var(--faint); }
-.twisty { display: inline-block; color: var(--faint); font-size: 11px; transition: transform 0.15s; }
-.pass[open] .twisty { transform: rotate(90deg); }
-
-/* Tables */
-.duo { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-.duo .lede { margin-bottom: 10px; }
-.duo > .panel { padding: 18px 20px; }
-table { width: 100%; border-collapse: collapse; font-size: 14px; }
-th { text-align: left; font-weight: 500; color: var(--muted); font-size: 12px; padding: 0 8px 6px 0; }
-td { padding: 7px 8px 7px 0; border-top: 1px solid var(--line); vertical-align: baseline; }
-td.num, th.num { text-align: right; }
-td.count { font-size: 20px; font-weight: 700; width: 2.2em; vertical-align: middle; }
-.labeled { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; color: var(--muted); }
-tr.pick { cursor: pointer; }
-tr.pick:hover td { background: color-mix(in srgb, var(--track) 45%, transparent); }
-tr.selected td { background: var(--cool-soft); }
-.hint { margin-top: 10px; color: var(--muted); font-size: 13px; }
-
-/* Frame demand */
-.verdict { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 14px; padding: 16px 20px; border-radius: 12px; font-size: 19px; font-weight: 650; }
-.verdict small { font-size: 13px; font-weight: 400; color: var(--muted); }
-.verdict.idle { background: var(--good-soft); color: var(--good); }
-.verdict.periodic { background: var(--amber-soft); color: var(--amber); }
-.verdict.continuous { background: var(--heat-soft); color: var(--heat); }
-.stats { display: flex; flex-wrap: wrap; gap: 12px 40px; margin: 22px 0 18px; }
-.stat .big { font-size: 36px; }
-.stat .card-label { display: block; max-width: 22ch; }
-.strip-wrap { padding: 20px 20px 14px; }
-.strip { display: grid; gap: 3px; height: 64px; }
-.slot { border-radius: 3px; background: var(--track); }
-.slot.changed { background: var(--cool); }
-.slot.unchanged { background: var(--heat); }
-.axis { position: relative; height: 18px; margin-top: 6px; color: var(--faint); font-size: 11px; }
-.axis span { position: absolute; transform: translateX(-50%); white-space: nowrap; }
-.axis span:first-child { transform: none; }
-.axis span:last-child { transform: translateX(-100%); }
-.legend { display: flex; flex-wrap: wrap; gap: 6px 20px; margin-top: 8px; color: var(--muted); font-size: 13px; }
-.legend i { display: inline-block; width: 12px; height: 12px; border-radius: 3px; margin-right: 6px; vertical-align: -1px; background: var(--track); }
-.legend i.changed { background: var(--cool); }
-.legend i.unchanged { background: var(--heat); }
-.lists { display: grid; grid-template-columns: 1.5fr 1fr; gap: 16px; margin-top: 16px; }
-.lists > .panel { padding: 18px 20px; }
-.item { padding: 10px 0; border-top: 1px solid var(--line); }
-.item:first-of-type { border-top: 0; padding-top: 0; }
-.item-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; }
-.item-head strong { font-weight: 650; }
-.item-sub { margin-top: 3px; color: var(--muted); font-size: 13px; overflow-wrap: anywhere; }
-.advice { margin-top: 16px; padding: 14px 18px; border-radius: 0 12px 12px 0; border-left: 3px solid var(--heat); background: var(--surface); font-size: 14px; }
-
-footer { margin-top: 56px; padding-top: 18px; border-top: 1px solid var(--line); color: var(--muted); font-size: 13px; }
-footer p { max-width: 80ch; }
-footer strong { color: var(--ink); font-weight: 600; }
-
-@media (max-width: 820px) {
-  main { padding: 28px 18px 48px; }
-  .hero.has-shot { grid-template-columns: 1fr; }
-  .shot { max-width: 180px; }
-  .cards { grid-template-columns: repeat(2, 1fr); }
-  .duo, .lists { grid-template-columns: 1fr; }
-  .pass-explain { margin-left: 20px; }
-}
-@media (prefers-reduced-motion: reduce) {
-  .twisty { transition: none; }
-}
+:root { color-scheme: light dark; }
+body { margin: 0 auto; max-width: 960px; padding: 24px 16px 48px; font: 15px/1.45 system-ui, sans-serif; font-variant-numeric: tabular-nums; }
+h1 { font-size: 22px; margin: 0 0 4px; }
+h2 { font-size: 17px; margin: 28px 0 8px; }
+p { margin: 4px 0; }
+.muted { color: GrayText; }
+table { border-collapse: collapse; width: 100%; }
+th, td { text-align: left; padding: 6px 12px 6px 0; border-top: 1px solid color-mix(in srgb, CanvasText 15%, transparent); vertical-align: top; }
+th { font-weight: 600; border-top: 0; }
+.num { text-align: right; white-space: nowrap; }
+code { font: 13px ui-monospace, Menlo, monospace; }
+.warn { padding: 8px 12px; border-left: 3px solid #d9480f; margin: 8px 0; }
 </style>
 </head>
 <body>
-<main>
-  <header>
-    <p class="eyebrow">Impeller GPU estimate</p>
-    <h1 id="name"></h1>
-    <p class="meta" id="meta"></p>
-    <p class="disclaimer" id="disclaimer"></p>
-  </header>
+<h1 id="name"></h1>
+<p class="muted" id="meta"></p>
+<div id="warnings"></div>
 
-  <div class="hero" id="hero">
-    <div>
-      <div class="tabs" role="tablist" aria-label="Device" id="tabs"></div>
-      <p class="device-line" id="device-line"></p>
-      <div class="cards" id="cards"></div>
-      <div id="notes"></div>
-    </div>
-  </div>
+<h2>Cost per device</h2>
+<table id="devices"></table>
 
-  <section>
-    <div class="section-head">
-      <h2>Where the cost comes from</h2>
-      <p class="lede">Render passes and memory traffic beyond the plain frame, charged to the widget that caused them. Bars show each one's share of the extra traffic.</p>
-    </div>
-    <div class="panel" id="costs"></div>
-  </section>
+<h2>What causes it</h2>
+<p class="muted">Each widget's extra passes and memory traffic, as a multiple of one plain frame.</p>
+<table id="costs"></table>
 
-  <section>
-    <div class="section-head">
-      <h2>Pass timeline</h2>
-      <p class="lede">Every pass of one frame, in the order they end (the order their command buffers are committed). Bars show the pass's pixel area relative to the screen. Open a row for what the pass does.</p>
-    </div>
-    <ol class="panel passes" id="passes"></ol>
-  </section>
+<section id="demand" hidden>
+<h2>Frames while idle</h2>
+<p id="verdict"></p>
+<table id="sources"></table>
+<p id="demand-fix"></p>
+</section>
 
-  <section>
-    <div class="duo">
-      <div class="panel">
-        <h3>Compare with a GPU capture</h3>
-        <p class="lede" id="capture-lede"></p>
-        <table id="capture"></table>
-        <p class="hint" id="capture-hint"></p>
-      </div>
-      <div class="panel">
-        <h3>All devices</h3>
-        <table id="devices"></table>
-      </div>
-    </div>
-  </section>
-
-  <section id="demand" hidden>
-    <div class="section-head">
-      <h2>Frame demand</h2>
-      <p class="lede" id="demand-lede"></p>
-    </div>
-    <div class="verdict" id="verdict"></div>
-    <div class="stats" id="demand-stats"></div>
-    <div class="panel strip-wrap">
-      <div class="strip" id="strip" role="img"></div>
-      <div class="axis" id="axis"></div>
-      <div class="legend">
-        <span><i class="changed"></i>frame with a visible change</span>
-        <span><i class="unchanged"></i>frame that drew exactly the previous frame</span>
-        <span><i></i>no frame</span>
-      </div>
-    </div>
-    <div class="lists">
-      <div class="panel"><h3>What requested the frames</h3><div id="sources"></div></div>
-      <div class="panel"><h3>Active tickers</h3><div id="tickers"></div></div>
-    </div>
-    <p class="advice" id="advice" hidden>Every frame repeats the passes above. Stop animations that don't change anything, mute tickers off screen with <code class="mono">TickerMode</code>, or tick subtle long-running animations at a lower fixed rate with the <code class="mono">fixed_ticker</code> package. On iOS, partial repaint can skip most GPU work of unchanged frames, but the frame is still built, laid out and submitted.</p>
-  </section>
-
-  <footer>
-    <p><strong>Limits.</strong> The estimate ignores lossless and lossy framebuffer compression and GPU caches (MB figures are nominal), partial repaint, the internals of text and path rendering, platform views, and raster thread CPU time.</p>
-  </footer>
-</main>
-
-<script type="application/json" id="report-data">{"name":"hook_screen_with_the_name_dialog","flutter":"3.47.1","engineRevision":"5d531788691ec3404cac0cee66ead4007b177363","screenshot":"hook_screen_with_the_name_dialog.png","frames":[{"device":{"name":"iPhone 16","logicalSize":[393.0,852.0],"pixelRatio":3.0,"physicalSize":[1179.0,2556.0],"gpu":{"name":"ios-metal","backend":"metal","framebufferFetch":true,"blitToOnscreen":true,"colorFormat":"BGRA10_XR","bytesPerPixel":8,"lossyCompressedPassTextures":true}},"renderPasses":7,"renderPassesByLabel":{"EntityPass Render Pass":3,"GaussianBlur":1,"Gaussian Blur Filter":3},"flips":1,"traffic":{"bytesPerPixel":8,"surfaceBytes":24108192,"storedBytes":35071472,"readBytes":42072760,"extraBytes":77144232,"extraScreenEquivalents":3.2},"costCenters":[{"label":"BackdropFilter (lib/main.dart:51)","renderPasses":6,"extraBytes":77144232,"roles":["offscreenRoot","filterInputSnapshot","blurDownsample","blurY","blurX","saveLayer"]}],"passes":[{"role":"offscreenRoot","engineLabel":"EntityPass Render Pass","commandBuffer":"EntityPass Command Buffer","size":[1179.0,2556.0],"cause":"backdrop filter (frame drawn offscreen)","endedBy":"BackdropFilter (lib/main.dart:51)","drawCount":49},{"role":"filterInputSnapshot","engineLabel":"GaussianBlur","size":[1090.0,803.0],"cause":"BackdropFilter (lib/main.dart:51)","drawCount":1,"parent":5},{"role":"blurDownsample","engineLabel":"Gaussian Blur Filter","size":[172.0,136.0],"cause":"BackdropFilter (lib/main.dart:51)","drawCount":1,"parent":5},{"role":"blurY","engineLabel":"Gaussian Blur Filter","size":[172.0,136.0],"cause":"BackdropFilter (lib/main.dart:51)","drawCount":1,"parent":5},{"role":"blurX","engineLabel":"Gaussian Blur Filter","size":[172.0,136.0],"cause":"BackdropFilter (lib/main.dart:51)","drawCount":1,"parent":5},{"role":"saveLayer","engineLabel":"EntityPass Render Pass","commandBuffer":"EntityPass Command Buffer","size":[811.0,524.0],"cause":"BackdropFilter (lib/main.dart:51)","drawCount":16,"parent":6},{"role":"onscreenAfterFlip","engineLabel":"EntityPass Render Pass","commandBuffer":"EntityPass Command Buffer","size":[1179.0,2556.0],"cause":"BackdropFilter (lib/main.dart:51)","drawCount":5,"writesSurface":true}],"roles":{"onscreenRoot":{"title":"Frame","explanation":"Draws the frame straight into the screen surface."},"offscreenRoot":{"title":"Offscreen frame","explanation":"The frame starts offscreen because something in it must read back what was drawn (a backdrop filter, or an advanced blend without framebuffer fetch). It is copied to the screen at the end."},"onscreenAfterFlip":{"title":"Frame (continued on screen)","explanation":"After the last backdrop filter, drawing continues directly in the screen surface. It starts by redrawing everything drawn so far."},"restartAfterFlip":{"title":"Restarted pass","explanation":"A backdrop filter or emulated blend had to read this pass, so the pass was ended and stored. Drawing continues in a new pass that first redraws the stored texture."},"saveLayer":{"title":"Layer","explanation":"An offscreen layer (saveLayer). Its content is drawn into its own texture, then composited into the parent pass."},"blurDownsample":{"title":"Blur: downsample","explanation":"First of three Gaussian blur passes: shrinks the input."},"blurY":{"title":"Blur: vertical","explanation":"Second Gaussian blur pass."},"blurX":{"title":"Blur: horizontal","explanation":"Third Gaussian blur pass."},"morphology":{"title":"Dilate/erode","explanation":"One direction of a morphology filter."},"filterInputSnapshot":{"title":"Filter input","explanation":"Renders a filter input that is not yet a texture (e.g. a color filter feeding a blur) into one."},"blendSourceSnapshot":{"title":"Blend source","explanation":"An advanced blend mode first renders the drawn shape into a texture, then blends it (in the current pass with framebuffer fetch, in an emulated blend pass without)."},"filter":{"title":"Filter","explanation":"An image filter the model does not port in detail."},"advancedBlend":{"title":"Emulated blend","explanation":"An advanced blend mode without framebuffer fetch: blends the stored backdrop with the source into an intermediate texture."},"copyToOnscreen":{"title":"Copy to screen","explanation":"Copies the offscreen frame to the screen with a render pass (non-Metal backends)."},"blitToOnscreen":{"title":"Blit to screen","explanation":"Copies the offscreen frame to the screen with a blit (Metal). Not a render pass."}}},{"device":{"name":"Pixel 9","logicalSize":[411.42857142857144,923.4285714285714],"pixelRatio":2.625,"physicalSize":[1080.0,2424.0],"gpu":{"name":"android-vulkan","backend":"vulkan","framebufferFetch":true,"blitToOnscreen":false,"colorFormat":"RGBA8Unorm","bytesPerPixel":4}},"renderPasses":7,"renderPassesByLabel":{"EntityPass Render Pass":3,"GaussianBlur":1,"Gaussian Blur Filter":3},"flips":1,"traffic":{"bytesPerPixel":4,"surfaceBytes":10471680,"storedBytes":14677308,"readBytes":17364118,"extraBytes":32041426,"extraScreenEquivalents":3.06},"costCenters":[{"label":"BackdropFilter (lib/main.dart:51)","renderPasses":6,"extraBytes":32041426,"roles":["offscreenRoot","filterInputSnapshot","blurDownsample","blurY","blurX","saveLayer"]}],"passes":[{"role":"offscreenRoot","engineLabel":"EntityPass Render Pass","commandBuffer":"EntityPass Command Buffer","size":[1080.0,2424.0],"cause":"backdrop filter (frame drawn offscreen)","endedBy":"BackdropFilter (lib/main.dart:51)","drawCount":52},{"role":"filterInputSnapshot","engineLabel":"GaussianBlur","size":[955.0,704.0],"cause":"BackdropFilter (lib/main.dart:51)","drawCount":1,"parent":5},{"role":"blurDownsample","engineLabel":"Gaussian Blur Filter","size":[151.0,119.0],"cause":"BackdropFilter (lib/main.dart:51)","drawCount":1,"parent":5},{"role":"blurY","engineLabel":"Gaussian Blur Filter","size":[151.0,119.0],"cause":"BackdropFilter (lib/main.dart:51)","drawCount":1,"parent":5},{"role":"blurX","engineLabel":"Gaussian Blur Filter","size":[151.0,119.0],"cause":"BackdropFilter (lib/main.dart:51)","drawCount":1,"parent":5},{"role":"saveLayer","engineLabel":"EntityPass Render Pass","commandBuffer":"EntityPass Command Buffer","size":[710.0,458.0],"cause":"BackdropFilter (lib/main.dart:51)","drawCount":16,"parent":6},{"role":"onscreenAfterFlip","engineLabel":"EntityPass Render Pass","commandBuffer":"EntityPass Command Buffer","size":[1080.0,2424.0],"cause":"BackdropFilter (lib/main.dart:51)","drawCount":5,"writesSurface":true}],"roles":{"onscreenRoot":{"title":"Frame","explanation":"Draws the frame straight into the screen surface."},"offscreenRoot":{"title":"Offscreen frame","explanation":"The frame starts offscreen because something in it must read back what was drawn (a backdrop filter, or an advanced blend without framebuffer fetch). It is copied to the screen at the end."},"onscreenAfterFlip":{"title":"Frame (continued on screen)","explanation":"After the last backdrop filter, drawing continues directly in the screen surface. It starts by redrawing everything drawn so far."},"restartAfterFlip":{"title":"Restarted pass","explanation":"A backdrop filter or emulated blend had to read this pass, so the pass was ended and stored. Drawing continues in a new pass that first redraws the stored texture."},"saveLayer":{"title":"Layer","explanation":"An offscreen layer (saveLayer). Its content is drawn into its own texture, then composited into the parent pass."},"blurDownsample":{"title":"Blur: downsample","explanation":"First of three Gaussian blur passes: shrinks the input."},"blurY":{"title":"Blur: vertical","explanation":"Second Gaussian blur pass."},"blurX":{"title":"Blur: horizontal","explanation":"Third Gaussian blur pass."},"morphology":{"title":"Dilate/erode","explanation":"One direction of a morphology filter."},"filterInputSnapshot":{"title":"Filter input","explanation":"Renders a filter input that is not yet a texture (e.g. a color filter feeding a blur) into one."},"blendSourceSnapshot":{"title":"Blend source","explanation":"An advanced blend mode first renders the drawn shape into a texture, then blends it (in the current pass with framebuffer fetch, in an emulated blend pass without)."},"filter":{"title":"Filter","explanation":"An image filter the model does not port in detail."},"advancedBlend":{"title":"Emulated blend","explanation":"An advanced blend mode without framebuffer fetch: blends the stored backdrop with the source into an intermediate texture."},"copyToOnscreen":{"title":"Copy to screen","explanation":"Copies the offscreen frame to the screen with a render pass (non-Metal backends)."},"blitToOnscreen":{"title":"Blit to screen","explanation":"Copies the offscreen frame to the screen with a blit (Metal). Not a render pass."}}},{"device":{"name":"Pixel 10","logicalSize":[411.42857142857144,923.4285714285714],"pixelRatio":2.625,"physicalSize":[1080.0,2424.0],"gpu":{"name":"android-vulkan-no-fbf","backend":"vulkan","framebufferFetch":false,"blitToOnscreen":false,"colorFormat":"RGBA8Unorm","bytesPerPixel":4}},"renderPasses":8,"renderPassesByLabel":{"EntityPass Render Pass":3,"GaussianBlur":1,"Gaussian Blur Filter":3,"EntityPass Root Render Pass":1},"flips":1,"traffic":{"bytesPerPixel":4,"surfaceBytes":10471680,"storedBytes":25148988,"readBytes":27835798,"extraBytes":52984786,"extraScreenEquivalents":5.06},"costCenters":[{"label":"BackdropFilter (lib/main.dart:51)","renderPasses":7,"extraBytes":52984786,"roles":["offscreenRoot","filterInputSnapshot","blurDownsample","blurY","blurX","saveLayer","restartAfterFlip"]}],"passes":[{"role":"offscreenRoot","engineLabel":"EntityPass Render Pass","commandBuffer":"EntityPass Command Buffer","size":[1080.0,2424.0],"cause":"backdrop filter (frame drawn offscreen)","endedBy":"BackdropFilter (lib/main.dart:51)","drawCount":52},{"role":"filterInputSnapshot","engineLabel":"GaussianBlur","size":[955.0,704.0],"cause":"BackdropFilter (lib/main.dart:51)","drawCount":1,"parent":5},{"role":"blurDownsample","engineLabel":"Gaussian Blur Filter","size":[151.0,119.0],"cause":"BackdropFilter (lib/main.dart:51)","drawCount":1,"parent":5},{"role":"blurY","engineLabel":"Gaussian Blur Filter","size":[151.0,119.0],"cause":"BackdropFilter (lib/main.dart:51)","drawCount":1,"parent":5},{"role":"blurX","engineLabel":"Gaussian Blur Filter","size":[151.0,119.0],"cause":"BackdropFilter (lib/main.dart:51)","drawCount":1,"parent":5},{"role":"saveLayer","engineLabel":"EntityPass Render Pass","commandBuffer":"EntityPass Command Buffer","size":[710.0,458.0],"cause":"BackdropFilter (lib/main.dart:51)","drawCount":16,"parent":6},{"role":"restartAfterFlip","engineLabel":"EntityPass Render Pass","commandBuffer":"EntityPass Command Buffer","size":[1080.0,2424.0],"cause":"BackdropFilter (lib/main.dart:51)","drawCount":5},{"role":"copyToOnscreen","engineLabel":"EntityPass Root Render Pass","commandBuffer":"EntityPass Root Command Buffer","size":[1080.0,2424.0],"drawCount":1,"writesSurface":true}],"roles":{"onscreenRoot":{"title":"Frame","explanation":"Draws the frame straight into the screen surface."},"offscreenRoot":{"title":"Offscreen frame","explanation":"The frame starts offscreen because something in it must read back what was drawn (a backdrop filter, or an advanced blend without framebuffer fetch). It is copied to the screen at the end."},"onscreenAfterFlip":{"title":"Frame (continued on screen)","explanation":"After the last backdrop filter, drawing continues directly in the screen surface. It starts by redrawing everything drawn so far."},"restartAfterFlip":{"title":"Restarted pass","explanation":"A backdrop filter or emulated blend had to read this pass, so the pass was ended and stored. Drawing continues in a new pass that first redraws the stored texture."},"saveLayer":{"title":"Layer","explanation":"An offscreen layer (saveLayer). Its content is drawn into its own texture, then composited into the parent pass."},"blurDownsample":{"title":"Blur: downsample","explanation":"First of three Gaussian blur passes: shrinks the input."},"blurY":{"title":"Blur: vertical","explanation":"Second Gaussian blur pass."},"blurX":{"title":"Blur: horizontal","explanation":"Third Gaussian blur pass."},"morphology":{"title":"Dilate/erode","explanation":"One direction of a morphology filter."},"filterInputSnapshot":{"title":"Filter input","explanation":"Renders a filter input that is not yet a texture (e.g. a color filter feeding a blur) into one."},"blendSourceSnapshot":{"title":"Blend source","explanation":"An advanced blend mode first renders the drawn shape into a texture, then blends it (in the current pass with framebuffer fetch, in an emulated blend pass without)."},"filter":{"title":"Filter","explanation":"An image filter the model does not port in detail."},"advancedBlend":{"title":"Emulated blend","explanation":"An advanced blend mode without framebuffer fetch: blends the stored backdrop with the source into an intermediate texture."},"copyToOnscreen":{"title":"Copy to screen","explanation":"Copies the offscreen frame to the screen with a render pass (non-Metal backends)."},"blitToOnscreen":{"title":"Blit to screen","explanation":"Copies the offscreen frame to the screen with a blit (Metal). Not a render pass."}}}],"frameDemand":{"windowMs":1000,"settleMs":500,"refreshRate":60,"verdict":"continuous","framesDrawn":60,"unchangedFrames":52,"framesPerSecond":60.0,"renderPasses":420,"stillRequesting":true,"sources":[{"owner":"EditableTextState (widgets/editable_text.dart)","description":"EditableTextState._startCursorBlink (widgets/editable_text.dart:4860) ← EditableTextState._startOrStopCursorTimerIfNeeded (widgets/editable_text.dart:4914) ← EditableTextState._didChangeTextEditingValue (widgets/editable_text.dart:4929)","ticker":true,"frames":60,"unchangedFrames":52}],"tickers":[{"owner":"Navigator","ownerPath":["Navigator","_FocusInheritedScope","Semantics","FocusScope","DefaultTextStyle","ValueListenableBuilder\u003cbool>","Semantics","_FocusInheritedScope","Focus","Title","Directionality","_LocalizationsScope","Semantics","Localizations","ListenableBuilder","Semantics","_FocusInheritedScope","Focus","Shortcuts","_ShortcutRegistrarScope","ShortcutRegistrar","TapRegionSurface","_FocusInheritedScope","Focus","FocusTraversalGroup","_ActionsScope","Actions","Semantics","_FocusInheritedScope","Focus","Shortcuts","Semantics","_FocusInheritedScope","Focus","Shortcuts","DefaultTextEditingShortcuts","Semantics","_FocusInheritedScope","Focus","Shortcuts","NotificationListener\u003cNavigationNotification>","_SharedAppModel","SharedAppData","UnmanagedRestorationScope","RestorationScope","UnmanagedRestorationScope","RootRestorationScope","WidgetsApp","Builder","HeroControllerScope","DefaultSelectionStyle","IconTheme","InheritedCupertinoTheme","CupertinoTheme","CupertinoUserInterfaceLevel","ScrollConfiguration","CupertinoApp"],"ownerLocation":"lib/main.dart:16","active":false,"muted":false,"type":"_WidgetTicker"},{"owner":"AnimatedPadding","ownerPath":["AnimatedPadding","LayoutBuilder","ScrollConfiguration","MediaQuery","Builder","CupertinoUserInterfaceLevel","CupertinoAlertDialog"],"ownerLocation":"lib/main.dart:51","active":false,"muted":false,"type":"Ticker"},{"owner":"CupertinoScrollbar","ownerPath":["CupertinoScrollbar","_CupertinoAlertContentSection","ColoredBox","_PriorityColumn","LayoutBuilder","MediaQuery","Semantics","BackdropFilter","ClipRSuperellipse","CupertinoPopupSurface","Listener","RawGestureDetector","_ActionSheetGestureDetector","SizedBox","Padding","Center","MediaQuery","Padding","AnimatedPadding","LayoutBuilder","ScrollConfiguration","MediaQuery","Builder","CupertinoUserInterfaceLevel","CupertinoAlertDialog"],"ownerLocation":"lib/main.dart:51","active":false,"muted":false,"type":"_WidgetTicker"},{"owner":"CupertinoScrollbar","ownerPath":["CupertinoScrollbar","_CupertinoAlertContentSection","ColoredBox","_PriorityColumn","LayoutBuilder","MediaQuery","Semantics","BackdropFilter","ClipRSuperellipse","CupertinoPopupSurface","Listener","RawGestureDetector","_ActionSheetGestureDetector","SizedBox","Padding","Center","MediaQuery","Padding","AnimatedPadding","LayoutBuilder","ScrollConfiguration","MediaQuery","Builder","CupertinoUserInterfaceLevel","CupertinoAlertDialog"],"ownerLocation":"lib/main.dart:51","active":false,"muted":false,"type":"_WidgetTicker"},{"owner":"EditableText","ownerPath":["EditableText","UnmanagedRestorationScope","RepaintBoundary","Padding","_BaselineAlignedStack","Directionality","Expanded","Row","ValueListenableBuilder\u003cTextEditingValue>","Align","Listener","RawGestureDetector","TextSelectionGestureDetector","Padding","DecoratedBox","Container","IgnorePointer","TextFieldTapRegion","Semantics","CupertinoTextField"],"ownerLocation":"lib/main.dart:55","active":true,"muted":false,"type":"_WidgetTicker"},{"owner":"CupertinoScrollbar","ownerPath":["CupertinoScrollbar","_CupertinoAlertActionSection","NotificationListener\u003cScrollUpdateNotification>","Stack","_OverscrollBackground","Flexible","Column","_PriorityColumn","LayoutBuilder","MediaQuery","Semantics","BackdropFilter","ClipRSuperellipse","CupertinoPopupSurface","Listener","RawGestureDetector","_ActionSheetGestureDetector","SizedBox","Padding","Center","MediaQuery","Padding","AnimatedPadding","LayoutBuilder","ScrollConfiguration","MediaQuery","Builder","CupertinoUserInterfaceLevel","CupertinoAlertDialog"],"ownerLocation":"lib/main.dart:51","active":false,"muted":false,"type":"_WidgetTicker"},{"owner":"CupertinoScrollbar","ownerPath":["CupertinoScrollbar","_CupertinoAlertActionSection","NotificationListener\u003cScrollUpdateNotification>","Stack","_OverscrollBackground","Flexible","Column","_PriorityColumn","LayoutBuilder","MediaQuery","Semantics","BackdropFilter","ClipRSuperellipse","CupertinoPopupSurface","Listener","RawGestureDetector","_ActionSheetGestureDetector","SizedBox","Padding","Center","MediaQuery","Padding","AnimatedPadding","LayoutBuilder","ScrollConfiguration","MediaQuery","Builder","CupertinoUserInterfaceLevel","CupertinoAlertDialog"],"ownerLocation":"lib/main.dart:51","active":false,"muted":false,"type":"_WidgetTicker"},{"owner":"AnimatedOpacity","ownerPath":["AnimatedOpacity","LayoutId","CustomMultiChildLayout","NavigationToolbar","MediaQuery","Padding","SafeArea","SizedBox","_PersistentNavigationBar","Column","ConstrainedBox","DefaultTextStyle","AnnotatedRegion\u003cSystemUiOverlayStyle>","DecoratedBox","BackdropFilter","ClipRect","_TransitionableNavigationBar","KeyedSubtree","_EffectiveTickerMode","TickerMode","Offstage","SizedBox","Hero","Builder","CupertinoNavigationBar"],"ownerLocation":"lib/main.dart:30","active":false,"muted":false,"type":"Ticker"}],"frames":[{"ms":16.666,"changed":false,"pictures":0,"renderPasses":7,"requests":["EditableTextState (widgets/editable_text.dart)"]},{"ms":33.332,"changed":true,"pictures":1,"renderPasses":7,"requests":["EditableTextState (widgets/editable_text.dart)"]},{"ms":49.998,"changed":false,"pictures":0,"renderPasses":7,"requests":["EditableTextState (widgets/editable_text.dart)"]},{"ms":66.664,"changed":true,"pictures":1,"renderPasses":7,"requests":["EditableTextState (widgets/editable_text.dart)"]},{"ms":83.33,"changed":false,"pictures":0,"renderPasses":7,"requests":["EditableTextState (widgets/editable_text.dart)"]},{"ms":99.996,"changed":true,"pictures":1,"renderPasses":7,"requests":["EditableTextState (widgets/editable_text.dart)"]},{"ms":116.662,"changed":false,"pictures":0,"renderPasses":7,"requests":["EditableTextState (widgets/editable_text.dart)"]},{"ms":133.328,"changed":false,"pictures":0,"renderPasses":7,"requests":["EditableTextState (widgets/editable_text.dart)"]},{"ms":149.994,"changed":true,"pictures":1,"renderPasses":7,"requests":["EditableTextState (widgets/editable_text.dart)"]},{"ms":166.66,"changed":false,"pictures":0,"renderPasses":7,"requests":["EditableTextState (widgets/editable_text.dart)"]},{"ms":183.326,"changed":false,"pictures":0,"renderPasses":7,"requests":["EditableTextState (widgets/editable_text.dart)"]},{"ms":199.992,"changed":false,"pictures":0,"renderPasses":7,"requests":["EditableTextState (widgets/editable_text.dart)"]},{"ms":216.658,"changed":false,"pictures":0,"renderPasses":7,"requests":["EditableTextState (widgets/editable_text.dart)"]},{"ms":233.324,"changed":false,"pictures":0,"renderPasses":7,"requests":["EditableTextState (widgets/editable_text.dart)"]},{"ms":249.99,"changed":false,"pictures":0,"renderPasses":7,"requests":["EditableTextState (widgets/editable_text.dart)"]},{"ms":266.656,"changed":false,"pictures":0,"renderPasses":7,"requests":["EditableTextState (widgets/editable_text.dart)"]},{"ms":283.322,"changed":false,"pictures":0,"renderPasses":7,"requests":["EditableTextState (widgets/editable_text.dart)"]},{"ms":299.988,"changed":false,"pictures":0,"renderPasses":7,"requests":["EditableTextState (widgets/editable_text.dart)"]},{"ms":316.654,"changed":false,"pictures":0,"renderPasses":7,"requests":["EditableTextState (widgets/editable_text.dart)"]},{"ms":333.32,"changed":false,"pictures":0,"renderPasses":7,"requests":["EditableTextState (widgets/editable_text.dart)"]},{"ms":349.986,"changed":false,"pictures":0,"renderPasses":7,"requests":["EditableTextState (widgets/editable_text.dart)"]},{"ms":366.652,"changed":false,"pictures":0,"renderPasses":7,"requests":["EditableTextState (widgets/editable_text.dart)"]},{"ms":383.318,"changed":true,"pictures":1,"renderPasses":7,"requests":["EditableTextState (widgets/editable_text.dart)"]},{"ms":399.984,"changed":false,"pictures":0,"renderPasses":7,"requests":["EditableTextState (widgets/editable_text.dart)"]},{"ms":416.65,"changed":true,"pictures":1,"renderPasses":7,"requests":["EditableTextState (widgets/editable_text.dart)"]},{"ms":433.316,"changed":false,"pictures":0,"renderPasses":7,"requests":["EditableTextState (widgets/editable_text.dart)"]},{"ms":449.982,"changed":true,"pictures":1,"renderPasses":7,"requests":["EditableTextState (widgets/editable_text.dart)"]},{"ms":466.648,"changed":false,"pictures":0,"renderPasses":7,"requests":["EditableTextState (widgets/editable_text.dart)"]},{"ms":483.314,"changed":false,"pictures":0,"renderPasses":7,"requests":["EditableTextState (widgets/editable_text.dart)"]},{"ms":499.98,"changed":true,"pictures":1,"renderPasses":7,"requests":["EditableTextState (widgets/editable_text.dart)"]},{"ms":516.646,"changed":false,"pictures":0,"renderPasses":7,"requests":["EditableTextState (widgets/editable_text.dart)"]},{"ms":533.312,"changed":false,"pictures":0,"renderPasses":7,"requests":["EditableTextState (widgets/editable_text.dart)"]},{"ms":549.978,"changed":false,"pictures":0,"renderPasses":7,"requests":["EditableTextState (widgets/editable_text.dart)"]},{"ms":566.644,"changed":false,"pictures":0,"renderPasses":7,"requests":["EditableTextState (widgets/editable_text.dart)"]},{"ms":583.31,"changed":false,"pictures":0,"renderPasses":7,"requests":["EditableTextState (widgets/editable_text.dart)"]},{"ms":599.976,"changed":false,"pictures":0,"renderPasses":7,"requests":["EditableTextState (widgets/editable_text.dart)"]},{"ms":616.642,"changed":false,"pictures":0,"renderPasses":7,"requests":["EditableTextState (widgets/editable_text.dart)"]},{"ms":633.308,"changed":false,"pictures":0,"renderPasses":7,"requests":["EditableTextState (widgets/editable_text.dart)"]},{"ms":649.974,"changed":false,"pictures":0,"renderPasses":7,"requests":["EditableTextState (widgets/editable_text.dart)"]},{"ms":666.64,"changed":false,"pictures":0,"renderPasses":7,"requests":["EditableTextState (widgets/editable_text.dart)"]},{"ms":683.306,"changed":false,"pictures":0,"renderPasses":7,"requests":["EditableTextState (widgets/editable_text.dart)"]},{"ms":699.972,"changed":false,"pictures":0,"renderPasses":7,"requests":["EditableTextState (widgets/editable_text.dart)"]},{"ms":716.638,"changed":false,"pictures":0,"renderPasses":7,"requests":["EditableTextState (widgets/editable_text.dart)"]},{"ms":733.304,"changed":false,"pictures":0,"renderPasses":7,"requests":["EditableTextState (widgets/editable_text.dart)"]},{"ms":749.97,"changed":false,"pictures":0,"renderPasses":7,"requests":["EditableTextState (widgets/editable_text.dart)"]},{"ms":766.636,"changed":false,"pictures":0,"renderPasses":7,"requests":["EditableTextState (widgets/editable_text.dart)"]},{"ms":783.302,"changed":false,"pictures":0,"renderPasses":7,"requests":["EditableTextState (widgets/editable_text.dart)"]},{"ms":799.968,"changed":false,"pictures":0,"renderPasses":7,"requests":["EditableTextState (widgets/editable_text.dart)"]},{"ms":816.634,"changed":false,"pictures":0,"renderPasses":7,"requests":["EditableTextState (widgets/editable_text.dart)"]},{"ms":833.3,"changed":false,"pictures":0,"renderPasses":7,"requests":["EditableTextState (widgets/editable_text.dart)"]},{"ms":849.966,"changed":false,"pictures":0,"renderPasses":7,"requests":["EditableTextState (widgets/editable_text.dart)"]},{"ms":866.632,"changed":false,"pictures":0,"renderPasses":7,"requests":["EditableTextState (widgets/editable_text.dart)"]},{"ms":883.298,"changed":false,"pictures":0,"renderPasses":7,"requests":["EditableTextState (widgets/editable_text.dart)"]},{"ms":899.964,"changed":false,"pictures":0,"renderPasses":7,"requests":["EditableTextState (widgets/editable_text.dart)"]},{"ms":916.63,"changed":false,"pictures":0,"renderPasses":7,"requests":["EditableTextState (widgets/editable_text.dart)"]},{"ms":933.296,"changed":false,"pictures":0,"renderPasses":7,"requests":["EditableTextState (widgets/editable_text.dart)"]},{"ms":949.962,"changed":false,"pictures":0,"renderPasses":7,"requests":["EditableTextState (widgets/editable_text.dart)"]},{"ms":966.628,"changed":false,"pictures":0,"renderPasses":7,"requests":["EditableTextState (widgets/editable_text.dart)"]},{"ms":983.294,"changed":false,"pictures":0,"renderPasses":7,"requests":["EditableTextState (widgets/editable_text.dart)"]},{"ms":999.96,"changed":false,"pictures":0,"renderPasses":7,"requests":["EditableTextState (widgets/editable_text.dart)"]}]}}</script>
+<script type="application/json" id="report-data">{"name":"hook_screen_with_the_name_dialog","flutter":"3.47.1","engineRevision":"5d531788691ec3404cac0cee66ead4007b177363","screenshot":"hook_screen_with_the_name_dialog_iPhone 16.png","frames":[{"device":{"name":"iPhone 16","logicalSize":[393.0,852.0],"pixelRatio":3.0,"physicalSize":[1179.0,2556.0],"gpu":{"name":"ios-metal","backend":"metal","framebufferFetch":true,"blitToOnscreen":true,"colorFormat":"BGRA10_XR","bytesPerPixel":8,"lossyCompressedPassTextures":true}},"renderPasses":7,"renderPassesByLabel":{"EntityPass Render Pass":3,"GaussianBlur":1,"Gaussian Blur Filter":3},"flips":1,"traffic":{"bytesPerPixel":8,"surfaceBytes":24108192,"storedBytes":35071472,"readBytes":42072760,"extraBytes":77144232,"extraScreenEquivalents":3.2},"costCenters":[{"label":"BackdropFilter (lib/main.dart:51)","renderPasses":6,"extraBytes":77144232,"roles":["offscreenRoot","filterInputSnapshot","blurDownsample","blurY","blurX","saveLayer"]}],"passes":[{"role":"offscreenRoot","engineLabel":"EntityPass Render Pass","commandBuffer":"EntityPass Command Buffer","size":[1179.0,2556.0],"cause":"backdrop filter (frame drawn offscreen)","endedBy":"BackdropFilter (lib/main.dart:51)","drawCount":49},{"role":"filterInputSnapshot","engineLabel":"GaussianBlur","size":[1090.0,803.0],"cause":"BackdropFilter (lib/main.dart:51)","drawCount":1,"parent":5},{"role":"blurDownsample","engineLabel":"Gaussian Blur Filter","size":[172.0,136.0],"cause":"BackdropFilter (lib/main.dart:51)","drawCount":1,"parent":5},{"role":"blurY","engineLabel":"Gaussian Blur Filter","size":[172.0,136.0],"cause":"BackdropFilter (lib/main.dart:51)","drawCount":1,"parent":5},{"role":"blurX","engineLabel":"Gaussian Blur Filter","size":[172.0,136.0],"cause":"BackdropFilter (lib/main.dart:51)","drawCount":1,"parent":5},{"role":"saveLayer","engineLabel":"EntityPass Render Pass","commandBuffer":"EntityPass Command Buffer","size":[811.0,524.0],"cause":"BackdropFilter (lib/main.dart:51)","drawCount":16,"parent":6},{"role":"onscreenAfterFlip","engineLabel":"EntityPass Render Pass","commandBuffer":"EntityPass Command Buffer","size":[1179.0,2556.0],"cause":"BackdropFilter (lib/main.dart:51)","drawCount":5,"writesSurface":true}],"roles":{"onscreenRoot":{"title":"Frame","explanation":"Draws the frame straight into the screen surface."},"offscreenRoot":{"title":"Offscreen frame","explanation":"The frame starts offscreen because something in it must read back what was drawn (a backdrop filter, or an advanced blend without framebuffer fetch). It is copied to the screen at the end."},"onscreenAfterFlip":{"title":"Frame (continued on screen)","explanation":"After the last backdrop filter, drawing continues directly in the screen surface. It starts by redrawing everything drawn so far."},"restartAfterFlip":{"title":"Restarted pass","explanation":"A backdrop filter or emulated blend had to read this pass, so the pass was ended and stored. Drawing continues in a new pass that first redraws the stored texture."},"saveLayer":{"title":"Layer","explanation":"An offscreen layer (saveLayer). Its content is drawn into its own texture, then composited into the parent pass."},"blurDownsample":{"title":"Blur: downsample","explanation":"First of three Gaussian blur passes: shrinks the input."},"blurY":{"title":"Blur: vertical","explanation":"Second Gaussian blur pass."},"blurX":{"title":"Blur: horizontal","explanation":"Third Gaussian blur pass."},"morphology":{"title":"Dilate/erode","explanation":"One direction of a morphology filter."},"filterInputSnapshot":{"title":"Filter input","explanation":"Renders a filter input that is not yet a texture (e.g. a color filter feeding a blur) into one."},"blendSourceSnapshot":{"title":"Blend source","explanation":"An advanced blend mode first renders the drawn shape into a texture, then blends it (in the current pass with framebuffer fetch, in an emulated blend pass without)."},"filter":{"title":"Filter","explanation":"An image filter the model does not port in detail."},"advancedBlend":{"title":"Emulated blend","explanation":"An advanced blend mode without framebuffer fetch: blends the stored backdrop with the source into an intermediate texture."},"copyToOnscreen":{"title":"Copy to screen","explanation":"Copies the offscreen frame to the screen with a render pass (non-Metal backends)."},"blitToOnscreen":{"title":"Blit to screen","explanation":"Copies the offscreen frame to the screen with a blit (Metal). Not a render pass."}}},{"device":{"name":"Pixel 9","logicalSize":[411.42857142857144,923.4285714285714],"pixelRatio":2.625,"physicalSize":[1080.0,2424.0],"gpu":{"name":"android-vulkan","backend":"vulkan","framebufferFetch":true,"blitToOnscreen":false,"colorFormat":"RGBA8Unorm","bytesPerPixel":4}},"renderPasses":7,"renderPassesByLabel":{"EntityPass Render Pass":3,"GaussianBlur":1,"Gaussian Blur Filter":3},"flips":1,"traffic":{"bytesPerPixel":4,"surfaceBytes":10471680,"storedBytes":14677308,"readBytes":17364118,"extraBytes":32041426,"extraScreenEquivalents":3.06},"costCenters":[{"label":"BackdropFilter (lib/main.dart:51)","renderPasses":6,"extraBytes":32041426,"roles":["offscreenRoot","filterInputSnapshot","blurDownsample","blurY","blurX","saveLayer"]}],"passes":[{"role":"offscreenRoot","engineLabel":"EntityPass Render Pass","commandBuffer":"EntityPass Command Buffer","size":[1080.0,2424.0],"cause":"backdrop filter (frame drawn offscreen)","endedBy":"BackdropFilter (lib/main.dart:51)","drawCount":52},{"role":"filterInputSnapshot","engineLabel":"GaussianBlur","size":[955.0,704.0],"cause":"BackdropFilter (lib/main.dart:51)","drawCount":1,"parent":5},{"role":"blurDownsample","engineLabel":"Gaussian Blur Filter","size":[151.0,119.0],"cause":"BackdropFilter (lib/main.dart:51)","drawCount":1,"parent":5},{"role":"blurY","engineLabel":"Gaussian Blur Filter","size":[151.0,119.0],"cause":"BackdropFilter (lib/main.dart:51)","drawCount":1,"parent":5},{"role":"blurX","engineLabel":"Gaussian Blur Filter","size":[151.0,119.0],"cause":"BackdropFilter (lib/main.dart:51)","drawCount":1,"parent":5},{"role":"saveLayer","engineLabel":"EntityPass Render Pass","commandBuffer":"EntityPass Command Buffer","size":[710.0,458.0],"cause":"BackdropFilter (lib/main.dart:51)","drawCount":16,"parent":6},{"role":"onscreenAfterFlip","engineLabel":"EntityPass Render Pass","commandBuffer":"EntityPass Command Buffer","size":[1080.0,2424.0],"cause":"BackdropFilter (lib/main.dart:51)","drawCount":5,"writesSurface":true}],"roles":{"onscreenRoot":{"title":"Frame","explanation":"Draws the frame straight into the screen surface."},"offscreenRoot":{"title":"Offscreen frame","explanation":"The frame starts offscreen because something in it must read back what was drawn (a backdrop filter, or an advanced blend without framebuffer fetch). It is copied to the screen at the end."},"onscreenAfterFlip":{"title":"Frame (continued on screen)","explanation":"After the last backdrop filter, drawing continues directly in the screen surface. It starts by redrawing everything drawn so far."},"restartAfterFlip":{"title":"Restarted pass","explanation":"A backdrop filter or emulated blend had to read this pass, so the pass was ended and stored. Drawing continues in a new pass that first redraws the stored texture."},"saveLayer":{"title":"Layer","explanation":"An offscreen layer (saveLayer). Its content is drawn into its own texture, then composited into the parent pass."},"blurDownsample":{"title":"Blur: downsample","explanation":"First of three Gaussian blur passes: shrinks the input."},"blurY":{"title":"Blur: vertical","explanation":"Second Gaussian blur pass."},"blurX":{"title":"Blur: horizontal","explanation":"Third Gaussian blur pass."},"morphology":{"title":"Dilate/erode","explanation":"One direction of a morphology filter."},"filterInputSnapshot":{"title":"Filter input","explanation":"Renders a filter input that is not yet a texture (e.g. a color filter feeding a blur) into one."},"blendSourceSnapshot":{"title":"Blend source","explanation":"An advanced blend mode first renders the drawn shape into a texture, then blends it (in the current pass with framebuffer fetch, in an emulated blend pass without)."},"filter":{"title":"Filter","explanation":"An image filter the model does not port in detail."},"advancedBlend":{"title":"Emulated blend","explanation":"An advanced blend mode without framebuffer fetch: blends the stored backdrop with the source into an intermediate texture."},"copyToOnscreen":{"title":"Copy to screen","explanation":"Copies the offscreen frame to the screen with a render pass (non-Metal backends)."},"blitToOnscreen":{"title":"Blit to screen","explanation":"Copies the offscreen frame to the screen with a blit (Metal). Not a render pass."}}},{"device":{"name":"Pixel 10","logicalSize":[411.42857142857144,923.4285714285714],"pixelRatio":2.625,"physicalSize":[1080.0,2424.0],"gpu":{"name":"android-vulkan-no-fbf","backend":"vulkan","framebufferFetch":false,"blitToOnscreen":false,"colorFormat":"RGBA8Unorm","bytesPerPixel":4}},"renderPasses":8,"renderPassesByLabel":{"EntityPass Render Pass":3,"GaussianBlur":1,"Gaussian Blur Filter":3,"EntityPass Root Render Pass":1},"flips":1,"traffic":{"bytesPerPixel":4,"surfaceBytes":10471680,"storedBytes":25148988,"readBytes":27835798,"extraBytes":52984786,"extraScreenEquivalents":5.06},"costCenters":[{"label":"BackdropFilter (lib/main.dart:51)","renderPasses":7,"extraBytes":52984786,"roles":["offscreenRoot","filterInputSnapshot","blurDownsample","blurY","blurX","saveLayer","restartAfterFlip"]}],"passes":[{"role":"offscreenRoot","engineLabel":"EntityPass Render Pass","commandBuffer":"EntityPass Command Buffer","size":[1080.0,2424.0],"cause":"backdrop filter (frame drawn offscreen)","endedBy":"BackdropFilter (lib/main.dart:51)","drawCount":52},{"role":"filterInputSnapshot","engineLabel":"GaussianBlur","size":[955.0,704.0],"cause":"BackdropFilter (lib/main.dart:51)","drawCount":1,"parent":5},{"role":"blurDownsample","engineLabel":"Gaussian Blur Filter","size":[151.0,119.0],"cause":"BackdropFilter (lib/main.dart:51)","drawCount":1,"parent":5},{"role":"blurY","engineLabel":"Gaussian Blur Filter","size":[151.0,119.0],"cause":"BackdropFilter (lib/main.dart:51)","drawCount":1,"parent":5},{"role":"blurX","engineLabel":"Gaussian Blur Filter","size":[151.0,119.0],"cause":"BackdropFilter (lib/main.dart:51)","drawCount":1,"parent":5},{"role":"saveLayer","engineLabel":"EntityPass Render Pass","commandBuffer":"EntityPass Command Buffer","size":[710.0,458.0],"cause":"BackdropFilter (lib/main.dart:51)","drawCount":16,"parent":6},{"role":"restartAfterFlip","engineLabel":"EntityPass Render Pass","commandBuffer":"EntityPass Command Buffer","size":[1080.0,2424.0],"cause":"BackdropFilter (lib/main.dart:51)","drawCount":5},{"role":"copyToOnscreen","engineLabel":"EntityPass Root Render Pass","commandBuffer":"EntityPass Root Command Buffer","size":[1080.0,2424.0],"drawCount":1,"writesSurface":true}],"roles":{"onscreenRoot":{"title":"Frame","explanation":"Draws the frame straight into the screen surface."},"offscreenRoot":{"title":"Offscreen frame","explanation":"The frame starts offscreen because something in it must read back what was drawn (a backdrop filter, or an advanced blend without framebuffer fetch). It is copied to the screen at the end."},"onscreenAfterFlip":{"title":"Frame (continued on screen)","explanation":"After the last backdrop filter, drawing continues directly in the screen surface. It starts by redrawing everything drawn so far."},"restartAfterFlip":{"title":"Restarted pass","explanation":"A backdrop filter or emulated blend had to read this pass, so the pass was ended and stored. Drawing continues in a new pass that first redraws the stored texture."},"saveLayer":{"title":"Layer","explanation":"An offscreen layer (saveLayer). Its content is drawn into its own texture, then composited into the parent pass."},"blurDownsample":{"title":"Blur: downsample","explanation":"First of three Gaussian blur passes: shrinks the input."},"blurY":{"title":"Blur: vertical","explanation":"Second Gaussian blur pass."},"blurX":{"title":"Blur: horizontal","explanation":"Third Gaussian blur pass."},"morphology":{"title":"Dilate/erode","explanation":"One direction of a morphology filter."},"filterInputSnapshot":{"title":"Filter input","explanation":"Renders a filter input that is not yet a texture (e.g. a color filter feeding a blur) into one."},"blendSourceSnapshot":{"title":"Blend source","explanation":"An advanced blend mode first renders the drawn shape into a texture, then blends it (in the current pass with framebuffer fetch, in an emulated blend pass without)."},"filter":{"title":"Filter","explanation":"An image filter the model does not port in detail."},"advancedBlend":{"title":"Emulated blend","explanation":"An advanced blend mode without framebuffer fetch: blends the stored backdrop with the source into an intermediate texture."},"copyToOnscreen":{"title":"Copy to screen","explanation":"Copies the offscreen frame to the screen with a render pass (non-Metal backends)."},"blitToOnscreen":{"title":"Blit to screen","explanation":"Copies the offscreen frame to the screen with a blit (Metal). Not a render pass."}}}],"frameDemand":{"windowMs":1000,"settleMs":500,"refreshRate":60,"verdict":"continuous","framesDrawn":60,"unchangedFrames":52,"framesPerSecond":60.0,"renderPasses":420,"stillRequesting":true,"sources":[{"owner":"EditableTextState (widgets/editable_text.dart)","description":"EditableTextState._startCursorBlink (widgets/editable_text.dart:4860) ← EditableTextState._startOrStopCursorTimerIfNeeded (widgets/editable_text.dart:4914) ← EditableTextState._didChangeTextEditingValue (widgets/editable_text.dart:4929)","ticker":true,"frames":60,"unchangedFrames":52}],"tickers":[{"owner":"Navigator","ownerPath":["Navigator","_FocusInheritedScope","Semantics","FocusScope","DefaultTextStyle","ValueListenableBuilder\u003cbool>","Semantics","_FocusInheritedScope","Focus","Title","Directionality","_LocalizationsScope","Semantics","Localizations","ListenableBuilder","Semantics","_FocusInheritedScope","Focus","Shortcuts","_ShortcutRegistrarScope","ShortcutRegistrar","TapRegionSurface","_FocusInheritedScope","Focus","FocusTraversalGroup","_ActionsScope","Actions","Semantics","_FocusInheritedScope","Focus","Shortcuts","Semantics","_FocusInheritedScope","Focus","Shortcuts","DefaultTextEditingShortcuts","Semantics","_FocusInheritedScope","Focus","Shortcuts","NotificationListener\u003cNavigationNotification>","_SharedAppModel","SharedAppData","UnmanagedRestorationScope","RestorationScope","UnmanagedRestorationScope","RootRestorationScope","WidgetsApp","Builder","HeroControllerScope","DefaultSelectionStyle","IconTheme","InheritedCupertinoTheme","CupertinoTheme","CupertinoUserInterfaceLevel","ScrollConfiguration","CupertinoApp"],"ownerLocation":"lib/main.dart:16","active":false,"muted":false,"type":"_WidgetTicker"},{"owner":"AnimatedPadding","ownerPath":["AnimatedPadding","LayoutBuilder","ScrollConfiguration","MediaQuery","Builder","CupertinoUserInterfaceLevel","CupertinoAlertDialog"],"ownerLocation":"lib/main.dart:51","active":false,"muted":false,"type":"Ticker"},{"owner":"CupertinoScrollbar","ownerPath":["CupertinoScrollbar","_CupertinoAlertContentSection","ColoredBox","_PriorityColumn","LayoutBuilder","MediaQuery","Semantics","BackdropFilter","ClipRSuperellipse","CupertinoPopupSurface","Listener","RawGestureDetector","_ActionSheetGestureDetector","SizedBox","Padding","Center","MediaQuery","Padding","AnimatedPadding","LayoutBuilder","ScrollConfiguration","MediaQuery","Builder","CupertinoUserInterfaceLevel","CupertinoAlertDialog"],"ownerLocation":"lib/main.dart:51","active":false,"muted":false,"type":"_WidgetTicker"},{"owner":"CupertinoScrollbar","ownerPath":["CupertinoScrollbar","_CupertinoAlertContentSection","ColoredBox","_PriorityColumn","LayoutBuilder","MediaQuery","Semantics","BackdropFilter","ClipRSuperellipse","CupertinoPopupSurface","Listener","RawGestureDetector","_ActionSheetGestureDetector","SizedBox","Padding","Center","MediaQuery","Padding","AnimatedPadding","LayoutBuilder","ScrollConfiguration","MediaQuery","Builder","CupertinoUserInterfaceLevel","CupertinoAlertDialog"],"ownerLocation":"lib/main.dart:51","active":false,"muted":false,"type":"_WidgetTicker"},{"owner":"EditableText","ownerPath":["EditableText","UnmanagedRestorationScope","RepaintBoundary","Padding","_BaselineAlignedStack","Directionality","Expanded","Row","ValueListenableBuilder\u003cTextEditingValue>","Align","Listener","RawGestureDetector","TextSelectionGestureDetector","Padding","DecoratedBox","Container","IgnorePointer","TextFieldTapRegion","Semantics","CupertinoTextField"],"ownerLocation":"lib/main.dart:55","active":true,"muted":false,"type":"_WidgetTicker"},{"owner":"CupertinoScrollbar","ownerPath":["CupertinoScrollbar","_CupertinoAlertActionSection","NotificationListener\u003cScrollUpdateNotification>","Stack","_OverscrollBackground","Flexible","Column","_PriorityColumn","LayoutBuilder","MediaQuery","Semantics","BackdropFilter","ClipRSuperellipse","CupertinoPopupSurface","Listener","RawGestureDetector","_ActionSheetGestureDetector","SizedBox","Padding","Center","MediaQuery","Padding","AnimatedPadding","LayoutBuilder","ScrollConfiguration","MediaQuery","Builder","CupertinoUserInterfaceLevel","CupertinoAlertDialog"],"ownerLocation":"lib/main.dart:51","active":false,"muted":false,"type":"_WidgetTicker"},{"owner":"CupertinoScrollbar","ownerPath":["CupertinoScrollbar","_CupertinoAlertActionSection","NotificationListener\u003cScrollUpdateNotification>","Stack","_OverscrollBackground","Flexible","Column","_PriorityColumn","LayoutBuilder","MediaQuery","Semantics","BackdropFilter","ClipRSuperellipse","CupertinoPopupSurface","Listener","RawGestureDetector","_ActionSheetGestureDetector","SizedBox","Padding","Center","MediaQuery","Padding","AnimatedPadding","LayoutBuilder","ScrollConfiguration","MediaQuery","Builder","CupertinoUserInterfaceLevel","CupertinoAlertDialog"],"ownerLocation":"lib/main.dart:51","active":false,"muted":false,"type":"_WidgetTicker"},{"owner":"AnimatedOpacity","ownerPath":["AnimatedOpacity","LayoutId","CustomMultiChildLayout","NavigationToolbar","MediaQuery","Padding","SafeArea","SizedBox","_PersistentNavigationBar","Column","ConstrainedBox","DefaultTextStyle","AnnotatedRegion\u003cSystemUiOverlayStyle>","DecoratedBox","BackdropFilter","ClipRect","_TransitionableNavigationBar","KeyedSubtree","_EffectiveTickerMode","TickerMode","Offstage","SizedBox","Hero","Builder","CupertinoNavigationBar"],"ownerLocation":"lib/main.dart:30","active":false,"muted":false,"type":"Ticker"}],"frames":[{"ms":16.666,"changed":false,"pictures":0,"renderPasses":7,"requests":["EditableTextState (widgets/editable_text.dart)"]},{"ms":33.332,"changed":true,"pictures":1,"renderPasses":7,"requests":["EditableTextState (widgets/editable_text.dart)"]},{"ms":49.998,"changed":false,"pictures":0,"renderPasses":7,"requests":["EditableTextState (widgets/editable_text.dart)"]},{"ms":66.664,"changed":true,"pictures":1,"renderPasses":7,"requests":["EditableTextState (widgets/editable_text.dart)"]},{"ms":83.33,"changed":false,"pictures":0,"renderPasses":7,"requests":["EditableTextState (widgets/editable_text.dart)"]},{"ms":99.996,"changed":true,"pictures":1,"renderPasses":7,"requests":["EditableTextState (widgets/editable_text.dart)"]},{"ms":116.662,"changed":false,"pictures":0,"renderPasses":7,"requests":["EditableTextState (widgets/editable_text.dart)"]},{"ms":133.328,"changed":false,"pictures":0,"renderPasses":7,"requests":["EditableTextState (widgets/editable_text.dart)"]},{"ms":149.994,"changed":true,"pictures":1,"renderPasses":7,"requests":["EditableTextState (widgets/editable_text.dart)"]},{"ms":166.66,"changed":false,"pictures":0,"renderPasses":7,"requests":["EditableTextState (widgets/editable_text.dart)"]},{"ms":183.326,"changed":false,"pictures":0,"renderPasses":7,"requests":["EditableTextState (widgets/editable_text.dart)"]},{"ms":199.992,"changed":false,"pictures":0,"renderPasses":7,"requests":["EditableTextState (widgets/editable_text.dart)"]},{"ms":216.658,"changed":false,"pictures":0,"renderPasses":7,"requests":["EditableTextState (widgets/editable_text.dart)"]},{"ms":233.324,"changed":false,"pictures":0,"renderPasses":7,"requests":["EditableTextState (widgets/editable_text.dart)"]},{"ms":249.99,"changed":false,"pictures":0,"renderPasses":7,"requests":["EditableTextState (widgets/editable_text.dart)"]},{"ms":266.656,"changed":false,"pictures":0,"renderPasses":7,"requests":["EditableTextState (widgets/editable_text.dart)"]},{"ms":283.322,"changed":false,"pictures":0,"renderPasses":7,"requests":["EditableTextState (widgets/editable_text.dart)"]},{"ms":299.988,"changed":false,"pictures":0,"renderPasses":7,"requests":["EditableTextState (widgets/editable_text.dart)"]},{"ms":316.654,"changed":false,"pictures":0,"renderPasses":7,"requests":["EditableTextState (widgets/editable_text.dart)"]},{"ms":333.32,"changed":false,"pictures":0,"renderPasses":7,"requests":["EditableTextState (widgets/editable_text.dart)"]},{"ms":349.986,"changed":false,"pictures":0,"renderPasses":7,"requests":["EditableTextState (widgets/editable_text.dart)"]},{"ms":366.652,"changed":false,"pictures":0,"renderPasses":7,"requests":["EditableTextState (widgets/editable_text.dart)"]},{"ms":383.318,"changed":true,"pictures":1,"renderPasses":7,"requests":["EditableTextState (widgets/editable_text.dart)"]},{"ms":399.984,"changed":false,"pictures":0,"renderPasses":7,"requests":["EditableTextState (widgets/editable_text.dart)"]},{"ms":416.65,"changed":true,"pictures":1,"renderPasses":7,"requests":["EditableTextState (widgets/editable_text.dart)"]},{"ms":433.316,"changed":false,"pictures":0,"renderPasses":7,"requests":["EditableTextState (widgets/editable_text.dart)"]},{"ms":449.982,"changed":true,"pictures":1,"renderPasses":7,"requests":["EditableTextState (widgets/editable_text.dart)"]},{"ms":466.648,"changed":false,"pictures":0,"renderPasses":7,"requests":["EditableTextState (widgets/editable_text.dart)"]},{"ms":483.314,"changed":false,"pictures":0,"renderPasses":7,"requests":["EditableTextState (widgets/editable_text.dart)"]},{"ms":499.98,"changed":true,"pictures":1,"renderPasses":7,"requests":["EditableTextState (widgets/editable_text.dart)"]},{"ms":516.646,"changed":false,"pictures":0,"renderPasses":7,"requests":["EditableTextState (widgets/editable_text.dart)"]},{"ms":533.312,"changed":false,"pictures":0,"renderPasses":7,"requests":["EditableTextState (widgets/editable_text.dart)"]},{"ms":549.978,"changed":false,"pictures":0,"renderPasses":7,"requests":["EditableTextState (widgets/editable_text.dart)"]},{"ms":566.644,"changed":false,"pictures":0,"renderPasses":7,"requests":["EditableTextState (widgets/editable_text.dart)"]},{"ms":583.31,"changed":false,"pictures":0,"renderPasses":7,"requests":["EditableTextState (widgets/editable_text.dart)"]},{"ms":599.976,"changed":false,"pictures":0,"renderPasses":7,"requests":["EditableTextState (widgets/editable_text.dart)"]},{"ms":616.642,"changed":false,"pictures":0,"renderPasses":7,"requests":["EditableTextState (widgets/editable_text.dart)"]},{"ms":633.308,"changed":false,"pictures":0,"renderPasses":7,"requests":["EditableTextState (widgets/editable_text.dart)"]},{"ms":649.974,"changed":false,"pictures":0,"renderPasses":7,"requests":["EditableTextState (widgets/editable_text.dart)"]},{"ms":666.64,"changed":false,"pictures":0,"renderPasses":7,"requests":["EditableTextState (widgets/editable_text.dart)"]},{"ms":683.306,"changed":false,"pictures":0,"renderPasses":7,"requests":["EditableTextState (widgets/editable_text.dart)"]},{"ms":699.972,"changed":false,"pictures":0,"renderPasses":7,"requests":["EditableTextState (widgets/editable_text.dart)"]},{"ms":716.638,"changed":false,"pictures":0,"renderPasses":7,"requests":["EditableTextState (widgets/editable_text.dart)"]},{"ms":733.304,"changed":false,"pictures":0,"renderPasses":7,"requests":["EditableTextState (widgets/editable_text.dart)"]},{"ms":749.97,"changed":false,"pictures":0,"renderPasses":7,"requests":["EditableTextState (widgets/editable_text.dart)"]},{"ms":766.636,"changed":false,"pictures":0,"renderPasses":7,"requests":["EditableTextState (widgets/editable_text.dart)"]},{"ms":783.302,"changed":false,"pictures":0,"renderPasses":7,"requests":["EditableTextState (widgets/editable_text.dart)"]},{"ms":799.968,"changed":false,"pictures":0,"renderPasses":7,"requests":["EditableTextState (widgets/editable_text.dart)"]},{"ms":816.634,"changed":false,"pictures":0,"renderPasses":7,"requests":["EditableTextState (widgets/editable_text.dart)"]},{"ms":833.3,"changed":false,"pictures":0,"renderPasses":7,"requests":["EditableTextState (widgets/editable_text.dart)"]},{"ms":849.966,"changed":false,"pictures":0,"renderPasses":7,"requests":["EditableTextState (widgets/editable_text.dart)"]},{"ms":866.632,"changed":false,"pictures":0,"renderPasses":7,"requests":["EditableTextState (widgets/editable_text.dart)"]},{"ms":883.298,"changed":false,"pictures":0,"renderPasses":7,"requests":["EditableTextState (widgets/editable_text.dart)"]},{"ms":899.964,"changed":false,"pictures":0,"renderPasses":7,"requests":["EditableTextState (widgets/editable_text.dart)"]},{"ms":916.63,"changed":false,"pictures":0,"renderPasses":7,"requests":["EditableTextState (widgets/editable_text.dart)"]},{"ms":933.296,"changed":false,"pictures":0,"renderPasses":7,"requests":["EditableTextState (widgets/editable_text.dart)"]},{"ms":949.962,"changed":false,"pictures":0,"renderPasses":7,"requests":["EditableTextState (widgets/editable_text.dart)"]},{"ms":966.628,"changed":false,"pictures":0,"renderPasses":7,"requests":["EditableTextState (widgets/editable_text.dart)"]},{"ms":983.294,"changed":false,"pictures":0,"renderPasses":7,"requests":["EditableTextState (widgets/editable_text.dart)"]},{"ms":999.96,"changed":false,"pictures":0,"renderPasses":7,"requests":["EditableTextState (widgets/editable_text.dart)"]}]}}</script>
 <script>
 'use strict';
 const report = JSON.parse(document.getElementById('report-data').textContent);
 const frames = report.frames || [];
 const byId = (id) => document.getElementById(id);
 
-// Appends children, skipping null/false/undefined (from `cond && node`).
 // Strings become text nodes, so data never turns into markup.
-function append(el, kids) {
+function h(tag, props, ...kids) {
+  const el = document.createElement(tag);
+  for (const [k, v] of Object.entries(props || {})) {
+    if (v == null || v === false) continue;
+    if (k === 'class') el.className = v; else el.setAttribute(k, String(v));
+  }
   for (const kid of kids.flat()) {
     if (kid != null && kid !== false) el.append(kid instanceof Node ? kid : String(kid));
   }
   return el;
 }
-
-function h(tag, props, ...kids) {
-  const el = document.createElement(tag);
-  for (const [k, v] of Object.entries(props || {})) {
-    if (v == null || v === false) continue;
-    if (k === 'class') el.className = v;
-    else if (k.startsWith('on')) el.addEventListener(k.slice(2), v);
-    else el.setAttribute(k, v === true ? '' : String(v));
-  }
-  return append(el, kids);
-}
-
-function fill(id, ...kids) {
-  const el = byId(id);
-  el.replaceChildren();
-  return append(el, kids);
-}
-
-function bar(fraction) {
-  const fill = h('span');
-  fill.style.width = (Math.max(0, Math.min(1, fraction)) * 100).toFixed(2) + '%';
-  return h('div', { class: 'bar' }, fill);
-}
-
-const mb = (bytes) => (bytes / 1e6).toFixed(1) + ' MB';
-const times = (x) => x.toFixed(x < 10 ? 1 : 0) + '×';
-const num = (x) => String(+x.toFixed(1));
-const size = (s) => num(s[0]) + '×' + num(s[1]);
-const plural = (n, one, many) => n + ' ' + (n === 1 ? one : many);
-function percent(f) {
-  if (f > 0 && f < 0.01) return '<1%';
-  return Math.round(f * 100) + '%';
-}
-const backendName = { metal: 'Metal', vulkan: 'Vulkan', gles: 'OpenGL ES' };
-
-// `BackdropFilter (lib/home.dart:42)` -> name + source location.
-function splitLabel(label) {
-  const m = /^(.*) \(([^()]*(?:\.dart|:\d+))\)$/.exec(label);
-  return m ? { name: m[1], where: m[2] } : { name: label, where: null };
-}
-
-function labelNodes(label) {
-  const { name, where } = splitLabel(label);
-  return [h('span', { class: 'cost-name' }, name), where && h('span', { class: 'cost-where' }, where)];
-}
+const row = (cells, cls) => h('tr', null, cells.map((c, i) => h('td', { class: i === 0 ? null : cls }, c)));
+const x = (v) => (v < 10 ? v.toFixed(1) : v.toFixed(0)) + '×';
 
 // Header
 document.title = report.name + ' · GPU estimate';
 byId('name').textContent = report.name;
-byId('meta').textContent = 'Flutter ' + report.flutter +
-  (report.engineRevision ? ' · engine ' + report.engineRevision.slice(0, 10) : '');
-byId('disclaimer').textContent = 'Estimated from a widget test by impeller_model. A model of Impeller ' +
-  report.flutter + ', not a measurement: confirm on device (see the impeller_model-gpu-profiling skill).';
+byId('meta').append(
+  'Estimated by impeller_model for Flutter ' + report.flutter + '. A plain frame is 1 pass and 1×. Confirm GPU time on a device.',
+  report.screenshot ? h('span', null, ' ', h('a', { href: report.screenshot }, 'Screenshot')) : '');
 
-if (report.screenshot) {
-  const hero = byId('hero');
-  hero.classList.add('has-shot');
-  hero.prepend(h('figure', { class: 'shot' },
-    h('img', { src: report.screenshot, alt: 'Screenshot of the screen on ' + frames[0].device.name }),
-    h('figcaption', null, frames[0].device.name)));
+// Warnings: only what makes a number untrustworthy. One line per warning,
+// naming the devices only when it does not hold for all of them.
+const warnings = new Map();
+const warn = (text, device) => warnings.set(text, (warnings.get(text) || new Set()).add(device));
+for (const f of frames) {
+  const approx = (f.passes || []).filter((p) => p.approximate).length;
+  if (approx) warn(approx + ' pass' + (approx === 1 ? '' : 'es') + ' with a guessed size (shader filters). Measure on a device before acting on their size.', f.device.name);
+  for (const o of f.missingPictureOrigins || []) warn('Draws not counted: a picture recorded with Canvas(PictureRecorder()) in ' + o + '.', f.device.name);
+  for (const t of f.unmodeledLayers || []) warn('Custom layer ' + t + ' pushes effects the model cannot read; counted as a plain container.', f.device.name);
+}
+for (const [text, devices] of warnings) {
+  const where = devices.size === frames.length ? '' : ' (' + [...devices].join(', ') + ')';
+  byId('warnings').append(h('p', { class: 'warn' }, text + where));
 }
 
-// Device switcher
-const tabs = frames.map((f, i) => h('button', {
-  class: 'tab', role: 'tab', type: 'button', onclick: () => select(i),
-}, f.device.name, h('small', null, backendName[f.device.gpu.backend] || f.device.gpu.backend)));
-byId('tabs').append(...tabs);
+// Cost per device
+byId('devices').append(
+  h('thead', null, h('tr', null, h('th', null, 'Device'), h('th', { class: 'num' }, 'Render passes'), h('th', { class: 'num' }, 'Memory traffic'))),
+  h('tbody', null, frames.map((f) => row([f.device.name, f.renderPasses, x(1 + f.traffic.extraScreenEquivalents)], 'num'))));
 
-function select(i) {
-  const f = frames[i];
-  tabs.forEach((t, j) => t.setAttribute('aria-selected', String(i === j)));
-  renderSummary(f);
-  renderCosts(f);
-  renderPasses(f);
-  renderCapture(f);
-  renderDevices(i);
+// What causes it: one row per widget, one column per device.
+function fix(label, roles) {
+  const r = new Set(roles);
+  if (/^(Opacity|FadeTransition|AnimatedOpacity)\b/.test(label)) return 'Fade a single child that overlaps nothing, or put the alpha in the paint.';
+  if (/^ShaderMask\b/.test(label)) return 'A shader mask is always a layer: keep the masked child small.';
+  if (/antiAliasWithSaveLayer/.test(label)) return 'Use Clip.antiAlias or Clip.hardEdge.';
+  if (r.has('advancedBlend') || r.has('blendSourceSnapshot')) return 'Advanced blend mode: use srcOver, or bake the effect into an image.';
+  if (/^(BackdropFilter|shared by BackdropGroup)/.test(label)) return 'Each backdrop stops the frame: clip it to the area that shows it, share one BackdropGroup, or use a translucent color over static content.';
+  if (r.has('blurDownsample')) return 'A blur over a subtree: a blurred BoxShadow is cheaper for a glow.';
+  if (/saveLayer in a picture/.test(label)) return 'A painter calls saveLayer: give it tight bounds or remove it.';
+  return '';
 }
-
-function renderSummary(f) {
-  const d = f.device, gpu = d.gpu, t = f.traffic;
-  fill('device-line',
-    h('span', { class: 'mono' }, size(d.logicalSize)), ' logical @' + num(d.pixelRatio) + 'x = ',
-    h('span', { class: 'mono' }, size(d.physicalSize)), ' px',
-    d.note ? ' · ' + d.note : '');
-
-  const card = (cls, label, big, unit, sub) => h('div', { class: 'panel card ' + cls },
-    h('span', { class: 'card-label' }, label),
-    h('span', { class: 'big' }, big, unit && h('span', { class: 'unit' }, unit)),
-    sub && h('p', { class: 'card-sub' }, sub));
-
-  fill('cards',
-    card('lead', 'Memory traffic per frame', times(1 + t.extraScreenEquivalents), 'a plain frame',
-      '+' + mb(t.extraBytes) + ' beyond the screen write (nominal, uncompressed)'),
-    card('', 'Render passes', f.renderPasses, null, 'a plain frame is 1'),
-    card('', 'Flips', f.flips, null, 'passes ended early to read them back'),
-    h('div', { class: 'panel card', style: 'grid-column: 1 / -1' },
-      h('span', { class: 'card-label' }, 'GPU'),
-      h('dl', { class: 'facts' },
-        h('dt', null, 'Backend'), h('dd', null, backendName[gpu.backend] || gpu.backend),
-        h('dt', null, 'Framebuffer fetch'), h('dd', null, gpu.framebufferFetch ? 'yes' : 'no'),
-        h('dt', null, 'Pixel format'), h('dd', null, h('span', { class: 'mono' }, gpu.colorFormat), ', ' + gpu.bytesPerPixel + ' bytes per pixel'))));
-
-  fill('notes',
-    gpu.lossyCompressedPassTextures && h('p', { class: 'note' },
-      'This GPU stores pass textures with lossy compression (about half the nominal bytes), so the MB figure is an upper bound.'),
-    f.missingPictures && h('p', { class: 'note warn' },
-      plural(f.missingPictures, 'picture layer', 'picture layers') + ' had no recorded draws, so this estimate is incomplete.'));
-}
-
-function renderCosts(f) {
-  const centers = f.costCenters || [];
-  const total = f.traffic.extraBytes;
-  if (!centers.length) {
-    fill('costs', h('p', { class: 'empty' },
-      'Nothing beyond the plain frame: one pass straight into the screen.'));
-    return;
+const centers = new Map();
+frames.forEach((f, i) => {
+  const plain = f.traffic.surfaceBytes || 1;
+  for (const c of f.costCenters || []) {
+    const e = centers.get(c.label) || { label: c.label, roles: new Set(), cells: [], worst: 0 };
+    (c.roles || []).forEach((r) => e.roles.add(r));
+    const share = c.extraBytes / plain;
+    e.cells[i] = c.renderPasses + ' · +' + x(share);
+    e.worst = Math.max(e.worst, share);
+    centers.set(c.label, e);
   }
-  fill('costs', h('ol', { class: 'costs' }, centers.map((c) => {
-    const share = total ? c.extraBytes / total : 0;
-    return h('li', { class: 'cost' },
-      h('div', null, labelNodes(c.label)),
-      h('div', { class: 'cost-share' }, percent(share)),
-      bar(share),
-      h('div', { class: 'cost-meta' },
-        h('span', null, h('b', null, plural(c.renderPasses, 'render pass', 'render passes'))),
-        h('span', null, h('b', null, mb(c.extraBytes)), ' of ' + mb(total) + ' extra'),
-        h('span', { class: 'chips' }, (c.roles || []).map((r) =>
-          h('span', { class: 'chip' }, f.roles[r] ? f.roles[r].title : r)))));
-  })));
+});
+const sorted = [...centers.values()].sort((a, b) => b.worst - a.worst);
+if (sorted.length) {
+  byId('costs').append(
+    h('thead', null, h('tr', null, h('th', null, 'Widget'), frames.map((f) => h('th', { class: 'num' }, f.device.name)), h('th', null, 'Fix'))),
+    h('tbody', null, sorted.map((e) => h('tr', null,
+      h('td', null, h('code', null, e.label)),
+      frames.map((_, i) => h('td', { class: 'num' }, e.cells[i] || '–')),
+      h('td', null, fix(e.label, e.roles))))));
+} else {
+  byId('costs').replaceWith(h('p', null, 'Nothing beyond the plain frame.'));
 }
 
-function renderPasses(f) {
-  const screen = f.device.physicalSize[0] * f.device.physicalSize[1];
-  fill('passes', ...f.passes.map((p, i) => {
-    const role = f.roles[p.role] || { title: p.role, explanation: '' };
-    const area = screen ? (p.size[0] * p.size[1]) / screen : 0;
-    const cls = 'pass' + (p.isBlit ? ' blit' : '') + (p.writesSurface ? ' surface' : '');
-    return h('li', { class: cls }, h('details', null,
-      h('summary', null,
-        h('span', { class: 'pass-index' }, h('span', { class: 'twisty', 'aria-hidden': 'true' }, '▶'), ' ' + (i + 1)),
-        h('span', { class: 'pass-title' },
-          h('strong', null, role.title),
-          h('span', { class: 'badge', title: 'Engine label, as a GPU capture shows it' }, p.engineLabel),
-          p.commandBuffer && h('span', { class: 'cb', title: 'Command buffer' }, p.commandBuffer),
-          p.isBlit && h('span', { class: 'chip' }, 'blit, not a render pass'),
-          p.writesSurface && h('span', { class: 'chip cool' }, 'writes the screen'),
-          p.approximate && h('span', { class: 'chip heat' }, 'shape guessed, not ported')),
-        h('span', { class: 'pass-size' }, size(p.size)),
-        h('div', { class: 'pass-bar' }, bar(area), h('small', null, percent(area) + ' of screen')),
-        h('div', { class: 'pass-why' },
-          p.cause && h('span', null, p.cause),
-          p.endedBy && h('span', { class: 'ended' }, 'ended early by ' + p.endedBy),
-          p.parent != null && h('span', null, 'inside pass ' + (p.parent + 1)),
-          !p.isBlit && p.drawCount != null && h('span', null, plural(p.drawCount, 'draw', 'draws')))),
-      h('p', { class: 'pass-explain' }, role.explanation)));
-  }));
-}
-
-function renderCapture(f) {
-  const backend = f.device.gpu.backend;
-  if (backend === 'metal') {
-    byId('capture-lede').textContent =
-      'In one frame of a Metal capture (Xcode, or Instruments\u2019 Metal System Trace) on ' +
-      f.device.name + ' you should see:';
-    const rows = Object.entries(f.renderPassesByLabel || {}).map(([label, n]) => h('tr', null,
-      h('td', { class: 'count' }, n),
-      h('td', null, h('span', { class: 'labeled' }, (n === 1 ? 'render encoder' : 'render encoders') +
-        ' labeled', h('span', { class: 'badge' }, label)))));
-    fill('capture', h('tbody', null, rows));
-    byId('capture-hint').textContent = 'Impeller only sets these labels in debug and profile builds.';
-    return;
-  }
-  // Vulkan names its objects only while validation layers run, so a
-  // stock capture shows unlabeled passes: compare sizes instead.
-  byId('capture-lede').textContent =
-    'In one frame on ' + f.device.name + ' (RenderDoc, AGI) you should see these render passes:';
-  const bySize = new Map();
-  for (const p of f.passes || []) {
-    if (p.isBlit) continue;
-    const key = size(p.size);
-    const e = bySize.get(key) || { n: 0, labels: new Set() };
-    e.n++;
-    e.labels.add(p.engineLabel);
-    bySize.set(key, e);
-  }
-  const rows = [...bySize.entries()].map(([s, e]) => h('tr', null,
-    h('td', { class: 'count' }, e.n),
-    h('td', null, h('span', { class: 'labeled' }, (e.n === 1 ? 'pass of ' : 'passes of ') ,
-      h('span', { class: 'mono' }, s),
-      ...[...e.labels].map((l) => h('span', { class: 'badge' }, l))))));
-  fill('capture', h('tbody', null, rows));
-  byId('capture-hint').textContent = backend === 'vulkan'
-    ? 'Vulkan captures show Impeller\u2019s labels (badges) only while Vulkan validation ' +
-      'layers run (flutter run --enable-vulkan-validation, with VK_LAYER_KHRONOS_validation ' +
-      'available to the app); otherwise match passes by size.'
-    : 'Match passes by size; the badges are the labels Impeller uses on Metal.';
-}
-
-function renderDevices(selected) {
-  fill('devices',
-    h('thead', null, h('tr', null,
-      h('th', null, 'Device'), h('th', { class: 'num' }, 'Passes'), h('th', { class: 'num' }, 'Flips'),
-      h('th', { class: 'num' }, '× plain frame'), h('th', { class: 'num' }, 'Extra MB'))),
-    h('tbody', null, frames.map((f, i) => h('tr', {
-      class: 'pick' + (i === selected ? ' selected' : ''), onclick: () => select(i),
-    },
-      h('td', null, f.device.name),
-      h('td', { class: 'num' }, f.renderPasses),
-      h('td', { class: 'num' }, f.flips),
-      h('td', { class: 'num' }, times(1 + f.traffic.extraScreenEquivalents)),
-      h('td', { class: 'num' }, (f.traffic.extraBytes / 1e6).toFixed(1))))));
-}
-
-// Frame demand
-const verdicts = {
-  idle: 'Idle: no frames requested while nobody touches the screen',
-  periodic: 'Frames now and then',
-  continuous: 'Continuous: a frame every vsync',
-};
-
-function renderDemand(fd) {
+// Frames while idle
+const fd = report.frameDemand;
+if (fd) {
   byId('demand').hidden = false;
-  const slots = Math.round(fd.refreshRate * fd.windowMs / 1000);
-  byId('demand-lede').textContent = 'Frames the screen requested on its own over ' + fd.windowMs + ' ms at ' +
-    fd.refreshRate + ' Hz on ' + frames[0].device.name + ', after letting it settle for ' + fd.settleMs + ' ms.';
-  byId('verdict').className = 'verdict ' + fd.verdict;
-  fill('verdict', verdicts[fd.verdict] || fd.verdict,
-    fd.stillRequesting && fd.verdict !== 'idle' && h('small', null, 'still requesting frames when the window ended'));
-
-  const stat = (big, label) => h('div', { class: 'stat' }, h('span', { class: 'big' }, big), h('span', { class: 'card-label' }, label));
-  fill('demand-stats',
-    stat(fd.framesDrawn + ' / ' + slots, 'vsync slots drew a frame'),
-    stat(fd.unchangedFrames, 'frames that drew exactly the previous frame'),
-    fd.renderPasses != null && stat('≈ ' + fd.renderPasses, 'render passes per window (estimate)'));
-
-  // One cell per vsync slot. A frame at `ms` closes the slot that ends there.
-  const cells = Array.from({ length: slots }, () => h('div', { class: 'slot' }));
-  for (const fr of fd.frames || []) {
-    const i = Math.min(slots - 1, Math.max(0, Math.round(fr.ms * fd.refreshRate / 1000) - 1));
-    cells[i].className = 'slot ' + (fr.changed ? 'changed' : 'unchanged');
-    cells[i].title = num(fr.ms) + ' ms · ' + (fr.changed ? 'changed' : 'unchanged') +
-      (fr.renderPasses != null ? ' · ' + plural(fr.renderPasses, 'render pass', 'render passes') : '');
-  }
-  const strip = byId('strip');
-  strip.style.gridTemplateColumns = 'repeat(' + slots + ', 1fr)';
-  strip.setAttribute('aria-label', fd.framesDrawn + ' of ' + slots + ' vsync slots drew a frame, ' + fd.unchangedFrames + ' unchanged');
-  strip.replaceChildren(...cells);
-  fill('axis', ...[0, 0.25, 0.5, 0.75, 1].map((f) => {
-    const s = h('span', null, Math.round(f * fd.windowMs) + ' ms');
-    s.style.left = f * 100 + '%';
-    return s;
-  }));
-
+  const fps = Math.round(fd.framesDrawn * 1000 / fd.windowMs);
+  byId('verdict').textContent = fd.verdict === 'idle'
+    ? 'None: the screen draws nothing while nobody touches it.'
+    : fps + ' frames per second while nothing is touched (' + fd.unchangedFrames + ' of ' + fd.framesDrawn +
+      ' drew exactly the previous frame). Every frame repeats the passes above.';
   const sources = fd.sources || [];
-  fill('sources', ...(sources.length ? sources.map((s) => h('div', { class: 'item' },
-    h('div', { class: 'item-head' },
-      h('strong', null, s.owner),
-      s.ticker && h('span', { class: 'chip cool' }, 'ticker'),
-      h('span', { class: 'muted', style: 'font-size: 14px' }, plural(s.frames, 'frame', 'frames') + ', ' + s.unchangedFrames + ' unchanged')),
-    s.appFrame && h('div', { class: 'item-sub' }, 'from ' + s.appFrame),
-    h('div', { class: 'item-sub' }, s.description))) : [h('p', { class: 'muted' }, 'Nothing requested a frame.')]));
-
-  const all = fd.tickers || [];
-  const active = all.filter((t) => t.active && !t.muted);
-  fill('tickers',
-    h('p', { class: 'item-sub', style: 'margin-bottom: 10px' }, active.length + ' of ' + plural(all.length, 'ticker', 'tickers') + ' in the tree ' +
-      (active.length === 1 ? 'is' : 'are') + ' active and not muted.'),
-    ...active.map((t) => h('div', { class: 'item' },
-      h('div', { class: 'item-head' }, h('strong', null, t.owner), h('span', { class: 'muted' }, t.type)),
-      t.ownerLocation && h('div', { class: 'item-sub' }, t.ownerLocation))));
-
-  byId('advice').hidden = fd.verdict === 'idle';
+  const tickers = (fd.tickers || []).filter((t) => t.active && !t.muted);
+  if (fd.verdict !== 'idle' && (sources.length || tickers.length)) {
+    byId('sources').append(
+      h('thead', null, h('tr', null, h('th', null, 'Requested by'), h('th', null, 'Where'), h('th', { class: 'num' }, 'Frames'))),
+      h('tbody', null,
+        sources.map((s) => row([s.owner, h('code', null, s.appFrame || ''), s.frames + (s.unchangedFrames ? ' (' + s.unchangedFrames + ' unchanged)' : '')], null)),
+        tickers.map((t) => row(['Ticker of ' + t.owner, h('code', null, t.ownerLocation || ''), ''], null))));
+    byId('demand-fix').textContent = 'Stop what does not change anything, mute hidden tickers with TickerMode, or run decorative animations at a lower fixed rate (fixed_ticker).';
+  }
 }
-
-if (frames.length) select(0);
-if (report.frameDemand) renderDemand(report.frameDemand);
 </script>
 </body>
 </html>
