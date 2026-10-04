@@ -341,8 +341,6 @@ Map<int, double> _lit(Iterable<int> tiers, double light) => {
   for (final tier in tiers) tier: light,
 };
 
-Set<int> _upTo(int tier) => {for (var n = 1; n <= tier; n++) n};
-
 /// Each layer's slide title: what that stage's slide shows.
 const layerTitles = {
   1: 'Your widget code',
@@ -523,22 +521,6 @@ final stage6Script = [
 
 final stage4Step = stage4Script.last;
 final stage5Step = stage5Script.last;
-final stage6Step = stage6Script.last;
-
-// Plane 6 lands across the GPU border.
-final stage7Step = _stageSlide(7, borders: {StackBorder.gpu});
-
-/// GPU back-pressure (spec section 6): the raster thread waits on a busy GPU.
-final backpressureStep = RenderStackStep(
-  RenderStackView(
-    visibleTiers: _upTo(7),
-    light: const {5: TierLight.dim, 6: TierLight.dim, 7: TierLight.hot},
-    feedback: true,
-  ),
-  caption: 'When the GPU falls behind, the raster thread waits.',
-);
-
-final stage8Step = _stageSlide(8);
 
 const framesStep = RenderStackStep(
   RenderStackView(frames: FramesInFlight(animated: true)),
@@ -548,11 +530,6 @@ const framesStep = RenderStackStep(
 const limitsStep = RenderStackStep(
   RenderStackView(frames: FramesInFlight(limits: true)),
   caption: 'One UI thread, one raster thread, two slots.',
-);
-
-const bandsStep = RenderStackStep(
-  RenderStackView(showBands: true),
-  caption: 'Zoomed out: four bands, two threads, one GPU.',
 );
 
 /// Lighting for a ticker frame (spec section 5): tiers 1-3 off (nothing is
@@ -605,22 +582,6 @@ final ahaScript = [
   ),
 ];
 
-/// Why an everyday blur costs so much (agenda § 4): the GPU tier's tiles.
-const blurCostScript = [
-  RenderStackStep(
-    RenderStackView(light: {7: TierLight.dim}, tiles: TilePhase.fill),
-    caption: 'Mobile GPUs draw in on-chip tiles.',
-  ),
-  RenderStackStep(
-    RenderStackView(light: {7: TierLight.hot}, tiles: TilePhase.flush),
-    caption: 'The blur needs finished pixels: the pass breaks to DRAM.',
-  ),
-  RenderStackStep(
-    RenderStackView(light: {7: TierLight.hot}, tiles: TilePhase.reseed),
-    caption: 'Then a full-screen redraw to resume, 120 times a second.',
-  ),
-];
-
 /// Profiling (agenda § 5): each tool marks the layers it can see, next to
 /// our own capture of it running on the demo.
 const profilingScript = [
@@ -630,7 +591,8 @@ const profilingScript = [
         tool: 'Highlight repaints',
         tiers: {3: TierLight.dim},
         shows: 'which boundaries repaint',
-        image: 'assets/images/tools/highlight_repaints.png',
+        // A clip, so the caret's ~8 repaints a second can be seen.
+        image: 'assets/images/tools/highlight_repaints.mp4',
       ),
     ),
     caption: 'Highlight repaints',
@@ -656,16 +618,6 @@ const profilingScript = [
       ),
     ),
     caption: 'Metal System Trace',
-  ),
-  RenderStackStep(
-    RenderStackView(
-      spotlight: ToolSpotlight(
-        tool: 'Metal frame capture',
-        tiers: {6: .5, 7: .5},
-        shows: 'passes, draws: structure',
-      ),
-    ),
-    caption: 'Metal frame capture',
   ),
   RenderStackStep(
     RenderStackView(

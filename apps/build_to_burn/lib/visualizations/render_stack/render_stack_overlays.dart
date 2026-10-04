@@ -669,8 +669,8 @@ class _PipelineSlots extends StatelessWidget {
   }
 }
 
-/// A profiling tool's screenshot, in the stage slide's left column; a new
-/// one crossfades in.
+/// A profiling tool's screenshot or looping clip, in the stage slide's left
+/// column; a new one crossfades in.
 class _ToolShot extends StatelessWidget {
   const _ToolShot({required this.image});
 
@@ -690,7 +690,14 @@ class _ToolShot extends StatelessWidget {
           ),
           child: Padding(
             padding: const EdgeInsets.all(16),
-            child: Image.asset(image, fit: BoxFit.contain),
+            child: image.endsWith('.mp4')
+                ? FittedBox(
+                    child: Video(
+                      assetKey: image,
+                      assumedSize: const Size(860, 734),
+                    ),
+                  )
+                : Image.asset(image, fit: BoxFit.contain),
           ),
         ),
       ),

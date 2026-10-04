@@ -123,6 +123,13 @@ const flowNotes = {
         '"is it cheap?". You need both.',
     transition: 'So how do you measure the price? The GPU tools.',
   ),
+  '/docs-and-skills': FlowNote(
+    question: 'That is a lot of tools. Where do I start?',
+    takeaway:
+        'The official guides in the Flutter repo, and our three agent '
+        'skills: GPU cost, frame demand, GPU profiling.',
+    transition: 'So what do you take home on Monday?',
+  ),
 };
 
 /// Whether the flow notes show. Toggled with F.

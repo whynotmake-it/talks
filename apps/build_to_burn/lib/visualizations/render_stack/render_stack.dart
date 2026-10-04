@@ -13,6 +13,7 @@ import 'package:flutter_highlight/themes/xcode.dart';
 import 'package:highlight/highlight.dart' show Node, highlight;
 import 'package:motor/motor.dart';
 import 'package:qr_flutter/qr_flutter.dart';
+import 'package:wnma_talk/video.dart';
 
 part 'render_stack_cards.dart';
 part 'render_stack_list.dart';

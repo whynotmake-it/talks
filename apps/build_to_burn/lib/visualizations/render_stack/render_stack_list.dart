@@ -288,7 +288,11 @@ class _Gutter extends StatelessWidget {
           from: lit.first.toDouble(),
           to: lit.last.toDouble(),
           color: p.accent,
-          label: '${spotlight.tool}\n${spotlight.shows}',
+          // With a screenshot the stack is compressed to the right, where a
+          // label would run off the slide; the slide's title names the tool.
+          label: spotlight.image != null
+              ? ''
+              : '${spotlight.tool}\n${spotlight.shows}',
           labelRow: (lit.first + lit.last) / 2,
         ),
         1,

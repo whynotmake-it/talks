@@ -2,10 +2,10 @@ import 'package:build_to_burn/font_licenses.dart';
 import 'package:build_to_burn/shared/deck_theme.dart';
 import 'package:build_to_burn/shared/flow_notes.dart';
 import 'package:build_to_burn/shared/style.dart';
+import 'package:build_to_burn/slides/closing_slides.dart';
 import 'package:build_to_burn/slides/gpu_chapter_slide.dart';
 import 'package:build_to_burn/slides/live_slides.dart';
 import 'package:build_to_burn/slides/render_stack_slides.dart';
-import 'package:build_to_burn/slides/skeleton.dart';
 import 'package:build_to_burn/slides/title_slide.dart';
 import 'package:flutter/material.dart';
 import 'package:wnma_talk/wnma_talk.dart';
@@ -54,9 +54,8 @@ class BuildToBurnTalk extends StatelessWidget {
               ahaSlide,
               const FastNotCheapSlide(),
               profilingSlide,
-              fixesSlide,
-              productionSlide,
-              closeSlide,
+              const DocsSkillsSlide(),
+              const ThankYouSlide(),
               // Backup, for questions.
               framesSlide,
               limitsSlide,

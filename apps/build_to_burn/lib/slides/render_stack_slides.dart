@@ -108,29 +108,10 @@ final stage6Slide = _stackSlide(
   speakerNotes: timSlideNotesHeader,
 );
 
-final stage7Slide = _stackSlide(
-  '/stage-7',
-  layerHeading(7),
-  [stage7Step],
-  entry: stage6Step.view,
-  backEntry: stage8Step.view,
-  speakerNotes: jesperSlideNotesHeader,
-);
-
-final stage8Slide = _stackSlide(
-  '/stage-8',
-  layerHeading(8),
-  [stage8Step],
-  entry: stage7Step.view,
-  backEntry: framesStep.view,
-  speakerNotes: jesperSlideNotesHeader,
-);
-
 final framesSlide = _stackSlide(
   '/frames-in-flight',
   'Frames in flight',
   [framesStep],
-  entry: stage8Step.view,
   backEntry: limitsStep.view,
   speakerNotes: jesperSlideNotesHeader,
 );
@@ -140,16 +121,6 @@ final limitsSlide = _stackSlide(
   'Pipeline limits',
   [limitsStep],
   entry: framesStep.view,
-  backEntry: bandsStep.view,
-  speakerNotes: jesperSlideNotesHeader,
-);
-
-final bandsSlide = _stackSlide(
-  '/stack-bands',
-  'Zoom out',
-  [bandsStep],
-  entry: limitsStep.view,
-  backEntry: ahaScript.first.view,
   speakerNotes: jesperSlideNotesHeader,
 );
 
@@ -166,16 +137,6 @@ final ahaSlide = RenderStackSlide(
   title: 'Paint vs composite',
   script: ahaScript,
   speakerNotes: timSlideNotesHeader,
-);
-
-final blurCostSlide = RenderStackSlide(
-  route: '/blur-cost',
-  title: 'Why blur costs',
-  script: blurCostScript,
-  entry: ahaScript.last.view,
-  backEntry: profilingScript.first.view,
-  transition: const FlutterDeckTransition.none(),
-  speakerNotes: jesperSlideNotesHeader,
 );
 
 final profilingSlide = RenderStackSlide(
