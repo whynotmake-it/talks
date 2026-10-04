@@ -6,26 +6,18 @@ import 'package:vector_math/vector_math_64.dart';
 
 import 'recorded_op.dart';
 
-/// All op streams recorded during one painted frame, in `createCanvas` order.
-class OpRecorderRegistry {
-  /// ops per recorded picture, in the order `createCanvas` was called.
-  final List<List<RecordedOp>> pictures = [];
-
-  int newRecorder() {
-    pictures.add(<RecordedOp>[]);
-    return pictures.length - 1;
-  }
-
-  void clear() {
-    pictures.clear();
-  }
-}
-
 /// A `dart:ui` [Canvas] proxy that forwards every call to a real canvas and
 /// records a structured description of each op.
 ///
-/// Installed via `RendererBinding.createCanvas` (the documented
-/// instrumentation hook, see rendering/binding.dart:397).
+/// Installed by [ImpellerModelBinding] through the framework's test hook:
+///
+/// ```framework flutter/lib/src/rendering/binding.dart
+///   /// This hook enables test bindings to instrument the rendering layer.
+///   ///
+///   /// This is used by the [PaintingContext] after creating a [PictureRecorder]
+///   /// using [createPictureRecorder].
+///   Canvas createCanvas(ui.PictureRecorder recorder) => Canvas(recorder);
+/// ```
 class RecordingCanvas implements ui.Canvas {
   RecordingCanvas(this._inner, this._sink);
 
@@ -77,6 +69,7 @@ class RecordingCanvas implements ui.Canvas {
     Rect? localBounds,
     ui.Paint paint, {
     bool unbounded = false,
+    Object? content,
   }) {
     _record(
       RecordedOp(
@@ -85,6 +78,7 @@ class RecordingCanvas implements ui.Canvas {
         bounds: _xformBounds(_strokeAdjusted(localBounds, paint)),
         paint: PaintAttrs.of(paint),
         unbounded: unbounded,
+        contentId: content == null ? null : identityHashCode(content),
       ),
     );
   }
@@ -317,7 +311,7 @@ class RecordingCanvas implements ui.Canvas {
 
   @override
   void drawPath(ui.Path path, ui.Paint paint) {
-    _draw('drawPath', path.getBounds(), paint);
+    _draw('drawPath', path.getBounds(), paint, content: path);
     _inner.drawPath(path, paint);
   }
 
@@ -327,13 +321,14 @@ class RecordingCanvas implements ui.Canvas {
       'drawImage',
       offset & ui.Size(image.width.toDouble(), image.height.toDouble()),
       paint,
+      content: image,
     );
     _inner.drawImage(image, offset, paint);
   }
 
   @override
   void drawImageRect(ui.Image image, ui.Rect src, ui.Rect dst, ui.Paint paint) {
-    _draw('drawImageRect', dst, paint);
+    _draw('drawImageRect', dst, paint, content: image);
     _inner.drawImageRect(image, src, dst, paint);
   }
 
@@ -344,14 +339,18 @@ class RecordingCanvas implements ui.Canvas {
     ui.Rect dst,
     ui.Paint paint,
   ) {
-    _draw('drawImageNine', dst, paint);
+    _draw('drawImageNine', dst, paint, content: image);
     _inner.drawImageNine(image, center, dst, paint);
   }
 
   @override
   void drawPicture(ui.Picture picture) {
     _record(
-      RecordedOp(name: 'drawPicture', ctm: _ctm.clone(), unbounded: false),
+      RecordedOp(
+        name: 'drawPicture',
+        ctm: _ctm.clone(),
+        contentId: identityHashCode(picture),
+      ),
     );
     _inner.drawPicture(picture);
   }
@@ -362,6 +361,7 @@ class RecordingCanvas implements ui.Canvas {
       'drawParagraph',
       offset & ui.Size(paragraph.width, paragraph.height),
       ui.Paint(),
+      content: paragraph,
     );
     _inner.drawParagraph(paragraph, offset);
   }
@@ -389,7 +389,7 @@ class RecordingCanvas implements ui.Canvas {
         ctm: _ctm.clone(),
         bounds: _xformBounds(b),
         paint: PaintAttrs.of(paint),
-        // dl_builder.cc:1520: drawPoints sub-primitives may overlap.
+        // Point sub-primitives may overlap each other.
         forcesOverlap: true,
       ),
     );
@@ -437,10 +437,11 @@ class RecordingCanvas implements ui.Canvas {
         ctm: _ctm.clone(),
         blendMode: blendMode,
         paint: PaintAttrs.of(paint),
-        // dl_builder.cc:1557: vertices are opacity-incompatible and their
-        // sub-primitives are treated as overlapping.
+        // Vertices bounds are not readable from dart:ui; their
+        // sub-primitives count as overlapping.
         forcesOverlap: true,
         unbounded: true,
+        contentId: identityHashCode(vertices),
       ),
     );
     _inner.drawVertices(vertices, blendMode, paint);
@@ -464,7 +465,7 @@ class RecordingCanvas implements ui.Canvas {
         blendMode: blendMode,
         paint: PaintAttrs.of(paint),
         unbounded: cullRect == null,
-        // dl_builder.cc:1705: each atlas entry is treated as overlapping.
+        // Atlas entries count as overlapping each other.
         forcesOverlap: true,
       ),
     );
@@ -524,6 +525,7 @@ class RecordingCanvas implements ui.Canvas {
         ctm: _ctm.clone(),
         bounds: _xformBounds(path.getBounds().inflate(elevation)),
         paint: PaintAttrs.of(ui.Paint()..color = color),
+        contentId: identityHashCode(path),
       ),
     );
     _inner.drawShadow(path, color, elevation, transparentOccluder);

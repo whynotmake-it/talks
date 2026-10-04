@@ -1,0 +1,214 @@
+{
+  "plain": {
+    "match": true,
+    "predicted": {
+      "EntityPass Render Pass": 1
+    },
+    "measured": {
+      "EntityPass Render Pass": 1
+    },
+    "measuredBlits": 0,
+    "predictedBlit": false,
+    "framesInTrace": 456,
+    "framesLikeThis": 436,
+    "approximate": false
+  },
+  "opacity_single": {
+    "match": true,
+    "predicted": {
+      "EntityPass Render Pass": 1
+    },
+    "measured": {
+      "EntityPass Render Pass": 1
+    },
+    "measuredBlits": 0,
+    "predictedBlit": false,
+    "framesInTrace": 462,
+    "framesLikeThis": 442,
+    "approximate": false
+  },
+  "opacity_overlap": {
+    "match": true,
+    "predicted": {
+      "EntityPass Render Pass": 2
+    },
+    "measured": {
+      "EntityPass Render Pass": 2
+    },
+    "measuredBlits": 0,
+    "predictedBlit": false,
+    "framesInTrace": 461,
+    "framesLikeThis": 441,
+    "approximate": false
+  },
+  "clip_savelayer": {
+    "match": true,
+    "predicted": {
+      "EntityPass Render Pass": 2
+    },
+    "measured": {
+      "EntityPass Render Pass": 2
+    },
+    "measuredBlits": 0,
+    "predictedBlit": false,
+    "framesInTrace": 462,
+    "framesLikeThis": 441,
+    "approximate": false
+  },
+  "backdrop_blur": {
+    "match": true,
+    "predicted": {
+      "EntityPass Render Pass": 3,
+      "Gaussian Blur Filter": 3
+    },
+    "measured": {
+      "EntityPass Render Pass": 3,
+      "Gaussian Blur Filter": 3
+    },
+    "measuredBlits": 0,
+    "predictedBlit": false,
+    "framesInTrace": 462,
+    "framesLikeThis": 442,
+    "approximate": false
+  },
+  "two_backdrops": {
+    "match": true,
+    "predicted": {
+      "EntityPass Render Pass": 5,
+      "Gaussian Blur Filter": 6
+    },
+    "measured": {
+      "EntityPass Render Pass": 5,
+      "Gaussian Blur Filter": 6
+    },
+    "measuredBlits": 0,
+    "predictedBlit": false,
+    "framesInTrace": 461,
+    "framesLikeThis": 441,
+    "approximate": false
+  },
+  "backdrop_group": {
+    "match": true,
+    "predicted": {
+      "EntityPass Render Pass": 2,
+      "Gaussian Blur Filter": 3
+    },
+    "measured": {
+      "EntityPass Render Pass": 2,
+      "Gaussian Blur Filter": 3
+    },
+    "measuredBlits": 0,
+    "predictedBlit": false,
+    "framesInTrace": 463,
+    "framesLikeThis": 443,
+    "approximate": false
+  },
+  "image_filtered_blur": {
+    "match": true,
+    "predicted": {
+      "EntityPass Render Pass": 2,
+      "Gaussian Blur Filter": 3
+    },
+    "measured": {
+      "EntityPass Render Pass": 2,
+      "Gaussian Blur Filter": 3
+    },
+    "measuredBlits": 0,
+    "predictedBlit": false,
+    "framesInTrace": 460,
+    "framesLikeThis": 440,
+    "approximate": false
+  },
+  "box_shadow": {
+    "match": true,
+    "predicted": {
+      "EntityPass Render Pass": 1
+    },
+    "measured": {
+      "EntityPass Render Pass": 1
+    },
+    "measuredBlits": 0,
+    "predictedBlit": false,
+    "framesInTrace": 460,
+    "framesLikeThis": 440,
+    "approximate": false
+  },
+  "saturation_blend": {
+    "match": true,
+    "predicted": {
+      "FramebufferBlendContents Snapshot": 1,
+      "EntityPass Render Pass": 1
+    },
+    "measured": {
+      "EntityPass Render Pass": 1,
+      "FramebufferBlendContents Snapshot": 1
+    },
+    "measuredBlits": 0,
+    "predictedBlit": false,
+    "framesInTrace": 461,
+    "framesLikeThis": 441,
+    "approximate": false
+  },
+  "savelayer_blend": {
+    "match": true,
+    "predicted": {
+      "EntityPass Render Pass": 2
+    },
+    "measured": {
+      "EntityPass Render Pass": 2
+    },
+    "measuredBlits": 0,
+    "predictedBlit": false,
+    "framesInTrace": 460,
+    "framesLikeThis": 440,
+    "approximate": false
+  },
+  "cupertino_alert": {
+    "match": true,
+    "predicted": {
+      "EntityPass Render Pass": 3,
+      "GaussianBlur": 1,
+      "Gaussian Blur Filter": 3
+    },
+    "measured": {
+      "EntityPass Render Pass": 3,
+      "GaussianBlur": 1,
+      "Gaussian Blur Filter": 3
+    },
+    "measuredBlits": 0,
+    "predictedBlit": false,
+    "framesInTrace": 462,
+    "framesLikeThis": 442,
+    "approximate": false
+  },
+  "backdrop_sigma0": {
+    "match": true,
+    "predicted": {
+      "EntityPass Render Pass": 1
+    },
+    "measured": {
+      "EntityPass Render Pass": 1
+    },
+    "measuredBlits": 0,
+    "predictedBlit": false,
+    "framesInTrace": 410,
+    "framesLikeThis": 390,
+    "approximate": false
+  },
+  "backdrop_in_layer": {
+    "match": true,
+    "predicted": {
+      "EntityPass Render Pass": 4,
+      "Gaussian Blur Filter": 3
+    },
+    "measured": {
+      "EntityPass Render Pass": 4,
+      "Gaussian Blur Filter": 3
+    },
+    "measuredBlits": 0,
+    "predictedBlit": false,
+    "framesInTrace": 457,
+    "framesLikeThis": 437,
+    "approximate": false
+  }
+}

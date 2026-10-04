@@ -1,5 +1,9 @@
-import 'package:flutter/rendering.dart';
+import 'dart:ui' as ui;
 
+import 'package:flutter/rendering.dart';
+import 'package:flutter/widgets.dart' show DebugCreator;
+
+import 'creation_location.dart';
 import 'recorded_op.dart';
 
 /// A node in the captured layer tree, with the properties the Impeller
@@ -9,8 +13,9 @@ class CapturedLayer {
   CapturedLayer({
     required this.type,
     this.children = const [],
-    this.pictureIndex,
-    this.creator,
+    this.pictureOps,
+    this.pictureMissing = false,
+    this.origin,
     this.offset = Offset.zero,
     this.transform,
     this.alpha = 255,
@@ -29,11 +34,18 @@ class CapturedLayer {
   final String type;
   final List<CapturedLayer> children;
 
-  /// Index into `OpRecorderRegistry.pictures` for PictureLayer.
-  int? pictureIndex;
+  /// The recorded ops of a PictureLayer's picture.
+  final List<RecordedOp>? pictureOps;
+
+  /// True for a PictureLayer whose picture was not recorded through the
+  /// binding (so its ops are unknown).
+  final bool pictureMissing;
 
   /// `debugCreator` based widget description, when available.
-  final String? creator;
+  final WidgetOrigin? origin;
+
+  /// `BackdropFilter (lib/home.dart:42)`, for pass attribution.
+  String? get creator => origin?.label;
 
   /// OffsetLayer.offset (PictureLayers have no offset — they draw at
   /// Offset.zero; layer.dart:889).
@@ -67,21 +79,47 @@ class CapturedLayer {
   /// layer.dart:1009; we treat both as parent-space bounds).
   final Rect? rect;
 
-  /// `PictureLayer.canvasBounds` (layer.dart:834) — the bounds used for
-  /// the canvas that recorded this picture. Lets the synthesizer match
-  /// pictures to layers by CONTENT rather than positional order —
-  /// `createCanvas` calls happen in paint order, not tree order, so
-  /// positional matching silently mis-assigns pictures.
+  /// `PictureLayer.canvasBounds`: the cull rect of the recorded picture.
   final Rect? canvasBounds;
 
-  /// `ColorFilterLayer.colorFilter->modifies_transparent_black()` — real
-  /// decision via [PaintAttrs.colorFilterModifiesTransparentBlack] rather
-  /// than a blanket assumption (layer.dart:1964 exposes the getter).
+  /// `ColorFilterLayer.colorFilter->modifies_transparent_black()`.
   final bool colorFilterAffectsTransparentBlack;
+
+  /// A string that changes whenever anything the GPU would draw for this
+  /// subtree changes: layer properties plus the recorded draw ops.
+  String get signature {
+    final b = StringBuffer();
+    void visit(CapturedLayer n) {
+      b
+        ..write(n.type)
+        ..write(n.offset)
+        ..write(n.transform?.storage.join(','))
+        ..write(n.alpha)
+        ..write(n.filter?.source)
+        ..write(n.blendMode)
+        ..write(n.clipBounds)
+        ..write(n.maskRect)
+        ..write(n.rect);
+      if (n.pictureMissing) {
+        b.write('?');
+      }
+      for (final op in n.pictureOps ?? const <RecordedOp>[]) {
+        b
+          ..write(op.signature)
+          ..write(';');
+      }
+      b.write('[');
+      n.children.forEach(visit);
+      b.write(']');
+    }
+
+    visit(this);
+    return b.toString();
+  }
 
   Map<String, Object?> toJson() => {
     'type': type,
-    if (creator != null) 'creator': creator,
+    if (origin != null) 'creator': origin!.toJson(),
     if (offset != Offset.zero) 'offset': [offset.dx, offset.dy],
     if (transform != null) 'transform': transform!.storage,
     if (alpha != 255) 'alpha': alpha,
@@ -96,7 +134,8 @@ class CapturedLayer {
         clipBounds!.bottom,
       ],
     if (clipBehaviorName != null) 'clipBehavior': clipBehaviorName,
-    if (pictureIndex != null) 'picture': pictureIndex,
+    if (pictureOps != null) 'ops': [for (final op in pictureOps!) op.toJson()],
+    if (pictureMissing) 'opsMissing': true,
     if (children.isNotEmpty)
       'children': children.map((c) => c.toJson()).toList(),
   };
@@ -104,23 +143,22 @@ class CapturedLayer {
 
 /// Walks the composited layer tree after a pump.
 ///
-/// `RenderObject.debugLayer` is at rendering/object.dart:3184; traversal via
-/// `ContainerLayer.firstChild`/`lastChild`/`Layer.nextSibling` (layer.dart).
+/// Traversal uses `ContainerLayer.firstChild` / `Layer.nextSibling`; each
+/// PictureLayer's ops are found by picture identity through [opsFor].
 class LayerWalker {
-  /// Assign pictureIndex values to PictureLayers in DFS order. `pictureCount`
-  /// is the number of pictures recorded this frame; mismatches are reported.
-  CapturedLayer? walk(Layer root, {required int pictureCount}) {
-    _pictureCursor = 0;
-    final result = _node(root);
-    _mismatch = _pictureCursor != pictureCount
-        ? (expectedLayers: _pictureCursor, recorders: pictureCount)
-        : null;
-    return result;
-  }
+  LayerWalker(this.opsFor);
 
-  int _pictureCursor = 0;
-  ({int expectedLayers, int recorders})? _mismatch;
-  ({int expectedLayers, int recorders})? get mismatch => _mismatch;
+  /// Looks up the ops recorded for a picture, or null if it was recorded
+  /// outside the binding.
+  final List<RecordedOp>? Function(ui.Picture picture) opsFor;
+
+  /// Number of PictureLayers in the last walk whose ops were unknown.
+  int missingPictures = 0;
+
+  CapturedLayer walk(Layer root) {
+    missingPictures = 0;
+    return _node(root);
+  }
 
   CapturedLayer _node(Layer layer) {
     final children = <CapturedLayer>[];
@@ -148,22 +186,28 @@ class LayerWalker {
       clipBehavior = layer.clipBehavior.name;
     }
 
-    int? pictureIndex;
+    List<RecordedOp>? pictureOps;
+    var pictureMissing = false;
     if (layer is PictureLayer) {
-      pictureIndex = _pictureCursor++;
+      final picture = layer.picture;
+      pictureOps = picture == null ? const [] : opsFor(picture);
+      if (pictureOps == null) {
+        pictureMissing = true;
+        missingPictures++;
+      }
     }
 
-    String? creator;
     final dc = layer.debugCreator;
-    if (dc != null) {
-      creator = _describeCreator(dc);
-    }
+    final origin = dc is DebugCreator
+        ? (_origins[dc] ??= describeCreator(dc))
+        : null;
 
     return CapturedLayer(
       type: layer.runtimeType.toString(),
       children: children,
-      pictureIndex: pictureIndex,
-      creator: creator,
+      pictureOps: pictureOps,
+      pictureMissing: pictureMissing,
+      origin: origin,
       offset: layer is OffsetLayer ? layer.offset : Offset.zero,
       transform: layer is TransformLayer ? layer.transform : null,
       alpha: layer is OpacityLayer ? (layer.alpha ?? 255) : 255,
@@ -199,15 +243,7 @@ class LayerWalker {
     );
   }
 
-  static String _describeCreator(Object? debugCreator) {
-    // debugCreator is typically `Element`-like; keep it short.
-    if (debugCreator == null) {
-      return '?';
-    }
-    var s = '$debugCreator';
-    if (s.length > 80) {
-      s = '${s.substring(0, 77)}…';
-    }
-    return s;
-  }
+  /// Origins per creator object: the same render object keeps its creator
+  /// across frames, and describing it walks the element ancestry.
+  final Expando<WidgetOrigin> _origins = Expando();
 }

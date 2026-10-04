@@ -1,49 +1,63 @@
-import 'dart:io';
 import 'dart:ui' as ui;
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:impeller_model/impeller_model.dart';
+import 'package:impeller_model/src/engine/display_list.dart';
+import 'package:impeller_model/src/engine/ops.dart';
 
 Widget dir(Widget child) =>
     Directionality(textDirection: TextDirection.ltr, child: child);
 
-PassTimeline timelineFor(FrameCapture capture, CapabilityProfile profile) =>
-    analyzeFrame(capture, profiles: [profile]).timelines.single;
+/// flutter_test's default view (800x600 logical @3), with the GPU decisions
+/// of [profile].
+GpuDevice testView(CapabilityProfile profile) => GpuDevice.custom(
+  DeviceInfo.genericPhone(
+    platform: TargetPlatform.iOS,
+    id: 'test-view',
+    name: 'flutter_test view',
+    screenSize: const Size(800, 600),
+    pixelRatio: 3,
+  ),
+  gpu: profile,
+  name: profile.name,
+);
 
+FrameCapture captureNow() => ImpellerModelBinding.instance.captureFrame()!;
+
+PassTimeline timelineFor(FrameCapture capture, CapabilityProfile profile) =>
+    estimateFrame(capture, testView(profile)).timeline;
+
+/// Prints the passes per profile, for eyeballing a failing case.
 void dump(String name, FrameCapture capture) {
-  final report = analyzeFrame(capture);
-  Directory('example/output').createSync(recursive: true);
-  File('example/output/$name.json').writeAsStringSync(report.toJsonString());
-  File(
-    'example/output/$name.html',
-  ).writeAsStringSync(renderTimelineHtml(report));
-  for (final t in report.timelines) {
+  for (final profile in [
+    CapabilityProfile.iosDevice,
+    CapabilityProfile.androidVulkan,
+    CapabilityProfile.androidVulkanNoFetch,
+  ]) {
+    final t = timelineFor(capture, profile);
     // ignore: avoid_print
     print(
-      '$name / ${t.profile.name}: ${t.passes.length} passes, '
-      'flips=${t.flips}, '
-      '~${(t.estimatedTrafficBytes / 1048576).toStringAsFixed(1)} MB',
+      '$name / ${profile.name}: ${t.renderPassCount} render passes, '
+      'flips=${t.flips}',
     );
     for (final p in t.passes) {
       // ignore: avoid_print
       print(
-        '    ${p.label} ${p.size.width.round()}x${p.size.height.round()} '
-        '${p.reason} draws=${p.drawCount}',
+        '    ${p.engineLabel} ${p.size.width.round()}x'
+        '${p.size.height.round()} ${p.role.name} ${p.cause ?? ''}',
       );
     }
   }
 }
 
 void main() {
-  FrameRecorderBinding();
   regressionTests();
   scopeTests();
   coverageTests();
   clipSaveLayerTests();
   clipBoundedTests();
   clipIntersectTests();
-  final binding = FrameRecorderBinding.instance;
 
   testWidgets('backdrop blur sigma=10', (tester) async {
     await tester.pumpWidget(
@@ -65,11 +79,11 @@ void main() {
         ),
       ),
     );
-    dump('backdrop_blur10', await binding.captureFrame(tester));
+    dump('backdrop_blur10', captureNow());
     expect(
       timelineFor(
-        await binding.captureFrame(tester),
-        CapabilityProfile.iphone,
+        captureNow(),
+        CapabilityProfile.iosDevice,
       ).passes.length,
       6,
     );
@@ -96,9 +110,9 @@ void main() {
         ),
       ),
     );
-    final c2 = await binding.captureFrame(tester);
+    final c2 = captureNow();
     dump('two_backdrops', c2);
-    expect(timelineFor(c2, CapabilityProfile.iphone).passes.length, 11);
+    expect(timelineFor(c2, CapabilityProfile.iosDevice).passes.length, 11);
   });
 
   testWidgets('two blurs in BackdropGroup', (tester) async {
@@ -124,9 +138,9 @@ void main() {
         ),
       ),
     );
-    final c3 = await binding.captureFrame(tester);
+    final c3 = captureNow();
     dump('backdrop_group', c3);
-    expect(timelineFor(c3, CapabilityProfile.iphone).passes.length, 5);
+    expect(timelineFor(c3, CapabilityProfile.iosDevice).passes.length, 5);
   });
 
   testWidgets('full-screen saturation blend', (tester) async {
@@ -144,13 +158,16 @@ void main() {
         ),
       ),
     );
-    final c4 = await binding.captureFrame(tester);
+    final c4 = captureNow();
     dump('saturation_blend', c4);
-    // fbf: single root pass; no-fbf: offscreen + flip + blend + copy.
-    expect(timelineFor(c4, CapabilityProfile.iphone).passes.length, 1);
+    // fbf: the root pass plus a snapshot of the blend's source (confirmed by
+    // the saturation_blend validation scene on Metal); no-fbf: offscreen +
+    // flip + AdvancedBlend(Src) snapshot + Advanced Blend Filter + copy
+    // (five full-screen passes measured on the Pixel 10).
+    expect(timelineFor(c4, CapabilityProfile.iosDevice).passes.length, 2);
     expect(
-      timelineFor(c4, CapabilityProfile.vulkanNoFetch).passes.length,
-      4,
+      timelineFor(c4, CapabilityProfile.androidVulkanNoFetch).passes.length,
+      5,
     );
   });
 
@@ -165,9 +182,9 @@ void main() {
         ),
       ),
     );
-    final c5 = await binding.captureFrame(tester);
+    final c5 = captureNow();
     dump('opacity_single', c5);
-    expect(timelineFor(c5, CapabilityProfile.iphone).passes.length, 1);
+    expect(timelineFor(c5, CapabilityProfile.iosDevice).passes.length, 1);
 
     await tester.pumpWidget(
       dir(
@@ -182,9 +199,9 @@ void main() {
         ),
       ),
     );
-    final c6 = await binding.captureFrame(tester);
+    final c6 = captureNow();
     dump('opacity_overlap', c6);
-    expect(timelineFor(c6, CapabilityProfile.iphone).passes.length, 2);
+    expect(timelineFor(c6, CapabilityProfile.iosDevice).passes.length, 2);
   });
 
   testWidgets('two blurs inside tight clip', (tester) async {
@@ -221,9 +238,9 @@ void main() {
         ),
       ),
     );
-    final c7 = await binding.captureFrame(tester);
+    final c7 = captureNow();
     dump('tight_clip_backdrops', c7);
-    expect(timelineFor(c7, CapabilityProfile.iphone).passes.length, 11);
+    expect(timelineFor(c7, CapabilityProfile.iosDevice).passes.length, 11);
   });
 
   testWidgets('identity-matrix backdrop inside tight clip', (tester) async {
@@ -266,9 +283,9 @@ void main() {
         ),
       ),
     );
-    final c8 = await binding.captureFrame(tester);
+    final c8 = captureNow();
     dump('identity_matrix_clip', c8);
-    expect(timelineFor(c8, CapabilityProfile.iphone).passes.length, 14);
+    expect(timelineFor(c8, CapabilityProfile.iosDevice).passes.length, 14);
   });
 
   testWidgets('CupertinoNavigationBar + CupertinoTabBar', (tester) async {
@@ -290,9 +307,9 @@ void main() {
         ),
       ),
     );
-    final c9 = await binding.captureFrame(tester);
+    final c9 = captureNow();
     dump('cupertino_bars', c9);
-    expect(timelineFor(c9, CapabilityProfile.iphone).passes.length, 6);
+    expect(timelineFor(c9, CapabilityProfile.iosDevice).passes.length, 6);
   });
 
   testWidgets('Cupertino bars with opaque colors: no blurs', (tester) async {
@@ -318,9 +335,9 @@ void main() {
         ),
       ),
     );
-    final c10 = await binding.captureFrame(tester);
+    final c10 = captureNow();
     dump('cupertino_bars_opaque', c10);
-    expect(timelineFor(c10, CapabilityProfile.iphone).passes.length, 1);
+    expect(timelineFor(c10, CapabilityProfile.iosDevice).passes.length, 1);
   });
 
   testWidgets('backdrop filter with color matrix', (tester) async {
@@ -350,13 +367,13 @@ void main() {
         ),
       ),
     );
-    final c11 = await binding.captureFrame(tester);
+    final c11 = captureNow();
     dump('backdrop_plus_matrix', c11);
     // The ColorFilterLayer folds into the backdrop's saveLayer paint —
     // kSaveLayerRenderFlags advertises kCallerCanApplyColorFilter — so
     // the engine emits ONE saveLayer, not a ColorFilter subpass + a
     // backdrop subpass.
-    expect(timelineFor(c11, CapabilityProfile.iphone).passes.length, 6);
+    expect(timelineFor(c11, CapabilityProfile.iosDevice).passes.length, 6);
   });
 }
 
@@ -403,8 +420,6 @@ class _TranslatePainter extends CustomPainter {
 }
 
 void regressionTests() {
-  final binding = FrameRecorderBinding.instance;
-
   testWidgets('nested opacity peepholes (engine: inner saveLayer is a '
       'compatible op)', (tester) async {
     await tester.pumpWidget(
@@ -418,9 +433,9 @@ void regressionTests() {
         ),
       ),
     );
-    final capture = await binding.captureFrame(tester);
+    final capture = captureNow();
     dump('opacity_nested', capture);
-    final t = timelineFor(capture, CapabilityProfile.iphone);
+    final t = timelineFor(capture, CapabilityProfile.iosDevice);
     // The nested saveLayer op only contributes bounds to the outer group —
     // its internal overlap does not propagate (TransferLayerBounds,
     // dl_builder.cc:761). Both layers therefore peephole.
@@ -455,9 +470,9 @@ void regressionTests() {
         ),
       ),
     );
-    final capture = await binding.captureFrame(tester);
+    final capture = captureNow();
     dump('opacity_two_pictures', capture);
-    final t = timelineFor(capture, CapabilityProfile.iphone);
+    final t = timelineFor(capture, CapabilityProfile.iosDevice);
     // dl_dispatcher.cc:803-810: each drawDisplayList gets its own
     // saveLayer(alpha); each picture's group is compatible → both peephole.
     expect(t.passes.length, 1);
@@ -513,14 +528,18 @@ void regressionTests() {
         ),
       ),
     );
-    final capture = await binding.captureFrame(tester);
+    final capture = captureNow();
     dump('opacity_overlap_pictures', capture);
-    final t = timelineFor(capture, CapabilityProfile.iphone);
+    final t = timelineFor(capture, CapabilityProfile.iosDevice);
     // Overlapping children → flags zeroed → ONE group saveLayer(alpha)
     // → subpass + root = 2 passes (vs 1 if each peepholed separately).
     expect(t.passes.length, 2);
     expect(
-      t.passes.any((p) => p.reason.contains('Opacity(')),
+      t.passes.any(
+        (p) =>
+            p.role == PassRole.saveLayer &&
+            (p.cause ?? '').toLowerCase().contains('opacity'),
+      ),
       isTrue,
     );
   });
@@ -549,9 +568,9 @@ void regressionTests() {
         ),
       ),
     );
-    final capture = await binding.captureFrame(tester);
+    final capture = captureNow();
     dump('opacity_text', capture);
-    final t = timelineFor(capture, CapabilityProfile.iphone);
+    final t = timelineFor(capture, CapabilityProfile.iosDevice);
     expect(t.passes.length, 2);
   });
 
@@ -606,11 +625,18 @@ void regressionTests() {
         ),
       ),
     );
-    final capture = await binding.captureFrame(tester);
+    final capture = captureNow();
     dump('backdrop_inside_opacity', capture);
-    final t = timelineFor(capture, CapabilityProfile.iphone);
-    expect(t.passes.any((p) => p.reason == 'root-readback'), isFalse);
-    expect(t.passes.any((p) => p.reason.contains('onscreen')), isFalse);
+    final t = timelineFor(capture, CapabilityProfile.iosDevice);
+    expect(t.passes.any((p) => p.role == PassRole.offscreenRoot), isFalse);
+    expect(
+      t.passes.any(
+        (p) =>
+            p.role == PassRole.copyToOnscreen ||
+            p.role == PassRole.blitToOnscreen,
+      ),
+      isFalse,
+    );
   });
 
   testWidgets('custom paint canvas translate: no double CTM', (tester) async {
@@ -630,9 +656,9 @@ void regressionTests() {
         ),
       ),
     );
-    final capture = await binding.captureFrame(tester);
-    final synth = LayerSynthesizer(pictures: capture.pictures);
-    final frameOps = synth.synthesize(capture.root!, capture.physicalSize);
+    final capture = captureNow();
+    final synth = LayerSynthesizer();
+    final frameOps = synth.synthesize(capture.root, capture.physicalSize);
     // Painter: canvas.translate(10,10) then saveLayer(0,0,50,50) → in the
     // canvas's picture space that's (10,10,60,60); the CustomPaint sits at
     // (20,30) logical → root-space bounds ≈ (20+10, 30+10)×3 …(70×3, 90×3).
@@ -701,12 +727,11 @@ class _SaveLayerBlendPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+  bool shouldRepaint(_SaveLayerBlendPainter oldDelegate) =>
+      oldDelegate.blendInside != blendInside;
 }
 
 void scopeTests() {
-  final binding = FrameRecorderBinding.instance;
-
   testWidgets('canvas.saveLayer with unbounded content does not peephole', (
     tester,
   ) async {
@@ -729,14 +754,14 @@ void scopeTests() {
         ),
       ),
     );
-    final capture = await binding.captureFrame(tester);
+    final capture = captureNow();
     dump('saveLayer_unbounded', capture);
-    final t = timelineFor(capture, CapabilityProfile.iphone);
+    final t = timelineFor(capture, CapabilityProfile.iosDevice);
     // drawPaint inside the saveLayer → content unbounded → no peephole →
     // one real subpass + root.
     expect(t.passes.length, 2);
     expect(
-      t.passes.any((p) => p.label.contains('Subpass')),
+      t.passes.any((p) => p.role == PassRole.saveLayer),
       isTrue,
     );
   });
@@ -762,19 +787,22 @@ void scopeTests() {
         ),
       ),
     );
-    final capture = await binding.captureFrame(tester);
+    final capture = captureNow();
     dump('saveLayer_blend', capture);
-    final noFetch = timelineFor(capture, CapabilityProfile.vulkanNoFetch);
-    final fetch = timelineFor(capture, CapabilityProfile.iphone);
+    final noFetch = timelineFor(
+      capture,
+      CapabilityProfile.androidVulkanNoFetch,
+    );
+    final fetch = timelineFor(capture, CapabilityProfile.iosDevice);
     // The composite blend is a root-scope op → root goes offscreen on
     // no-FBF, stays onscreen on FBF (framebuffer-fetch blend in-pass).
     expect(
-      noFetch.passes.any((p) => p.reason == 'root-readback'),
+      noFetch.passes.any((p) => p.role == PassRole.offscreenRoot),
       isTrue,
     );
-    expect(fetch.passes.first.label, isNot(contains('offscreen')));
+    expect(fetch.passes.first.role, isNot(PassRole.offscreenRoot));
     expect(
-      fetch.passes.where((p) => p.label.contains('Subpass')).length,
+      fetch.passes.where((p) => p.role == PassRole.saveLayer).length,
       1,
     );
 
@@ -799,11 +827,14 @@ void scopeTests() {
         ),
       ),
     );
-    final capture2 = await binding.captureFrame(tester);
+    final capture2 = captureNow();
     dump('saveLayer_blend_inside', capture2);
-    final noFetch2 = timelineFor(capture2, CapabilityProfile.vulkanNoFetch);
+    final noFetch2 = timelineFor(
+      capture2,
+      CapabilityProfile.androidVulkanNoFetch,
+    );
     expect(
-      noFetch2.passes.any((p) => p.reason == 'root-readback'),
+      noFetch2.passes.any((p) => p.role == PassRole.offscreenRoot),
       isFalse,
     );
   });
@@ -850,8 +881,6 @@ class _DrawFilterPainter extends CustomPainter {
 }
 
 void coverageTests() {
-  final binding = FrameRecorderBinding.instance;
-
   testWidgets('canvas.saveLayer(null) resolves to content bounds', (
     tester,
   ) async {
@@ -874,13 +903,13 @@ void coverageTests() {
         ),
       ),
     );
-    final capture = await binding.captureFrame(tester);
+    final capture = captureNow();
     dump('saveLayer_null_bounds', capture);
-    final t = timelineFor(capture, CapabilityProfile.iphone);
+    final t = timelineFor(capture, CapabilityProfile.iosDevice);
     // saveLayer over bounded content — no caller bounds, so coverage =
     // content bounds (150x150 at DPR 3), NOT the 2400x1800 clip limit.
     final sub = t.passes.firstWhere(
-      (p) => p.reason == 'canvas.saveLayer',
+      (p) => (p.cause ?? '').startsWith('canvas.saveLayer'),
     );
     expect(sub.size.width, lessThan(200));
     expect(sub.size.height, lessThan(200));
@@ -908,18 +937,21 @@ void coverageTests() {
         ),
       ),
     );
-    final capture = await binding.captureFrame(tester);
+    final capture = captureNow();
     dump('draw_image_filter', capture);
-    final t = timelineFor(capture, CapabilityProfile.iphone);
+    final t = timelineFor(capture, CapabilityProfile.iosDevice);
     // Blur draws spawn downsample + Y + X passes plus the root.
-    expect(t.passes.where((p) => p.label.contains('blur')).length, 3);
+    expect(
+      t.passes
+          .where((p) => p.engineLabel == EngineLabels.gaussianBlurFilter)
+          .length,
+      3,
+    );
     expect(t.passes.length, greaterThan(3));
   });
 }
 
 void clipSaveLayerTests() {
-  final binding = FrameRecorderBinding.instance;
-
   testWidgets('antiAliasWithSaveLayer clip wraps children in a saveLayer', (
     tester,
   ) async {
@@ -952,9 +984,9 @@ void clipSaveLayerTests() {
         ),
       ),
     );
-    final capture = await binding.captureFrame(tester);
+    final capture = captureNow();
     dump('aa_clip_savelayer', capture);
-    final t = timelineFor(capture, CapabilityProfile.iphone);
+    final t = timelineFor(capture, CapabilityProfile.iosDevice);
     // clip_shape_layer.h:104: ApplyClip → saveLayer(paint_bounds) →
     // children. Content is a single compatible picture → the saveLayer
     // peepholes (canvas.cc:1728): ONE root pass, children drawn in it.
@@ -963,7 +995,7 @@ void clipSaveLayerTests() {
     expect(t.passes.first.drawCount, greaterThanOrEqualTo(2));
     // An opaque-content variant would create a subpass; assert the clip
     // subtree produced a recorded picture at all (positional join worked).
-    expect(capture.pictureMismatch, isNull);
+    expect(capture.missingPictures, 0);
   });
 }
 
@@ -989,8 +1021,6 @@ class _ClippedDrawPaintPainter extends CustomPainter {
 }
 
 void clipBoundedTests() {
-  final binding = FrameRecorderBinding.instance;
-
   testWidgets('clipRect + drawPaint inside saveLayer stays clip-bounded', (
     tester,
   ) async {
@@ -1013,9 +1043,9 @@ void clipBoundedTests() {
         ),
       ),
     );
-    final capture = await binding.captureFrame(tester);
+    final capture = captureNow();
     dump('saveLayer_clipped_paint', capture);
-    final t = timelineFor(capture, CapabilityProfile.iphone);
+    final t = timelineFor(capture, CapabilityProfile.iosDevice);
     // With has_valid_clip the drawPaint contributes clip bounds → bounded,
     // group-compatible → peephole → 1 pass (root only).
     expect(t.passes.length, 1);
@@ -1046,8 +1076,6 @@ class _NestedClipPainter extends CustomPainter {
 }
 
 void clipIntersectTests() {
-  final binding = FrameRecorderBinding.instance;
-
   testWidgets('nested intersect clips + drawPaint: bounded → peephole', (
     tester,
   ) async {
@@ -1070,9 +1098,9 @@ void clipIntersectTests() {
         ),
       ),
     );
-    final capture = await binding.captureFrame(tester);
+    final capture = captureNow();
     dump('nested_clip_paint', capture);
-    final t = timelineFor(capture, CapabilityProfile.iphone);
+    final t = timelineFor(capture, CapabilityProfile.iosDevice);
     // Both intersect clips → has_valid_clip → bounded → peephole.
     expect(t.passes.length, 1);
   });
@@ -1099,9 +1127,9 @@ void clipIntersectTests() {
         ),
       ),
     );
-    final capture = await binding.captureFrame(tester);
+    final capture = captureNow();
     dump('diff_clip_paint', capture);
-    final t = timelineFor(capture, CapabilityProfile.iphone);
+    final t = timelineFor(capture, CapabilityProfile.iosDevice);
     // intersect(0,0,80,80) then difference(10,10,60,60): difference doesn't
     // shrink the coverage bound → bound stays the outer clip → still
     // clip-bounded → peephole fires (the saveLayer alpha distributes).

@@ -1,0 +1,485 @@
+{
+  "flutter": "3.47.1",
+  "targets": {
+    "macos": {
+      "plain": {
+        "description": "A full-screen color and two circles: one render pass.",
+        "renderPasses": 1,
+        "renderPassesByLabel": {
+          "EntityPass Render Pass": 1
+        },
+        "blit": false,
+        "flips": 0,
+        "approximate": false,
+        "passes": [
+          "EntityPass Render Pass 800x1600 (onscreenRoot)"
+        ]
+      },
+      "opacity_single": {
+        "description": "Opacity over one child: the opacity peephole avoids a layer.",
+        "renderPasses": 1,
+        "renderPassesByLabel": {
+          "EntityPass Render Pass": 1
+        },
+        "blit": false,
+        "flips": 0,
+        "approximate": false,
+        "passes": [
+          "EntityPass Render Pass 800x1600 (onscreenRoot)"
+        ]
+      },
+      "opacity_overlap": {
+        "description": "Opacity over overlapping children: one saveLayer.",
+        "renderPasses": 2,
+        "renderPassesByLabel": {
+          "EntityPass Render Pass": 2
+        },
+        "blit": false,
+        "flips": 0,
+        "approximate": false,
+        "passes": [
+          "EntityPass Render Pass 560x560 (saveLayer)",
+          "EntityPass Render Pass 800x1600 (onscreenRoot)"
+        ]
+      },
+      "clip_savelayer": {
+        "description": "ClipRRect with Clip.antiAliasWithSaveLayer over overlapping children: one saveLayer.",
+        "renderPasses": 2,
+        "renderPassesByLabel": {
+          "EntityPass Render Pass": 2
+        },
+        "blit": false,
+        "flips": 0,
+        "approximate": false,
+        "passes": [
+          "EntityPass Render Pass 600x600 (saveLayer)",
+          "EntityPass Render Pass 800x1600 (onscreenRoot)"
+        ]
+      },
+      "backdrop_blur": {
+        "description": "One BackdropFilter blur: the frame starts offscreen, flips to the screen at the blur, blur = 3 passes.",
+        "renderPasses": 6,
+        "renderPassesByLabel": {
+          "EntityPass Render Pass": 3,
+          "Gaussian Blur Filter": 3
+        },
+        "blit": false,
+        "flips": 1,
+        "approximate": false,
+        "passes": [
+          "EntityPass Render Pass 800x1600 (offscreenRoot)",
+          "Gaussian Blur Filter 217x417 (blurDownsample)",
+          "Gaussian Blur Filter 217x417 (blurY)",
+          "Gaussian Blur Filter 217x417 (blurX)",
+          "EntityPass Render Pass 800x1600 (saveLayer)",
+          "EntityPass Render Pass 800x1600 (onscreenAfterFlip)"
+        ]
+      },
+      "backdrop_sigma0": {
+        "description": "A BackdropFilter blur with sigma 0 (a blur animated to 0): the engine drops the filter, leaving a plain saveLayer that the opacity peephole removes. One pass.",
+        "renderPasses": 1,
+        "renderPassesByLabel": {
+          "EntityPass Render Pass": 1
+        },
+        "blit": false,
+        "flips": 0,
+        "approximate": false,
+        "passes": [
+          "EntityPass Render Pass 800x1600 (onscreenRoot)"
+        ]
+      },
+      "backdrop_in_layer": {
+        "description": "A BackdropFilter blur inside a saveLayer (a ClipRRect with Clip.antiAliasWithSaveLayer): only the layer flips. The root has no backdrop of its own, so it stays on screen.",
+        "renderPasses": 7,
+        "renderPassesByLabel": {
+          "EntityPass Render Pass": 4,
+          "Gaussian Blur Filter": 3
+        },
+        "blit": false,
+        "flips": 1,
+        "approximate": false,
+        "passes": [
+          "EntityPass Render Pass 600x600 (saveLayer)",
+          "Gaussian Blur Filter 167x167 (blurDownsample)",
+          "Gaussian Blur Filter 167x167 (blurY)",
+          "Gaussian Blur Filter 167x167 (blurX)",
+          "EntityPass Render Pass 600x600 (saveLayer)",
+          "EntityPass Render Pass 600x600 (restartAfterFlip)",
+          "EntityPass Render Pass 800x1600 (onscreenRoot)"
+        ]
+      },
+      "two_backdrops": {
+        "description": "Two sibling BackdropFilter blurs: two flips, two blurs.",
+        "renderPasses": 11,
+        "renderPassesByLabel": {
+          "EntityPass Render Pass": 5,
+          "Gaussian Blur Filter": 6
+        },
+        "blit": false,
+        "flips": 2,
+        "approximate": false,
+        "passes": [
+          "EntityPass Render Pass 800x1600 (offscreenRoot)",
+          "Gaussian Blur Filter 217x417 (blurDownsample)",
+          "Gaussian Blur Filter 217x417 (blurY)",
+          "Gaussian Blur Filter 217x417 (blurX)",
+          "EntityPass Render Pass 800x1600 (saveLayer)",
+          "EntityPass Render Pass 800x1600 (restartAfterFlip)",
+          "Gaussian Blur Filter 217x417 (blurDownsample)",
+          "Gaussian Blur Filter 217x417 (blurY)",
+          "Gaussian Blur Filter 217x417 (blurX)",
+          "EntityPass Render Pass 800x1600 (saveLayer)",
+          "EntityPass Render Pass 800x1600 (onscreenAfterFlip)"
+        ]
+      },
+      "backdrop_group": {
+        "description": "The same two blurs in a BackdropGroup: one flip, one shared blur.",
+        "renderPasses": 5,
+        "renderPassesByLabel": {
+          "EntityPass Render Pass": 2,
+          "Gaussian Blur Filter": 3
+        },
+        "blit": false,
+        "flips": 1,
+        "approximate": false,
+        "passes": [
+          "EntityPass Render Pass 800x1600 (offscreenRoot)",
+          "Gaussian Blur Filter 217x417 (blurDownsample)",
+          "Gaussian Blur Filter 217x417 (blurY)",
+          "Gaussian Blur Filter 217x417 (blurX)",
+          "EntityPass Render Pass 800x1600 (onscreenAfterFlip)"
+        ]
+      },
+      "image_filtered_blur": {
+        "description": "ImageFiltered blur: a saveLayer plus 3 blur passes, no flip.",
+        "renderPasses": 5,
+        "renderPassesByLabel": {
+          "EntityPass Render Pass": 2,
+          "Gaussian Blur Filter": 3
+        },
+        "blit": false,
+        "flips": 0,
+        "approximate": false,
+        "passes": [
+          "EntityPass Render Pass 800x1600 (saveLayer)",
+          "Gaussian Blur Filter 214x414 (blurDownsample)",
+          "Gaussian Blur Filter 214x414 (blurY)",
+          "Gaussian Blur Filter 214x414 (blurX)",
+          "EntityPass Render Pass 800x1600 (onscreenRoot)"
+        ]
+      },
+      "box_shadow": {
+        "description": "BoxShadow on a rounded box: the shadow fast path, one pass.",
+        "renderPasses": 1,
+        "renderPassesByLabel": {
+          "EntityPass Render Pass": 1
+        },
+        "blit": false,
+        "flips": 0,
+        "approximate": false,
+        "passes": [
+          "EntityPass Render Pass 800x1600 (onscreenRoot)"
+        ]
+      },
+      "saturation_blend": {
+        "description": "A full-screen BlendMode.saturation draw: free with framebuffer fetch, an offscreen frame + emulated blend without it.",
+        "renderPasses": 2,
+        "renderPassesByLabel": {
+          "FramebufferBlendContents Snapshot": 1,
+          "EntityPass Render Pass": 1
+        },
+        "blit": false,
+        "flips": 0,
+        "approximate": false,
+        "passes": [
+          "FramebufferBlendContents Snapshot 800x1600 (blendSourceSnapshot)",
+          "EntityPass Render Pass 800x1600 (onscreenRoot)"
+        ]
+      },
+      "savelayer_blend": {
+        "description": "A canvas.saveLayer composited with BlendMode.saturation: the layer is already a texture, so framebuffer fetch blends it for free.",
+        "renderPasses": 2,
+        "renderPassesByLabel": {
+          "EntityPass Render Pass": 2
+        },
+        "blit": false,
+        "flips": 0,
+        "approximate": false,
+        "passes": [
+          "EntityPass Render Pass 600x600 (saveLayer)",
+          "EntityPass Render Pass 800x1600 (onscreenRoot)"
+        ]
+      },
+      "cupertino_alert": {
+        "description": "The talk's hook: a CupertinoAlertDialog over the page. Its backdrop is a blur composed with a color filter.",
+        "renderPasses": 7,
+        "renderPassesByLabel": {
+          "EntityPass Render Pass": 3,
+          "GaussianBlur": 1,
+          "Gaussian Blur Filter": 3
+        },
+        "blit": false,
+        "flips": 1,
+        "approximate": false,
+        "passes": [
+          "EntityPass Render Pass 800x1600 (offscreenRoot)",
+          "GaussianBlur 566x477 (filterInputSnapshot)",
+          "Gaussian Blur Filter 94x83 (blurDownsample)",
+          "Gaussian Blur Filter 94x83 (blurY)",
+          "Gaussian Blur Filter 94x83 (blurX)",
+          "EntityPass Render Pass 380x292 (saveLayer)",
+          "EntityPass Render Pass 800x1600 (onscreenAfterFlip)"
+        ]
+      }
+    },
+    "pixel10": {
+      "plain": {
+        "description": "A full-screen color and two circles: one render pass.",
+        "renderPasses": 1,
+        "renderPassesByLabel": {
+          "EntityPass Render Pass": 1
+        },
+        "blit": false,
+        "flips": 0,
+        "approximate": false,
+        "passes": [
+          "EntityPass Render Pass 1080x2424 (onscreenRoot)"
+        ]
+      },
+      "opacity_single": {
+        "description": "Opacity over one child: the opacity peephole avoids a layer.",
+        "renderPasses": 1,
+        "renderPassesByLabel": {
+          "EntityPass Render Pass": 1
+        },
+        "blit": false,
+        "flips": 0,
+        "approximate": false,
+        "passes": [
+          "EntityPass Render Pass 1080x2424 (onscreenRoot)"
+        ]
+      },
+      "opacity_overlap": {
+        "description": "Opacity over overlapping children: one saveLayer.",
+        "renderPasses": 2,
+        "renderPassesByLabel": {
+          "EntityPass Render Pass": 2
+        },
+        "blit": false,
+        "flips": 0,
+        "approximate": false,
+        "passes": [
+          "EntityPass Render Pass 735x736 (saveLayer)",
+          "EntityPass Render Pass 1080x2424 (onscreenRoot)"
+        ]
+      },
+      "clip_savelayer": {
+        "description": "ClipRRect with Clip.antiAliasWithSaveLayer over overlapping children: one saveLayer.",
+        "renderPasses": 2,
+        "renderPassesByLabel": {
+          "EntityPass Render Pass": 2
+        },
+        "blit": false,
+        "flips": 0,
+        "approximate": false,
+        "passes": [
+          "EntityPass Render Pass 788x788 (saveLayer)",
+          "EntityPass Render Pass 1080x2424 (onscreenRoot)"
+        ]
+      },
+      "backdrop_blur": {
+        "description": "One BackdropFilter blur: the frame starts offscreen, flips to the screen at the blur, blur = 3 passes.",
+        "renderPasses": 7,
+        "renderPassesByLabel": {
+          "EntityPass Render Pass": 3,
+          "Gaussian Blur Filter": 3,
+          "EntityPass Root Render Pass": 1
+        },
+        "blit": false,
+        "flips": 1,
+        "approximate": false,
+        "passes": [
+          "EntityPass Render Pass 1080x2424 (offscreenRoot)",
+          "Gaussian Blur Filter 146x314 (blurDownsample)",
+          "Gaussian Blur Filter 146x314 (blurY)",
+          "Gaussian Blur Filter 146x314 (blurX)",
+          "EntityPass Render Pass 1080x2424 (saveLayer)",
+          "EntityPass Render Pass 1080x2424 (restartAfterFlip)",
+          "EntityPass Root Render Pass 1080x2424 (copyToOnscreen)"
+        ]
+      },
+      "backdrop_sigma0": {
+        "description": "A BackdropFilter blur with sigma 0 (a blur animated to 0): the engine drops the filter, leaving a plain saveLayer that the opacity peephole removes. One pass.",
+        "renderPasses": 1,
+        "renderPassesByLabel": {
+          "EntityPass Render Pass": 1
+        },
+        "blit": false,
+        "flips": 0,
+        "approximate": false,
+        "passes": [
+          "EntityPass Render Pass 1080x2424 (onscreenRoot)"
+        ]
+      },
+      "backdrop_in_layer": {
+        "description": "A BackdropFilter blur inside a saveLayer (a ClipRRect with Clip.antiAliasWithSaveLayer): only the layer flips. The root has no backdrop of its own, so it stays on screen.",
+        "renderPasses": 7,
+        "renderPassesByLabel": {
+          "EntityPass Render Pass": 4,
+          "Gaussian Blur Filter": 3
+        },
+        "blit": false,
+        "flips": 1,
+        "approximate": false,
+        "passes": [
+          "EntityPass Render Pass 788x788 (saveLayer)",
+          "Gaussian Blur Filter 110x110 (blurDownsample)",
+          "Gaussian Blur Filter 110x110 (blurY)",
+          "Gaussian Blur Filter 110x110 (blurX)",
+          "EntityPass Render Pass 788x788 (saveLayer)",
+          "EntityPass Render Pass 788x788 (restartAfterFlip)",
+          "EntityPass Render Pass 1080x2424 (onscreenRoot)"
+        ]
+      },
+      "two_backdrops": {
+        "description": "Two sibling BackdropFilter blurs: two flips, two blurs.",
+        "renderPasses": 12,
+        "renderPassesByLabel": {
+          "EntityPass Render Pass": 5,
+          "Gaussian Blur Filter": 6,
+          "EntityPass Root Render Pass": 1
+        },
+        "blit": false,
+        "flips": 2,
+        "approximate": false,
+        "passes": [
+          "EntityPass Render Pass 1080x2424 (offscreenRoot)",
+          "Gaussian Blur Filter 146x314 (blurDownsample)",
+          "Gaussian Blur Filter 146x314 (blurY)",
+          "Gaussian Blur Filter 146x314 (blurX)",
+          "EntityPass Render Pass 1080x2424 (saveLayer)",
+          "EntityPass Render Pass 1080x2424 (restartAfterFlip)",
+          "Gaussian Blur Filter 146x314 (blurDownsample)",
+          "Gaussian Blur Filter 146x314 (blurY)",
+          "Gaussian Blur Filter 146x314 (blurX)",
+          "EntityPass Render Pass 1080x2424 (saveLayer)",
+          "EntityPass Render Pass 1080x2424 (restartAfterFlip)",
+          "EntityPass Root Render Pass 1080x2424 (copyToOnscreen)"
+        ]
+      },
+      "backdrop_group": {
+        "description": "The same two blurs in a BackdropGroup: one flip, one shared blur.",
+        "renderPasses": 6,
+        "renderPassesByLabel": {
+          "EntityPass Render Pass": 2,
+          "Gaussian Blur Filter": 3,
+          "EntityPass Root Render Pass": 1
+        },
+        "blit": false,
+        "flips": 1,
+        "approximate": false,
+        "passes": [
+          "EntityPass Render Pass 1080x2424 (offscreenRoot)",
+          "Gaussian Blur Filter 146x314 (blurDownsample)",
+          "Gaussian Blur Filter 146x314 (blurY)",
+          "Gaussian Blur Filter 146x314 (blurX)",
+          "EntityPass Render Pass 1080x2424 (restartAfterFlip)",
+          "EntityPass Root Render Pass 1080x2424 (copyToOnscreen)"
+        ]
+      },
+      "image_filtered_blur": {
+        "description": "ImageFiltered blur: a saveLayer plus 3 blur passes, no flip.",
+        "renderPasses": 5,
+        "renderPassesByLabel": {
+          "EntityPass Render Pass": 2,
+          "Gaussian Blur Filter": 3
+        },
+        "blit": false,
+        "flips": 0,
+        "approximate": false,
+        "passes": [
+          "EntityPass Render Pass 1080x2424 (saveLayer)",
+          "Gaussian Blur Filter 288x624 (blurDownsample)",
+          "Gaussian Blur Filter 288x624 (blurY)",
+          "Gaussian Blur Filter 288x624 (blurX)",
+          "EntityPass Render Pass 1080x2424 (onscreenRoot)"
+        ]
+      },
+      "box_shadow": {
+        "description": "BoxShadow on a rounded box: the shadow fast path, one pass.",
+        "renderPasses": 1,
+        "renderPassesByLabel": {
+          "EntityPass Render Pass": 1
+        },
+        "blit": false,
+        "flips": 0,
+        "approximate": false,
+        "passes": [
+          "EntityPass Render Pass 1080x2424 (onscreenRoot)"
+        ]
+      },
+      "saturation_blend": {
+        "description": "A full-screen BlendMode.saturation draw: free with framebuffer fetch, an offscreen frame + emulated blend without it.",
+        "renderPasses": 5,
+        "renderPassesByLabel": {
+          "EntityPass Render Pass": 2,
+          "AdvancedBlend(Src)": 1,
+          "Advanced Blend Filter": 1,
+          "EntityPass Root Render Pass": 1
+        },
+        "blit": false,
+        "flips": 1,
+        "approximate": false,
+        "passes": [
+          "EntityPass Render Pass 1080x2424 (offscreenRoot)",
+          "AdvancedBlend(Src) 1080x2424 (blendSourceSnapshot)",
+          "Advanced Blend Filter 1080x2424 (advancedBlend)",
+          "EntityPass Render Pass 1080x2424 (restartAfterFlip)",
+          "EntityPass Root Render Pass 1080x2424 (copyToOnscreen)"
+        ]
+      },
+      "savelayer_blend": {
+        "description": "A canvas.saveLayer composited with BlendMode.saturation: the layer is already a texture, so framebuffer fetch blends it for free.",
+        "renderPasses": 5,
+        "renderPassesByLabel": {
+          "EntityPass Render Pass": 3,
+          "Advanced Blend Filter": 1,
+          "EntityPass Root Render Pass": 1
+        },
+        "blit": false,
+        "flips": 1,
+        "approximate": false,
+        "passes": [
+          "EntityPass Render Pass 788x788 (saveLayer)",
+          "EntityPass Render Pass 1080x2424 (offscreenRoot)",
+          "Advanced Blend Filter 788x788 (advancedBlend)",
+          "EntityPass Render Pass 1080x2424 (restartAfterFlip)",
+          "EntityPass Root Render Pass 1080x2424 (copyToOnscreen)"
+        ]
+      },
+      "cupertino_alert": {
+        "description": "The talk's hook: a CupertinoAlertDialog over the page. Its backdrop is a blur composed with a color filter.",
+        "renderPasses": 8,
+        "renderPassesByLabel": {
+          "EntityPass Render Pass": 3,
+          "GaussianBlur": 1,
+          "Gaussian Blur Filter": 3,
+          "EntityPass Root Render Pass": 1
+        },
+        "blit": false,
+        "flips": 1,
+        "approximate": false,
+        "passes": [
+          "EntityPass Render Pass 1080x2424 (offscreenRoot)",
+          "GaussianBlur 745x628 (filterInputSnapshot)",
+          "Gaussian Blur Filter 124x110 (blurDownsample)",
+          "Gaussian Blur Filter 124x110 (blurY)",
+          "Gaussian Blur Filter 124x110 (blurX)",
+          "EntityPass Render Pass 500x382 (saveLayer)",
+          "EntityPass Render Pass 1080x2424 (restartAfterFlip)",
+          "EntityPass Root Render Pass 1080x2424 (copyToOnscreen)"
+        ]
+      }
+    }
+  }
+}
