@@ -6,6 +6,7 @@ publish_to: none
 workspace:
   - apps/build_to_burn
   - apps/gaussian_splatting
+  - apps/gpu_probe
   - apps/physical_ui
   - packages/wnma_talk
   - packages/wnmi_design
