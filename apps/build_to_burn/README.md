@@ -1,6 +1,6 @@
 # build_to_burn
 
-Fluttercon 2026 talk: following one Flutter frame from build to burn.
+Fluttercon 2026 talk: Beyond DevTools, what is Flutter doing on my GPU?
 
 Runs on motor 2.0 from the rivership PR stack. The git ref is pinned in this
 package's `pubspec.yaml` and in the `dependency_overrides` of the root

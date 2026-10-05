@@ -24,10 +24,10 @@ class GpuChapterSlide extends FlutterDeckSlideWidget {
     GpuBeat.start: 'On the GPU',
     GpuBeat.paint: 'Tiles, in parallel',
     GpuBeat.needs: 'The blur needs its neighbours',
-    GpuBeat.finish: 'Pass 1',
+    GpuBeat.finish: 'Finish what is behind',
     GpuBeat.store: 'Out to memory',
     GpuBeat.read: 'The blur',
-    GpuBeat.back: 'Pass 2: back again',
+    GpuBeat.back: 'A new pass: back again',
   };
 
   /// One frame only: the repeat beat waits for the "every frame" slide.

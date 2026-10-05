@@ -5,7 +5,7 @@
     "display": "standalone",
     "background_color": "#0175C2",
     "theme_color": "#0175C2",
-    "description": "Fluttercon 2026 talk: following one Flutter frame from build to burn.",
+    "description": "Fluttercon 2026 talk: Beyond DevTools, what is Flutter doing on my GPU?",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

@@ -54,7 +54,8 @@ class BuildToBurnTalk extends StatelessWidget {
               ahaSlide,
               const FastNotCheapSlide(),
               profilingSlide,
-              const DocsSkillsSlide(),
+              const TakeawaysSlide(),
+              const SkillsSlide(),
               const ThankYouSlide(),
               // Backup, for questions.
               framesSlide,

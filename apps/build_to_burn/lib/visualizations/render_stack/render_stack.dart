@@ -133,6 +133,17 @@ class _RenderStackState extends State<RenderStack> {
   final _frames = Track<double>(.single, initial: 0, debugLabel: 'Frames');
   final _bands = Track<double>(.single, initial: 0, debugLabel: 'Bands');
   final _docs = Track<double>(.single, initial: 0, debugLabel: 'Docs dialog');
+  final _energy = Track<double>(
+    .single,
+    initial: 0,
+    debugLabel: 'Energy dialog',
+  );
+  final _preview = Track<double>(.single, initial: 0, debugLabel: 'Preview');
+  final _previewLeft = Track<double>(
+    .single,
+    initial: 0,
+    debugLabel: 'Preview left',
+  );
 
   /// The last phone, tile phase and frames shown, kept so they can fade out.
   HookPhone? _lastPhone;
@@ -208,6 +219,9 @@ class _RenderStackState extends State<RenderStack> {
     'frames': _frames,
     'bands': _bands,
     'docs': _docs,
+    'energy': _energy,
+    'preview': _preview,
+    'previewLeft': _previewLeft,
   };
 
   /// Each track's resting value in [view], by key.
@@ -246,6 +260,15 @@ class _RenderStackState extends State<RenderStack> {
       'frames': view.frames != null ? 1.0 : 0.0,
       'bands': view.showBands ? 1.0 : 0.0,
       'docs': view.docs ? 1.0 : 0.0,
+      'energy': view.energyReport ? 1.0 : 0.0,
+      'preview': view.treePreview != null ? 1.0 : 0.0,
+      // Without a preview it stays where it was, so it fades in place
+      // instead of sliding back while it goes.
+      'previewLeft': switch (view.treePreview) {
+        TreePreview.right => 0.0,
+        TreePreview.left => 1.0,
+        null => _seen['previewLeft'] ?? 0.0,
+      },
     };
   }
 
@@ -431,6 +454,9 @@ class _RenderStackState extends State<RenderStack> {
               'frames',
               'bands',
               'docs',
+              'energy',
+              'preview',
+              'previewLeft',
             ])
               animate(key, _motion),
           ],
@@ -472,6 +498,9 @@ class _RenderStackState extends State<RenderStack> {
               frames: v(_frames),
               bandsSummary: v(_bands),
               docs: v(_docs),
+              energyReport: v(_energy),
+              preview: v(_preview),
+              previewLeft: v(_previewLeft),
               phone: _lastPhone,
               tilePhase: view.tiles ?? _lastTiles,
               framesInFlight: view.frames ?? _lastFrames,
@@ -533,6 +562,15 @@ const _cardRect = Rect.fromLTWH(30, 10, 1940, 870);
 /// The stage slide's left column while the compressed stack fills the right
 /// (also shared with the hook's phone and vote).
 const _focusCardRect = Rect.fromLTWH(30, 10, 1140, 870);
+
+/// The layer tree preview over the stack: as tall as the stage card, and
+/// only as wide as the tree in its left column.
+final _previewRight = Rect.fromLTWH(
+  1300,
+  _focusCardRect.top,
+  560,
+  _focusCardRect.height,
+);
 
 /// The side of the compact square a landing card shrinks to before its
 /// corners fly to the plane.
@@ -766,6 +804,9 @@ class _StackPicture extends StatelessWidget {
     required this.frames,
     required this.bandsSummary,
     required this.docs,
+    required this.energyReport,
+    required this.preview,
+    required this.previewLeft,
     required this.phone,
     required this.tilePhase,
     required this.framesInFlight,
@@ -792,6 +833,13 @@ class _StackPicture extends StatelessWidget {
 
   /// The docs dialog's presence, 0..1.
   final double docs;
+
+  /// The energy report dialog's presence, 0..1.
+  final double energyReport;
+
+  /// The layer tree preview's presence, and 0 right .. 1 left.
+  final double preview;
+  final double previewLeft;
   final HookPhone? phone;
   final TilePhase? tilePhase;
   final FramesInFlight? framesInFlight;
@@ -826,7 +874,8 @@ class _StackPicture extends StatelessWidget {
       for (final (index, tier) in tiers.indexed)
         if (values[tier.number]!.expand > .05) index,
     ].fold<int?>(null, (lowest, index) => lowest ?? index);
-    final stackOpacity = 1 - .9 * dim;
+    // The preview covers the stack while it sits on the right.
+    final stackOpacity = 1 - .9 * math.max(dim, preview * (1 - previewLeft));
     final flat = Rect.lerp(_focusCardRect, _cardRect, wide)!;
     // Where a landing card goes: its plane, as if it were already there.
     // Only cards that have started landing count; a flat card waiting on
@@ -974,6 +1023,17 @@ class _StackPicture extends StatelessWidget {
           if (dim > .01 && phone != null)
             _HookPhoneOverlay(phone: phone!, presence: dim),
           if (docs > .01) _DocsOverlay(presence: docs),
+          if (energyReport > .01) _EnergyReportOverlay(presence: energyReport),
+          if (preview > .01)
+            Positioned.fromRect(
+              rect: Rect.lerp(_previewRight, _focusCardRect, previewLeft)!,
+              child: Opacity(
+                opacity: preview,
+                child: _TreePreviewCard(
+                  tier: tiers.firstWhere((tier) => tier.number == 4),
+                ),
+              ),
+            ),
           if (view.spotlight?.image case final image?)
             Positioned.fromRect(
               rect: _focusCardRect,

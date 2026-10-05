@@ -481,6 +481,10 @@ class HookPhone {
   );
 }
 
+/// Where the layer tree preview sits: over the stack on the right, or where
+/// the layer tree slide's card rests on the left.
+enum TreePreview { right, left }
+
 /// What the GPU tier's tile memory is doing, for why a blur costs.
 enum TilePhase {
   /// Tiles render on-chip; memoryless attachments never reach DRAM.
@@ -542,7 +546,13 @@ class RenderStackView {
     this.widgetColors = false,
     this.focusDetail,
     this.docs = false,
+    this.energyReport = false,
+    this.treePreview,
   });
+
+  /// When set, the next slide's layer tree shows as a card on the [TreePreview]
+  /// side, so the paint calls can be read next to the tree they build.
+  final TreePreview? treePreview;
 
   /// Sentinel for "every band".
   static const allBands = {'*'};
@@ -607,6 +617,10 @@ class RenderStackView {
   /// over everything: where the official docs stop and this talk starts.
   final bool docs;
 
+  /// Whether Xcode's energy report of the demo comes up as a dialog over
+  /// everything: the GPU, pinned, on a real phone.
+  final bool energyReport;
+
   bool showsBand(String id) => bands.contains('*') || bands.contains(id);
 
   /// Whether [tier] (in [band]) is on the stack.
@@ -640,7 +654,9 @@ class RenderStackView {
       other.showBands == showBands &&
       other.widgetColors == widgetColors &&
       other.focusDetail == focusDetail &&
-      other.docs == docs;
+      other.docs == docs &&
+      other.energyReport == energyReport &&
+      other.treePreview == treePreview;
 
   @override
   int get hashCode => Object.hash(
@@ -665,7 +681,7 @@ class RenderStackView {
     phone,
     tiles,
     feedback,
-    Object.hash(widgetColors, focusDetail, docs),
+    Object.hash(widgetColors, focusDetail, docs, energyReport, treePreview),
   );
 }
 

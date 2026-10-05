@@ -798,9 +798,8 @@ const _ops = [
   _Op('restore', 0, 0, faint: true),
 ];
 
-/// The backdrop blur's saveLayer and its restore in [_ops].
+/// The backdrop blur's saveLayer in [_ops].
 const _blurOpen = 3;
-const _blurClose = 11;
 
 const _listX = 760.0;
 const _opTop = 120.0;
@@ -878,8 +877,9 @@ class _ListStage extends StatelessWidget {
   static const _readStepMs = 900.0;
 
   /// How long beat 1 writes and beat 2 reads.
+  static const _flattenMs = 900.0;
   static double get writeMs =>
-      _writeStartMs + _ops.length * _writeStepMs + _fadeMs;
+      _writeStartMs + _ops.length * _writeStepMs + _fadeMs + _flattenMs;
   static double get readMs =>
       _readStartMs + _ops.length * _readStepMs + _fadeMs;
 
@@ -926,6 +926,13 @@ class _ListStage extends StatelessWidget {
     // The line being written (beat 1) or read (beat 2) right now.
     final active = _current();
     const activeOpacity = 1.0;
+
+    // Once written, the indents go: a flat list, not a tree.
+    final flat = switch (beat) {
+      < 1 => 0.0,
+      1 => _seg(t, 1 - _flattenMs / writeMs, 1),
+      _ => 1.0,
+    };
 
     final screen = switch (beat) {
       < 2 => 0.0,
@@ -976,10 +983,11 @@ class _ListStage extends StatelessWidget {
     for (final (index, op) in _ops.indexed) {
       final w = written(index);
       if (w <= 0) continue;
-      final blur = index == _blurOpen || index == _blurClose;
+      // Only the blur's own line turns red, not its restore.
+      final blur = index == _blurOpen;
       children.add(
         _at(
-          _listX + op.depth * _opIndent + 30 * (1 - w),
+          _listX + op.depth * _opIndent * (1 - flat) + 30 * (1 - w),
           _opY(index),
           _opText(
             op,
@@ -1007,20 +1015,6 @@ class _ListStage extends StatelessWidget {
             height: 18,
             decoration: BoxDecoration(color: p.accent, shape: BoxShape.circle),
           ),
-        ),
-      );
-    }
-
-    if (focus > 0) {
-      final top = _opY(_blurOpen) + 50;
-      final bottom = _opY(_blurClose) - 6;
-      children.add(
-        Positioned(
-          left: _listX - 30,
-          top: top,
-          width: 10,
-          height: (bottom - top) * focus,
-          child: Container(color: heat),
         ),
       );
     }
@@ -1079,7 +1073,7 @@ class _PassesStage extends StatelessWidget {
       _at(_listX, 20, _header('ONE DISPLAYLIST', p)),
       for (final (index, op) in _ops.indexed)
         _at(
-          _listX + op.depth * _opIndent,
+          _listX,
           _opY(index),
           _opText(
             op,
@@ -1099,7 +1093,7 @@ class _PassesStage extends StatelessWidget {
           _ => 1,
         },
       ),
-      // Pass 1.
+      // The pass behind the blur.
       _bracket(_opY(0) - 6, pass1Bottom, p.accent),
       _at(
         0,
@@ -1107,7 +1101,7 @@ class _PassesStage extends StatelessWidget {
         SizedBox(
           width: bracketX - 30,
           child: Text(
-            'Pass 1',
+            'Pass',
             textAlign: TextAlign.right,
             style: mono(30, weight: 700, height: 1.25, color: p.accent),
           ),
@@ -1138,7 +1132,7 @@ class _PassesStage extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               Text(
-                'Blur',
+                'Blur · 3 passes',
                 style: mono(28, weight: 700, color: heat),
               ),
               const SizedBox(height: 12),
@@ -1185,7 +1179,7 @@ class _PassesStage extends StatelessWidget {
             SizedBox(
               width: bracketX - 30,
               child: Text(
-                'Pass 2',
+                'New pass',
                 textAlign: TextAlign.right,
                 style: mono(30, weight: 700, height: 1.25, color: p.accent),
               ),

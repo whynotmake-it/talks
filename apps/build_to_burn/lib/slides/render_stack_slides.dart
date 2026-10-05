@@ -72,7 +72,7 @@ final paintSourceSlide = _stackSlide(
 final stage3Slide = _stackSlide(
   '/stage-3',
   layerHeading(3),
-  [stage3Step],
+  [stage3Step, stage3PreviewStep],
   entry: paintSourceStep.view,
   backEntry: stage4Script.first.view,
   speakerNotes: jesperSlideNotesHeader,
@@ -83,7 +83,7 @@ final stage4Slide = _stackSlide(
   '/stage-4',
   layerHeading(4),
   stage4Script,
-  entry: stage3Step.view,
+  entry: stage3PreviewStep.view,
   backEntry: stage5Script.first.view,
   speakerNotes: timSlideNotesHeader,
 );

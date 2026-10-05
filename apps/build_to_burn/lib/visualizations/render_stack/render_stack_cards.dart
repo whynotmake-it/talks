@@ -479,6 +479,9 @@ class _DashedBorderPainter extends CustomPainter {
 
 /// A stage slide: just its picture, on an inset panel. The slide's caption
 /// names the stage; the list rows and chips carry the handoff.
+/// The space around a stage slide's picture inside its card.
+const _stagePadding = 40.0;
+
 class _StageContent extends StatelessWidget {
   const _StageContent({required this.tier});
 
@@ -486,7 +489,7 @@ class _StageContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.all(40),
+    padding: const EdgeInsets.all(_stagePadding),
     child: _StagePicture(tier: tier),
   );
 }
@@ -1415,3 +1418,71 @@ final _codeTheme = {
   ...xcodeTheme,
   'root': xcodeTheme['root']!.copyWith(backgroundColor: Colors.transparent),
 };
+
+/// The layer tree slide's first look, as a card of its own: shown next to
+/// the paint calls, then moved to where that slide's card rests, which it
+/// covers until the next step.
+///
+/// The content is always laid out at the stage card's full size, so the tree
+/// keeps its size and place; a narrower box shows only its left part.
+class _TreePreviewCard extends StatelessWidget {
+  const _TreePreviewCard({required this.tier});
+
+  final StackTier tier;
+
+  @override
+  Widget build(BuildContext context) {
+    final p = Palette.of(context);
+    final lines = (tier.detail! as LinesDetail).lines;
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: p.surface,
+        border: Border.all(color: p.border, width: 2),
+        boxShadow: [
+          BoxShadow(
+            color: p.text.withValues(alpha: .08),
+            blurRadius: 30,
+            offset: const Offset(0, 12),
+          ),
+        ],
+      ),
+      child: Stack(
+        children: [
+          Positioned.fill(
+            child: ClipRect(
+              child: OverflowBox(
+                alignment: Alignment.topLeft,
+                minWidth: _focusCardRect.width,
+                maxWidth: _focusCardRect.width,
+                minHeight: _focusCardRect.height,
+                maxHeight: _focusCardRect.height,
+                child: _StageContent(
+                  tier: tier.withDetail(
+                    EngineStageDetail(EngineStage.scene, 0, lines),
+                  ),
+                ),
+              ),
+            ),
+          ),
+          // Where the box is narrower than the card, close the inner frame
+          // the way the full card does: its padding, then its border. At
+          // full width these lie exactly on the card's own.
+          Positioned(
+            right: 0,
+            top: 0,
+            bottom: 0,
+            width: _stagePadding,
+            child: ColoredBox(color: p.surface),
+          ),
+          Positioned(
+            right: _stagePadding,
+            top: _stagePadding,
+            bottom: _stagePadding,
+            width: 2,
+            child: ColoredBox(color: p.border),
+          ),
+        ],
+      ),
+    );
+  }
+}

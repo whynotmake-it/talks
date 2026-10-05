@@ -301,9 +301,9 @@ const renderStackTiers = [
     where: 'raster thread encodes · GPU executes after commit',
     token: 'Pass',
     detail: EngineStageDetail(EngineStage.passes, 3, [
-      'Pass 1 · behind the blur',
-      'Blur · 3 small passes',
-      'Pass 2 · blurred copy, the rest',
+      'Pass · behind the blur',
+      'Blur · 3 passes',
+      'New pass · blurred copy, the rest',
     ]),
   ),
   StackTier(
@@ -377,7 +377,7 @@ RenderStackStep _stageSlide(
 const coldOpenScript = [
   RenderStackStep(
     RenderStackView(focus: 1, phone: HookPhone()),
-    caption: 'You all write this.',
+    caption: 'An example from the ClickUp app',
   ),
 ];
 
@@ -386,9 +386,10 @@ const _hookVote = HookPhone(
   question: 'What keeps the GPU busy?',
   options: [
     'A  The blur',
-    'B  The list underneath',
-    'C  The blinking cursor',
+    'B  The circles underneath',
+    'C  The fading cursor',
     'D  The keyboard',
+    'E  The rounded clip',
   ],
 );
 
@@ -397,9 +398,10 @@ const _hookAnswer = HookPhone(
   question: 'What keeps the GPU busy?',
   options: [
     'A  The blur',
-    'B  The list underneath',
-    'C  The blinking cursor',
+    'B  The circles underneath',
+    'C  The fading cursor',
     'D  The keyboard',
+    'E  The rounded clip',
   ],
   answers: {0, 2},
 );
@@ -416,9 +418,15 @@ const quizAnswerScript = [
   ),
 ];
 
-/// Hook (agenda § 1): the demo's code on the left, the demo on a phone and
-/// the vote on the right. No stack yet.
+/// Hook (agenda § 1): Xcode's energy report of the demo, then the demo's code
+/// on the left and the demo on a phone with the vote on the right. No stack
+/// yet.
 const hookScript = [
+  // Xcode's energy report of the demo on a phone, over everything.
+  RenderStackStep(
+    RenderStackView(focus: 1, phone: HookPhone(), energyReport: true),
+    caption: 'A search sheet pinned the GPU.',
+  ),
   RenderStackStep(
     RenderStackView(
       focus: 1,
@@ -468,6 +476,13 @@ void paint(Canvas canvas, Size size)'''),
 
 final stage3Step = _stageSlide(3);
 
+/// The paint calls next to the layer tree they build, before that tree
+/// moves on to its own slide.
+const stage3PreviewStep = RenderStackStep(
+  RenderStackView(focus: 3, treePreview: TreePreview.right),
+  caption: '3: Paint calls',
+);
+
 /// An engine stage's slide, one step per beat of its `EngineStageView`.
 List<RenderStackStep> _engineScript(
   int number,
@@ -475,6 +490,7 @@ List<RenderStackStep> _engineScript(
   int beats, {
   Set<StackBorder> borders = const {},
   List<String>? captions,
+  Map<int, TreePreview> treePreview = const {},
 }) {
   final lines = (renderStackTiers[number - 1].detail! as LinesDetail).lines;
   return [
@@ -483,6 +499,7 @@ List<RenderStackStep> _engineScript(
         RenderStackView(
           focus: number,
           borders: borders,
+          treePreview: treePreview[beat],
           focusDetail: EngineStageDetail(stage, beat, lines),
         ),
         caption: captions?[beat] ?? layerHeading(number),
@@ -502,13 +519,15 @@ final stage4Script = _engineScript(
     layerHeading(4, 'One Scene'),
     layerHeading(4, 'One Scene'),
   ],
+  // Arrives as the preview from the paint calls slide, moved left.
+  treePreview: {0: TreePreview.left},
 );
 
-// Plane 4 lands across the thread border.
+// Plane 4 lands across the thread border. Ends on the written, flat list.
 final stage5Script = _engineScript(
   5,
   EngineStage.displayList,
-  4,
+  2,
   borders: {StackBorder.thread},
 );
 // The finished plan in one step: the GPU slide before it told the story.

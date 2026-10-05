@@ -22,7 +22,7 @@ class TitleSlide extends FlutterDeckSlideWidget {
         final p = Palette.of(context);
         return SlideFrame(
           child: Entrance(
-            count: 3,
+            count: 4,
             builder: (context, reveal) => Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -32,10 +32,18 @@ class TitleSlide extends FlutterDeckSlideWidget {
                   Text('FLUTTERCON 2026 · LIGHTNING TALK', style: p.eyebrow),
                 ),
                 const SizedBox(height: 40),
-                reveal(1, Text('From build\nto burn', style: p.hero)),
-                const Spacer(),
+                reveal(1, Text('Beyond DevTools', style: p.hero)),
+                const SizedBox(height: 32),
                 reveal(
                   2,
+                  Text(
+                    'What is Flutter doing on my GPU?',
+                    style: p.display.copyWith(color: p.textSecondary),
+                  ),
+                ),
+                const Spacer(),
+                reveal(
+                  3,
                   Text(
                     'whynotmake.it',
                     style: p.title.copyWith(color: p.textSecondary),

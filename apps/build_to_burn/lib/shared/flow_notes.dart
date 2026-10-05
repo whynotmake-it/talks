@@ -86,7 +86,8 @@ const flowNotes = {
   '/stage-6': FlowNote(
     question: 'Where does the work get cut?',
     takeaway:
-        'Impeller cuts the list at the blur: pass 1, the blur, pass 2. Six '
+        'Impeller ends the pass at the blur, runs the blur, then starts a '
+        'new pass. Six '
         'passes in our capture.',
     transition: 'Now we know what one frame costs. Mystery solved? Live.',
   ),
@@ -123,12 +124,19 @@ const flowNotes = {
         '"is it cheap?". You need both.',
     transition: 'So how do you measure the price? The GPU tools.',
   ),
-  '/docs-and-skills': FlowNote(
-    question: 'That is a lot of tools. Where do I start?',
+  '/takeaways': FlowNote(
+    question: 'So what do I take home on Monday?',
     takeaway:
-        'The official guides in the Flutter repo, and our three agent '
-        'skills: GPU cost, frame demand, GPU profiling.',
-    transition: 'So what do you take home on Monday?',
+        'Cost is frames times price per frame. Let screens settle, know your '
+        'expensive effects, and check energy, not only DevTools.',
+    transition: "You don't have to dig through this by hand.",
+  ),
+  '/skills': FlowNote(
+    question: 'How do I find this in my own app?',
+    takeaway:
+        'Three agent skills, one per question: GPU cost, frame demand, GPU '
+        'profiling. Works on any app, starting from a widget test.',
+    transition: 'Thank you.',
   ),
 };
 

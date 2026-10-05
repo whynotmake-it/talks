@@ -159,7 +159,116 @@ class _HookScreen extends StatelessWidget {
             ),
           ),
         ),
+        // The field is focused, so the keyboard is up.
+        const Positioned(
+          left: 0,
+          right: 0,
+          bottom: 0,
+          height: _Keyboard.height,
+          child: _Keyboard(),
+        ),
       ],
+    );
+  }
+}
+
+/// A dark iOS keyboard, as on the phone in the demo's energy report.
+class _Keyboard extends StatelessWidget {
+  const _Keyboard();
+
+  static const height = 300.0;
+
+  static const _background = Color(0xFF2C2C2E);
+  static const _letter = Color(0xFF636366);
+  static const _special = Color(0xFF3A3A3C);
+  static const _ink = Colors.white;
+
+  Widget _key(String label, {Color color = _letter, int flex = 2}) => Expanded(
+    flex: flex,
+    child: Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 2.5),
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          color: color,
+          borderRadius: BorderRadius.circular(6),
+        ),
+        child: Center(
+          child: Text(label, style: archivo(18, color: _ink)),
+        ),
+      ),
+    ),
+  );
+
+  Widget _row(List<Widget> keys) => Expanded(
+    child: Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(children: keys),
+    ),
+  );
+
+  @override
+  Widget build(BuildContext context) {
+    return ColoredBox(
+      color: _background,
+      child: Padding(
+        // Clears the phone's 10 px frame.
+        padding: const EdgeInsets.fromLTRB(14, 6, 14, 14),
+        child: Column(
+          children: [
+            SizedBox(
+              height: 34,
+              child: Row(
+                children: [
+                  for (final word in const ['Ich', 'Hallo', 'Ja'])
+                    Expanded(
+                      child: Center(
+                        child: Text(
+                          word,
+                          style: archivo(17, color: const Color(0xFFD1D1D6)),
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+            _row([for (final c in 'qwertyuiop'.split('')) _key(c)]),
+            _row([
+              const Spacer(),
+              for (final c in 'asdfghjkl'.split('')) _key(c),
+              const Spacer(),
+            ]),
+            _row([
+              _key('⇧', color: _special, flex: 3),
+              const Spacer(),
+              for (final c in 'zxcvbnm'.split('')) _key(c),
+              const Spacer(),
+              _key('⌫', color: _special, flex: 3),
+            ]),
+            _row([
+              _key('123', color: _special, flex: 3),
+              _key('☺', color: _special, flex: 3),
+              _key('', flex: 10),
+              _key('✓', color: const Color(0xFF0A84FF), flex: 4),
+            ]),
+            const SizedBox(
+              height: 30,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Padding(
+                    padding: EdgeInsets.only(left: 12),
+                    child: Icon(Icons.language, color: _ink, size: 22),
+                  ),
+                  Padding(
+                    padding: EdgeInsets.only(right: 12),
+                    child: Icon(Icons.mic_none, color: _ink, size: 22),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
@@ -599,6 +708,52 @@ class _DocsOverlay extends StatelessWidget {
                         ),
                       ),
                     ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Xcode's energy report of the demo on a real phone, as a dialog over
+/// everything: energy impact High, the GPU most of it, while nobody touches
+/// the screen.
+class _EnergyReportOverlay extends StatelessWidget {
+  const _EnergyReportOverlay({required this.presence});
+
+  final double presence;
+
+  /// The capture's size in pixels.
+  static const _imageSize = Size(3456, 2234);
+  static const _width = 1480.0;
+
+  @override
+  Widget build(BuildContext context) {
+    final p = Palette.of(context);
+    return Positioned.fill(
+      child: IgnorePointer(
+        child: Opacity(
+          opacity: presence,
+          child: ColoredBox(
+            color: p.canvas.withValues(alpha: .85),
+            child: Center(
+              child: Transform.translate(
+                offset: Offset(0, (1 - presence) * 40),
+                child: Container(
+                  padding: const EdgeInsets.all(24),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    border: Border.all(color: p.border, width: 2),
+                  ),
+                  child: Image.asset(
+                    'assets/images/tools/xcode_energy_report.png',
+                    width: _width,
+                    height: _width * _imageSize.height / _imageSize.width,
+                    fit: BoxFit.contain,
                   ),
                 ),
               ),
