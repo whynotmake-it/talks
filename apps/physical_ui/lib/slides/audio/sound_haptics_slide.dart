@@ -49,7 +49,7 @@ class _SoundHapticsContent extends HookWidget {
                 ..seek(Duration.zero) // Reset to beginning
                 ..play();
             })
-            .catchError((e) {
+            .catchError((Object e) {
               debugPrint('Error playing tick sound: $e');
             });
       }
@@ -72,7 +72,6 @@ class _SoundHapticsContent extends HookWidget {
               children: [
                 // Date Picker Demo Section
                 Expanded(
-                  flex: 1,
                   child: Center(
                     child: Container(
                       height: 800,
@@ -89,7 +88,7 @@ class _SoundHapticsContent extends HookWidget {
                         ),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withOpacity(0.1),
+                            color: Colors.black.withValues(alpha: 0.1),
                             blurRadius: 20,
                             offset: const Offset(0, 10),
                           ),

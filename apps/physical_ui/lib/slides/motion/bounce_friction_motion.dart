@@ -4,7 +4,7 @@ import 'package:flutter/physics.dart';
 import 'package:rivership/rivership.dart';
 
 class BounceFrictionMotion extends Motion {
-  BounceFrictionMotion({
+  const BounceFrictionMotion({
     this.startVelocity,
     this.endVelocity = 0.0,
     this.bounce = 0.5,
@@ -79,7 +79,7 @@ class _BounceState {
 ///
 /// Uses the same drag calculation as [FrictionSimulation.through] but when the
 /// simulation would move outside the bounds, it:
-/// - Reverses velocity direction  
+/// - Reverses velocity direction
 /// - Multiplies velocity by [bounce] factor (energy loss)
 /// - Continues simulating from the boundary position
 ///
@@ -117,7 +117,7 @@ class BounceFrictionSimulation extends FrictionSimulation {
       startVelocity,
       endVelocity,
     );
-    
+
     // Extract drag coefficient by testing the simulation
     const testTime = 0.1;
     final testVel = baseSim.dx(testTime);
@@ -125,7 +125,7 @@ class BounceFrictionSimulation extends FrictionSimulation {
     if (testVel != 0 && startVelocity != 0) {
       drag = math.pow(testVel / startVelocity, 1.0 / testTime) as double;
     }
-    
+
     return BounceFrictionSimulation(
       drag: drag,
       position: startPosition,
@@ -192,28 +192,35 @@ class BounceFrictionSimulation extends FrictionSimulation {
 
       // Only add bounce if velocity is significant
       if (bounceVel.abs() > tolerance.velocity) {
-        _bounceHistory.add(_BounceState(activeState.time + bounceTime, boundaryPos, bounceVel));
+        _bounceHistory.add(
+          _BounceState(activeState.time + bounceTime, boundaryPos, bounceVel),
+        );
       }
     }
   }
 
-  double _findBoundaryHitTime(FrictionSimulation sim, double boundaryPos, double maxTime) {
+  double _findBoundaryHitTime(
+    FrictionSimulation sim,
+    double boundaryPos,
+    double maxTime,
+  ) {
     // Binary search to find when position equals boundary
     double low = 0;
-    double high = maxTime;
-    
-    for (int i = 0; i < 10; i++) { // 10 iterations should be enough precision
+    var high = maxTime;
+
+    for (var i = 0; i < 10; i++) {
+      // 10 iterations should be enough precision
       final mid = (low + high) / 2;
       final pos = sim.x(mid);
-      
-      if ((boundaryPos > sim.x(0) && pos < boundaryPos) || 
+
+      if ((boundaryPos > sim.x(0) && pos < boundaryPos) ||
           (boundaryPos < sim.x(0) && pos > boundaryPos)) {
         low = mid;
       } else {
         high = mid;
       }
     }
-    
+
     return (low + high) / 2;
   }
 
@@ -234,7 +241,7 @@ class BounceFrictionSimulation extends FrictionSimulation {
     );
 
     final result = sim.x(timeSinceState);
-    
+
     // Check if we need an immediate bounce for this result
     if (result < min) {
       _addBounceIfNeeded(time, min, sim.dx(timeSinceState));
@@ -243,16 +250,17 @@ class BounceFrictionSimulation extends FrictionSimulation {
       _addBounceIfNeeded(time, max, sim.dx(timeSinceState));
       return max;
     }
-    
+
     return result;
   }
 
   void _addBounceIfNeeded(double time, double bouncePos, double velocity) {
     // Don't add duplicate bounces
-    if (_bounceHistory.isNotEmpty && (_bounceHistory.last.time - time).abs() < 0.001) {
+    if (_bounceHistory.isNotEmpty &&
+        (_bounceHistory.last.time - time).abs() < 0.001) {
       return;
     }
-    
+
     final bounceVel = -velocity * bounce;
     if (bounceVel.abs() > tolerance.velocity) {
       _bounceHistory.add(_BounceState(time, bouncePos, bounceVel));

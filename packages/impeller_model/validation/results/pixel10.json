@@ -1,0 +1,345 @@
+{
+  "plain": {
+    "match": true,
+    "predicted": [
+      "EntityPass Render Pass 1080x2424 (onscreenRoot)"
+    ],
+    "predictedSizes": [
+      "1080x2424"
+    ],
+    "measured": [
+      "1080x2424x4"
+    ],
+    "framesInLog": 536,
+    "framesLikeThis": 516
+  },
+  "opacity_single": {
+    "match": true,
+    "predicted": [
+      "EntityPass Render Pass 1080x2424 (onscreenRoot)"
+    ],
+    "predictedSizes": [
+      "1080x2424"
+    ],
+    "measured": [
+      "1080x2424x4"
+    ],
+    "framesInLog": 550,
+    "framesLikeThis": 530
+  },
+  "opacity_overlap": {
+    "match": true,
+    "predicted": [
+      "EntityPass Render Pass 735x736 (saveLayer)",
+      "EntityPass Render Pass 1080x2424 (onscreenRoot)"
+    ],
+    "predictedSizes": [
+      "1080x2424",
+      "735x736"
+    ],
+    "measured": [
+      "735x736x4",
+      "1080x2424x4"
+    ],
+    "framesInLog": 556,
+    "framesLikeThis": 536
+  },
+  "clip_savelayer": {
+    "match": true,
+    "predicted": [
+      "EntityPass Render Pass 788x788 (saveLayer)",
+      "EntityPass Render Pass 1080x2424 (onscreenRoot)"
+    ],
+    "predictedSizes": [
+      "1080x2424",
+      "788x788"
+    ],
+    "measured": [
+      "1080x2424x4",
+      "788x788x4"
+    ],
+    "framesInLog": 552,
+    "framesLikeThis": 532
+  },
+  "backdrop_blur": {
+    "match": true,
+    "predicted": [
+      "EntityPass Render Pass 1080x2424 (offscreenRoot)",
+      "Gaussian Blur Filter 146x314 (blurDownsample)",
+      "Gaussian Blur Filter 146x314 (blurY)",
+      "Gaussian Blur Filter 146x314 (blurX)",
+      "EntityPass Render Pass 1080x2424 (saveLayer)",
+      "EntityPass Render Pass 1080x2424 (restartAfterFlip)",
+      "EntityPass Root Render Pass 1080x2424 (copyToOnscreen)"
+    ],
+    "predictedSizes": [
+      "1080x2424",
+      "1080x2424",
+      "1080x2424",
+      "1080x2424",
+      "146x314",
+      "146x314",
+      "146x314"
+    ],
+    "measured": [
+      "1080x2424x4",
+      "1080x2424x4",
+      "1080x2424x4",
+      "146x314x1",
+      "146x314x1",
+      "146x314x1",
+      "1080x2424x4"
+    ],
+    "framesInLog": 547,
+    "framesLikeThis": 527
+  },
+  "two_backdrops": {
+    "match": true,
+    "predicted": [
+      "EntityPass Render Pass 1080x2424 (offscreenRoot)",
+      "Gaussian Blur Filter 146x314 (blurDownsample)",
+      "Gaussian Blur Filter 146x314 (blurY)",
+      "Gaussian Blur Filter 146x314 (blurX)",
+      "EntityPass Render Pass 1080x2424 (saveLayer)",
+      "EntityPass Render Pass 1080x2424 (restartAfterFlip)",
+      "Gaussian Blur Filter 146x314 (blurDownsample)",
+      "Gaussian Blur Filter 146x314 (blurY)",
+      "Gaussian Blur Filter 146x314 (blurX)",
+      "EntityPass Render Pass 1080x2424 (saveLayer)",
+      "EntityPass Render Pass 1080x2424 (restartAfterFlip)",
+      "EntityPass Root Render Pass 1080x2424 (copyToOnscreen)"
+    ],
+    "predictedSizes": [
+      "1080x2424",
+      "1080x2424",
+      "1080x2424",
+      "1080x2424",
+      "1080x2424",
+      "1080x2424",
+      "146x314",
+      "146x314",
+      "146x314",
+      "146x314",
+      "146x314",
+      "146x314"
+    ],
+    "measured": [
+      "1080x2424x4",
+      "1080x2424x4",
+      "1080x2424x4",
+      "146x314x1",
+      "146x314x1",
+      "146x314x1",
+      "1080x2424x4",
+      "1080x2424x4",
+      "146x314x1",
+      "146x314x1",
+      "146x314x1",
+      "1080x2424x4"
+    ],
+    "framesInLog": 552,
+    "framesLikeThis": 532
+  },
+  "backdrop_group": {
+    "match": true,
+    "predicted": [
+      "EntityPass Render Pass 1080x2424 (offscreenRoot)",
+      "Gaussian Blur Filter 146x314 (blurDownsample)",
+      "Gaussian Blur Filter 146x314 (blurY)",
+      "Gaussian Blur Filter 146x314 (blurX)",
+      "EntityPass Render Pass 1080x2424 (restartAfterFlip)",
+      "EntityPass Root Render Pass 1080x2424 (copyToOnscreen)"
+    ],
+    "predictedSizes": [
+      "1080x2424",
+      "1080x2424",
+      "1080x2424",
+      "146x314",
+      "146x314",
+      "146x314"
+    ],
+    "measured": [
+      "1080x2424x4",
+      "1080x2424x4",
+      "146x314x1",
+      "146x314x1",
+      "146x314x1",
+      "1080x2424x4"
+    ],
+    "framesInLog": 544,
+    "framesLikeThis": 524
+  },
+  "image_filtered_blur": {
+    "match": true,
+    "predicted": [
+      "EntityPass Render Pass 1080x2424 (saveLayer)",
+      "Gaussian Blur Filter 288x624 (blurDownsample)",
+      "Gaussian Blur Filter 288x624 (blurY)",
+      "Gaussian Blur Filter 288x624 (blurX)",
+      "EntityPass Render Pass 1080x2424 (onscreenRoot)"
+    ],
+    "predictedSizes": [
+      "1080x2424",
+      "1080x2424",
+      "288x624",
+      "288x624",
+      "288x624"
+    ],
+    "measured": [
+      "1080x2424x4",
+      "1080x2424x4",
+      "288x624x1",
+      "288x624x1",
+      "288x624x1"
+    ],
+    "framesInLog": 554,
+    "framesLikeThis": 534
+  },
+  "box_shadow": {
+    "match": true,
+    "predicted": [
+      "EntityPass Render Pass 1080x2424 (onscreenRoot)"
+    ],
+    "predictedSizes": [
+      "1080x2424"
+    ],
+    "measured": [
+      "1080x2424x4"
+    ],
+    "framesInLog": 545,
+    "framesLikeThis": 525
+  },
+  "saturation_blend": {
+    "match": true,
+    "predicted": [
+      "EntityPass Render Pass 1080x2424 (offscreenRoot)",
+      "AdvancedBlend(Src) 1080x2424 (blendSourceSnapshot)",
+      "Advanced Blend Filter 1080x2424 (advancedBlend)",
+      "EntityPass Render Pass 1080x2424 (restartAfterFlip)",
+      "EntityPass Root Render Pass 1080x2424 (copyToOnscreen)"
+    ],
+    "predictedSizes": [
+      "1080x2424",
+      "1080x2424",
+      "1080x2424",
+      "1080x2424",
+      "1080x2424"
+    ],
+    "measured": [
+      "1080x2424x4",
+      "1080x2424x4",
+      "1080x2424x4",
+      "1080x2424x1",
+      "1080x2424x4"
+    ],
+    "framesInLog": 547,
+    "framesLikeThis": 527
+  },
+  "savelayer_blend": {
+    "match": true,
+    "predicted": [
+      "EntityPass Render Pass 788x788 (saveLayer)",
+      "EntityPass Render Pass 1080x2424 (offscreenRoot)",
+      "Advanced Blend Filter 788x788 (advancedBlend)",
+      "EntityPass Render Pass 1080x2424 (restartAfterFlip)",
+      "EntityPass Root Render Pass 1080x2424 (copyToOnscreen)"
+    ],
+    "predictedSizes": [
+      "1080x2424",
+      "1080x2424",
+      "1080x2424",
+      "788x788",
+      "788x788"
+    ],
+    "measured": [
+      "1080x2424x4",
+      "789x788x4",
+      "1080x2424x4",
+      "789x788x1",
+      "1080x2424x4"
+    ],
+    "framesInLog": 561,
+    "framesLikeThis": 541
+  },
+  "cupertino_alert": {
+    "match": true,
+    "predicted": [
+      "EntityPass Render Pass 1080x2424 (offscreenRoot)",
+      "GaussianBlur 745x628 (filterInputSnapshot)",
+      "Gaussian Blur Filter 124x110 (blurDownsample)",
+      "Gaussian Blur Filter 124x110 (blurY)",
+      "Gaussian Blur Filter 124x110 (blurX)",
+      "EntityPass Render Pass 500x382 (saveLayer)",
+      "EntityPass Render Pass 1080x2424 (restartAfterFlip)",
+      "EntityPass Root Render Pass 1080x2424 (copyToOnscreen)"
+    ],
+    "predictedSizes": [
+      "1080x2424",
+      "1080x2424",
+      "1080x2424",
+      "124x110",
+      "124x110",
+      "124x110",
+      "500x382",
+      "745x628"
+    ],
+    "measured": [
+      "1080x2424x4",
+      "1080x2424x4",
+      "500x382x4",
+      "746x628x4",
+      "124x110x1",
+      "124x110x1",
+      "124x110x1",
+      "1080x2424x4"
+    ],
+    "framesInLog": 543,
+    "framesLikeThis": 523
+  },
+  "backdrop_sigma0": {
+    "match": true,
+    "predicted": [
+      "EntityPass Render Pass 1080x2424 (onscreenRoot)"
+    ],
+    "predictedSizes": [
+      "1080x2424"
+    ],
+    "measured": [
+      "1080x2424x4"
+    ],
+    "framesInLog": 538,
+    "framesLikeThis": 518
+  },
+  "backdrop_in_layer": {
+    "match": true,
+    "predicted": [
+      "EntityPass Render Pass 788x788 (saveLayer)",
+      "Gaussian Blur Filter 110x110 (blurDownsample)",
+      "Gaussian Blur Filter 110x110 (blurY)",
+      "Gaussian Blur Filter 110x110 (blurX)",
+      "EntityPass Render Pass 788x788 (saveLayer)",
+      "EntityPass Render Pass 788x788 (restartAfterFlip)",
+      "EntityPass Render Pass 1080x2424 (onscreenRoot)"
+    ],
+    "predictedSizes": [
+      "1080x2424",
+      "110x110",
+      "110x110",
+      "110x110",
+      "788x788",
+      "788x788",
+      "788x788"
+    ],
+    "measured": [
+      "1080x2424x4",
+      "788x788x4",
+      "788x788x4",
+      "788x788x4",
+      "110x110x1",
+      "110x110x1",
+      "110x110x1"
+    ],
+    "framesInLog": 537,
+    "framesLikeThis": 517
+  }
+}

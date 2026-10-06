@@ -74,7 +74,6 @@ class GaussianSplattingSlide extends FlutterDeckSlideWidget {
                     child: const CitationContainer(
                       citation:
                           'Kerbl, B., Kopanas, G., Leimkühler, T., & Drettakis, G. (2023). 3D Gaussian splatting for real-time radiance field rendering. ACM Trans. Graph., 42(4), 139-1.',
-                      fontSize: 16,
                     ),
                   ),
                 ],

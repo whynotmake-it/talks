@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:wnma_talk/animated_element.dart';
 import 'package:gaussian_splatting/shared/citation_container.dart';
+import 'package:wnma_talk/animated_element.dart';
 import 'package:wnma_talk/slide_number.dart';
 import 'package:wnma_talk/wnma_talk.dart';
 

@@ -76,7 +76,7 @@ class _SensorPainter extends CustomPainter {
     final sel = Paint()
       ..style = PaintingStyle.stroke
       ..strokeWidth = 2.0
-      ..color = Colors.white.withOpacity(0.8);
+      ..color = Colors.white.withValues(alpha: 0.8);
     canvas.drawRect(
       Rect.fromLTWH(selectedU * cell, selectedV * cell, cell, cell),
       sel,
@@ -137,9 +137,9 @@ class _RayDetailPainter extends CustomPainter {
     final width = size.width - padding * 2;
     final height = size.height - padding * 2;
 
-    // Top row: dots for samples along t (x-axis), opacity by alpha, 
+    // Top row: dots for samples along t (x-axis), opacity by alpha,
     // size by Tbefore
-    final rowH = height ;
+    final rowH = height;
     final tMin = samples.first.t;
     final tMax = samples.last.t;
     double xForT(double t) =>
@@ -148,7 +148,7 @@ class _RayDetailPainter extends CustomPainter {
     // Guides
     final guide = Paint()
       ..style = PaintingStyle.stroke
-      ..color = Colors.white.withOpacity(0.08)
+      ..color = Colors.white.withValues(alpha: 0.08)
       ..strokeWidth = 1.0;
     canvas.drawRect(Rect.fromLTWH(padding, padding, width, rowH), guide);
 
@@ -157,15 +157,21 @@ class _RayDetailPainter extends CustomPainter {
       final y = padding + rowH / 2;
       final dot = Paint()
         ..style = PaintingStyle.fill
-        ..color = s.color.withOpacity((s.alpha).clamp(0.05, 1.0));
+        ..color = s.color.withValues(alpha: (s.alpha).clamp(0.05, 1.0));
       final r = 56.0;
       // Draw a rounded rectangle (RRect) at (x, y) with radius r and paint dot
-      final rect = Rect.fromCenter(center: Offset(x, y), width: r * 2, height: r * 2);
-      final rrect = RRect.fromRectXY(rect, r * 0.7, r * 0.7); // 0.7 for a squircle-like roundness
+      final rect = Rect.fromCenter(
+        center: Offset(x, y),
+        width: r * 2,
+        height: r * 2,
+      );
+      final rrect = RRect.fromRectXY(
+        rect,
+        r * 0.7,
+        r * 0.7,
+      ); // 0.7 for a squircle-like roundness
       canvas.drawRRect(rrect, dot);
     }
-
-
 
     if (showTransmittance) {
       // Overdraw T(t) curve over the top row
@@ -200,8 +206,8 @@ class _RayDetailPainter extends CustomPainter {
 
 class ControlCard extends StatelessWidget {
   const ControlCard({
-    required this.title, 
-    required this.child, 
+    required this.title,
+    required this.child,
     this.width,
     this.height,
     super.key,
@@ -234,10 +240,7 @@ class ControlCard extends StatelessWidget {
               ),
               const SizedBox(height: 8),
               // Only use Expanded if we have a height constraint
-              if (height != null) 
-                Expanded(child: child)
-              else
-                child,
+              if (height != null) Expanded(child: child) else child,
             ],
           ),
         ),

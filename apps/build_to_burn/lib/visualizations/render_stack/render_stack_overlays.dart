@@ -1,0 +1,861 @@
+part of 'render_stack.dart';
+
+/// The demo on a phone in front of the dimmed stack, with the hook's vote if
+/// it has one.
+class _HookPhoneOverlay extends StatelessWidget {
+  const _HookPhoneOverlay({required this.phone, required this.presence});
+
+  final HookPhone phone;
+  final double presence;
+
+  @override
+  Widget build(BuildContext context) {
+    final p = Palette.of(context);
+    return Positioned.fill(
+      child: Opacity(
+        opacity: presence,
+        child: Transform.translate(
+          offset: Offset(0, (1 - presence) * 40),
+          child: Stack(
+            children: [
+              Positioned(
+                left: 1090,
+                top: 70,
+                width: 360,
+                height: 760,
+                child: DecoratedBox(
+                  position: DecorationPosition.foreground,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(52),
+                    border: Border.all(color: p.text, width: 10),
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(52),
+                    child: const _HookScreen(),
+                  ),
+                ),
+              ),
+              if (phone.question.isNotEmpty)
+                Positioned(
+                  left: 1490,
+                  top: 250,
+                  width: 480,
+                  // The vote joins a phone that is already up.
+                  child: TweenAnimationBuilder<double>(
+                    tween: Tween(begin: 0, end: 1),
+                    duration: const Duration(milliseconds: 400),
+                    builder: (context, value, child) =>
+                        Opacity(opacity: value, child: child),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          phone.question,
+                          style: archivo(40, weight: 500, color: p.text),
+                        ),
+                        const SizedBox(height: 28),
+                        for (final (index, option) in phone.options.indexed)
+                          AnimatedOpacity(
+                            duration: const Duration(milliseconds: 400),
+                            opacity:
+                                phone.answers.isEmpty ||
+                                    phone.answers.contains(index)
+                                ? 1
+                                : .3,
+                            child: AnimatedContainer(
+                              duration: const Duration(milliseconds: 400),
+                              margin: const EdgeInsets.only(bottom: 14),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 20,
+                                vertical: 12,
+                              ),
+                              decoration: BoxDecoration(
+                                color: phone.answers.contains(index)
+                                    ? _correct.withValues(alpha: .14)
+                                    : p.surface,
+                                border: Border.all(
+                                  color: phone.answers.contains(index)
+                                      ? _correct
+                                      : p.border,
+                                  width: phone.answers.contains(index) ? 4 : 2,
+                                ),
+                              ),
+                              child: Text(
+                                option,
+                                style: archivo(34, color: p.text),
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// A right answer in the vote.
+const _correct = Color(0xFF2CA02C);
+
+/// The spec's demo at phone size: a blue page, a frosted card with a white
+/// field and hairline border, and a fading iOS caret.
+class _HookScreen extends StatelessWidget {
+  const _HookScreen();
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        const ColoredBox(color: Color(0xFF2563EB)),
+        for (final (left, top, size) in [
+          // Two circles sit behind the card, so its blur shows. The same as
+          // the GPU chapter's phone.
+          (40.0, 170.0, 150.0),
+          (160.0, 290.0, 150.0),
+          (30.0, 400.0, 110.0),
+        ])
+          Positioned(
+            left: left,
+            top: top,
+            child: Container(
+              width: size,
+              height: size,
+              decoration: const BoxDecoration(
+                color: Color(0xFF93C5FD),
+                shape: BoxShape.circle,
+              ),
+            ),
+          ),
+        Center(
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(20),
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 8.4, sigmaY: 8.4),
+              child: Container(
+                width: 252,
+                height: 101,
+                color: const Color(0x33FFFFFF),
+                alignment: Alignment.center,
+                child: Container(
+                  height: 28,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(4),
+                    border: Border.all(
+                      color: const Color(0x33000000),
+                      width: .5,
+                    ),
+                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: 6),
+                  alignment: Alignment.centerLeft,
+                  child: const _FadingCaret(),
+                ),
+              ),
+            ),
+          ),
+        ),
+        // The field is focused, so the keyboard is up.
+        const Positioned(
+          left: 0,
+          right: 0,
+          bottom: 0,
+          height: _Keyboard.height,
+          child: _Keyboard(),
+        ),
+      ],
+    );
+  }
+}
+
+/// A dark iOS keyboard, as on the phone in the demo's energy report.
+class _Keyboard extends StatelessWidget {
+  const _Keyboard();
+
+  static const height = 300.0;
+
+  static const _background = Color(0xFF2C2C2E);
+  static const _letter = Color(0xFF636366);
+  static const _special = Color(0xFF3A3A3C);
+  static const _ink = Colors.white;
+
+  Widget _key(String label, {Color color = _letter, int flex = 2}) => Expanded(
+    flex: flex,
+    child: Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 2.5),
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          color: color,
+          borderRadius: BorderRadius.circular(6),
+        ),
+        child: Center(
+          child: Text(label, style: archivo(18, color: _ink)),
+        ),
+      ),
+    ),
+  );
+
+  Widget _row(List<Widget> keys) => Expanded(
+    child: Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(children: keys),
+    ),
+  );
+
+  @override
+  Widget build(BuildContext context) {
+    return ColoredBox(
+      color: _background,
+      child: Padding(
+        // Clears the phone's 10 px frame.
+        padding: const EdgeInsets.fromLTRB(14, 6, 14, 14),
+        child: Column(
+          children: [
+            SizedBox(
+              height: 34,
+              child: Row(
+                children: [
+                  for (final word in const ['Ich', 'Hallo', 'Ja'])
+                    Expanded(
+                      child: Center(
+                        child: Text(
+                          word,
+                          style: archivo(17, color: const Color(0xFFD1D1D6)),
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+            _row([for (final c in 'qwertyuiop'.split('')) _key(c)]),
+            _row([
+              const Spacer(),
+              for (final c in 'asdfghjkl'.split('')) _key(c),
+              const Spacer(),
+            ]),
+            _row([
+              _key('⇧', color: _special, flex: 3),
+              const Spacer(),
+              for (final c in 'zxcvbnm'.split('')) _key(c),
+              const Spacer(),
+              _key('⌫', color: _special, flex: 3),
+            ]),
+            _row([
+              _key('123', color: _special, flex: 3),
+              _key('☺', color: _special, flex: 3),
+              _key('', flex: 10),
+              _key('✓', color: const Color(0xFF0A84FF), flex: 4),
+            ]),
+            const SizedBox(
+              height: 30,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Padding(
+                    padding: EdgeInsets.only(left: 12),
+                    child: Icon(Icons.language, color: _ink, size: 22),
+                  ),
+                  Padding(
+                    padding: EdgeInsets.only(right: 12),
+                    child: Icon(Icons.mic_none, color: _ink, size: 22),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// An iOS-style caret: holds, fades out, holds, fades in, once a second.
+class _FadingCaret extends StatelessWidget {
+  const _FadingCaret();
+
+  static final _opacity = Track<double>(
+    .single,
+    initial: 1,
+    debugLabel: 'Hook caret',
+  );
+
+  static const _fade = Motion.linear(Duration(milliseconds: 150));
+
+  @override
+  Widget build(BuildContext context) => TrackBuilder(
+    debugLabel: 'Hook caret',
+    loop: .loop,
+    animations: [
+      _opacity(const [
+        .hold(Duration(milliseconds: 500)),
+        .to(0, motion: _fade),
+        .hold(Duration(milliseconds: 200)),
+        .to(1, motion: _fade),
+      ]),
+    ],
+    builder: (context, value, child) =>
+        Opacity(opacity: value(_opacity).clamp(0, 1), child: child),
+    child: Container(width: 2, height: 17, color: const Color(0xFF007AFF)),
+  );
+}
+
+/// The GPU tier's tile memory: tiles light up as the pass renders.
+class _TilePainter extends CustomPainter {
+  _TilePainter({
+    required this.progress,
+    required this.color,
+    required this.empty,
+  });
+
+  final double progress;
+  final Color color;
+  final Color empty;
+
+  static const _grid = 7;
+  static const _margin = 14.0;
+  static const _gap = 6.0;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final tile = (size.width - 2 * _margin - (_grid - 1) * _gap) / _grid;
+    final lit = (progress * _grid * _grid).floor();
+    for (var row = 0; row < _grid; row++) {
+      for (var column = 0; column < _grid; column++) {
+        final index = row * _grid + column;
+        canvas.drawRect(
+          Rect.fromLTWH(
+            _margin + column * (tile + _gap),
+            _margin + row * (tile + _gap),
+            tile,
+            tile,
+          ),
+          Paint()
+            ..color = index < lit
+                ? color.withValues(alpha: .85)
+                : empty.withValues(alpha: .6),
+        );
+      }
+    }
+  }
+
+  @override
+  bool shouldRepaint(_TilePainter oldDelegate) =>
+      progress != oldDelegate.progress ||
+      color != oldDelegate.color ||
+      empty != oldDelegate.empty;
+}
+
+/// DRAM next to the GPU band, with the frame streaming out (flush) or back
+/// in (re-seed).
+class _DramOverlay extends StatefulWidget {
+  const _DramOverlay({
+    required this.phase,
+    required this.presence,
+    required this.tierCenter,
+  });
+
+  final TilePhase phase;
+  final double presence;
+  final double tierCenter;
+
+  @override
+  State<_DramOverlay> createState() => _DramOverlayState();
+}
+
+class _DramOverlayState extends State<_DramOverlay> {
+  final _flow = Track<double>(.single, initial: 0, debugLabel: 'DRAM flow');
+
+  @override
+  Widget build(BuildContext context) {
+    final p = Palette.of(context);
+    final box = Rect.fromLTWH(10, widget.tierCenter - 250, 300, 160);
+    final plane = Offset(_centerX - _halfWidth, widget.tierCenter);
+    final port = Offset(box.right, box.bottom - 20);
+    final outward = widget.phase == TilePhase.flush;
+    return Positioned.fill(
+      child: IgnorePointer(
+        child: Opacity(
+          opacity: widget.presence,
+          child: Stack(
+            children: [
+              TrackBuilder(
+                debugLabel: 'DRAM flow',
+                loop: .loop,
+                animations: [
+                  _flow(const [
+                    .to(0, motion: .linear(Duration(milliseconds: 1))),
+                    .to(1, motion: .linear(Duration(milliseconds: 700))),
+                  ]),
+                ],
+                builder: (context, value, _) => CustomPaint(
+                  size: RenderStack.designSize,
+                  painter: _FlowPainter(
+                    from: outward ? plane : port,
+                    to: outward ? port : plane,
+                    phase: value(_flow).clamp(0.0, 1.0),
+                    color: heat,
+                  ),
+                ),
+              ),
+              Positioned.fromRect(
+                rect: box,
+                child: Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: p.surface,
+                    border: Border.all(color: heat, width: 2),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('DRAM', style: mono(40, weight: 700, color: heat)),
+                      const SizedBox(height: 6),
+                      Text(
+                        outward ? 'T0 · ~12 MB' : 'redraw from T0',
+                        style: archivo(34, height: 1.2, color: p.text),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _FlowPainter extends CustomPainter {
+  _FlowPainter({
+    required this.from,
+    required this.to,
+    required this.phase,
+    required this.color,
+  });
+
+  final Offset from;
+  final Offset to;
+  final double phase;
+  final Color color;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    canvas.drawLine(
+      from,
+      to,
+      Paint()
+        ..color = color.withValues(alpha: .35)
+        ..strokeWidth = 3,
+    );
+    final dot = Paint()..color = color;
+    for (var k = 0; k < 4; k++) {
+      final t = (phase + k / 4) % 1;
+      canvas.drawRect(
+        Rect.fromCenter(
+          center: Offset.lerp(from, to, t)!,
+          width: 14,
+          height: 14,
+        ),
+        dot,
+      );
+    }
+  }
+
+  @override
+  bool shouldRepaint(_FlowPainter oldDelegate) =>
+      phase != oldDelegate.phase ||
+      from != oldDelegate.from ||
+      to != oldDelegate.to ||
+      color != oldDelegate.color;
+}
+
+/// Frames in flight on the finished stack: N+1 on the UI planes, N on the
+/// raster planes, N-1 on the GPU and display. When animated, every frame
+/// moves up one stage per (slowed) vsync.
+class _FrameTokens extends StatefulWidget {
+  const _FrameTokens({
+    required this.layout,
+    required this.presence,
+    required this.frames,
+  });
+
+  final _Layout layout;
+  final double presence;
+  final FramesInFlight frames;
+
+  @override
+  State<_FrameTokens> createState() => _FrameTokensState();
+}
+
+class _FrameTokensState extends State<_FrameTokens> {
+  final _step = Track<double>(.single, initial: 0, debugLabel: 'Vsync step');
+
+  static const _move = Motion.curved(Duration(milliseconds: 900), easeInOut);
+
+  double _mid(int a, int b) {
+    final layout = widget.layout;
+    return (layout.center(layout.indexOf(a)) +
+            layout.center(layout.indexOf(b))) /
+        2;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final layout = widget.layout;
+    if ([1, 3, 5, 6, 7, 8].any((tier) => layout.indexOf(tier) < 0)) {
+      return const SizedBox.shrink();
+    }
+    final positions = [
+      layout.center(layout.indexOf(1)) + 90,
+      layout.center(layout.indexOf(3)),
+      _mid(5, 6),
+      _mid(7, 8),
+      layout.top(layout.indexOf(8)) - 70,
+    ];
+    Widget picture(double t) => _TokensPainter(
+      positions: positions,
+      t: t,
+      presence: widget.presence,
+    );
+    if (!widget.frames.animated) return picture(0);
+    return TrackBuilder(
+      debugLabel: 'Frames in flight',
+      loop: .loop,
+      animations: [
+        _step(const [
+          .to(0, motion: .linear(Duration(milliseconds: 1))),
+          .hold(Duration(milliseconds: 700)),
+          .to(1, motion: _move),
+        ]),
+      ],
+      builder: (context, value, _) => picture(value(_step).clamp(0.0, 1.0)),
+    );
+  }
+}
+
+class _TokensPainter extends StatelessWidget {
+  const _TokensPainter({
+    required this.positions,
+    required this.t,
+    required this.presence,
+  });
+
+  final List<double> positions;
+  final double t;
+  final double presence;
+
+  static const labels = ['N+2', 'N+1', 'N', 'N−1'];
+
+  static List<Color> colors(Palette p) => [
+    p.accent,
+    p.accent,
+    ExampleTheme.roseQuartz,
+    heat,
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    final p = Palette.of(context);
+    final palette = colors(p);
+    return Positioned.fill(
+      child: IgnorePointer(
+        child: Stack(
+          children: [
+            for (var k = 0; k < 4; k++)
+              Positioned(
+                left: _centerX - 130,
+                width: 260,
+                top: lerpDouble(positions[k], positions[k + 1], t)! - 26,
+                child: Opacity(
+                  opacity:
+                      presence *
+                      switch (k) {
+                        0 => t,
+                        3 => 1 - t,
+                        _ => 1.0,
+                      },
+                  child: Center(
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 18,
+                        vertical: 10,
+                      ),
+                      decoration: BoxDecoration(
+                        color: palette[k],
+                        boxShadow: [
+                          BoxShadow(
+                            color: palette[k].withValues(alpha: .5),
+                            blurRadius: 22,
+                          ),
+                        ],
+                      ),
+                      child: Text(
+                        'frame ${labels[k]}',
+                        style: mono(34, weight: 700, color: Colors.white),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// The official docs' picture of the widget, element and render trees, as a
+/// dialog with a link to the docs: the docs stop at the render tree, where
+/// this talk goes on toward the GPU.
+class _DocsOverlay extends StatelessWidget {
+  const _DocsOverlay({required this.presence});
+
+  final double presence;
+
+  /// The image's size, and where its render tree column starts.
+  static const _imageSize = Size(2913, 1146);
+  static const _renderTreeStart = .645;
+  static const _width = 1500.0;
+  static const _url =
+      'https://docs.flutter.dev/resources/architectural-overview'
+      '#layout-and-rendering';
+
+  @override
+  Widget build(BuildContext context) {
+    final p = Palette.of(context);
+    final height = _width * _imageSize.height / _imageSize.width;
+    return Positioned.fill(
+      child: IgnorePointer(
+        child: Opacity(
+          opacity: presence,
+          child: ColoredBox(
+            color: p.canvas.withValues(alpha: .85),
+            child: Center(
+              child: Transform.translate(
+                offset: Offset(0, (1 - presence) * 40),
+                child: Container(
+                  padding: const EdgeInsets.fromLTRB(40, 32, 40, 32),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    border: Border.all(color: p.border, width: 2),
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      SizedBox(
+                        width: _width,
+                        height: height,
+                        child: Stack(
+                          children: [
+                            Positioned.fill(
+                              child: Image.asset(
+                                'assets/images/flutter_docs_trees.png',
+                                fit: BoxFit.contain,
+                              ),
+                            ),
+                            // What the docs explain, quieter.
+                            Positioned(
+                              left: 0,
+                              top: 0,
+                              bottom: 0,
+                              width: _width * _renderTreeStart,
+                              child: ColoredBox(
+                                color: Colors.white.withValues(alpha: .45),
+                              ),
+                            ),
+                            // Where this talk starts.
+                            Positioned(
+                              left: _width * _renderTreeStart,
+                              top: 0,
+                              bottom: 0,
+                              right: 0,
+                              child: DecoratedBox(
+                                decoration: BoxDecoration(
+                                  border: Border.all(
+                                    color: p.accent,
+                                    width: 6,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+                      SizedBox(
+                        width: _width,
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                _url.replaceFirst('https://', ''),
+                                style: mono(30, color: p.textSecondary),
+                              ),
+                            ),
+                            QrImageView(
+                              data: _url,
+                              size: 170,
+                              padding: EdgeInsets.zero,
+                              backgroundColor: Colors.white,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Xcode's energy report of the demo on a real phone, as a dialog over
+/// everything: energy impact High, the GPU most of it, while nobody touches
+/// the screen.
+class _EnergyReportOverlay extends StatelessWidget {
+  const _EnergyReportOverlay({required this.presence});
+
+  final double presence;
+
+  /// The capture's size in pixels.
+  static const _imageSize = Size(3456, 2234);
+  static const _width = 1480.0;
+
+  @override
+  Widget build(BuildContext context) {
+    final p = Palette.of(context);
+    return Positioned.fill(
+      child: IgnorePointer(
+        child: Opacity(
+          opacity: presence,
+          child: ColoredBox(
+            color: p.canvas.withValues(alpha: .85),
+            child: Center(
+              child: Transform.translate(
+                offset: Offset(0, (1 - presence) * 40),
+                child: Container(
+                  padding: const EdgeInsets.all(24),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    border: Border.all(color: p.border, width: 2),
+                  ),
+                  child: Image.asset(
+                    'assets/images/tools/xcode_energy_report.png',
+                    width: _width,
+                    height: _width * _imageSize.height / _imageSize.width,
+                    fit: BoxFit.contain,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// The frame pipeline's two slots beside the Scene plane, both taken: frame
+/// N rasterizing, N+1 built. N+2 can't start until N is done.
+class _PipelineSlots extends StatelessWidget {
+  const _PipelineSlots({required this.presence, required this.tierCenter});
+
+  final double presence;
+  final double tierCenter;
+
+  @override
+  Widget build(BuildContext context) {
+    final p = Palette.of(context);
+    Widget slot(String text, Color color) => Container(
+      height: 60,
+      margin: const EdgeInsets.only(top: 10),
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        color: p.accentSoft,
+        border: Border.all(color: color, width: 2),
+      ),
+      child: Text(text, style: mono(30, weight: 700, color: color)),
+    );
+    return Positioned(
+      left: 14,
+      width: 270,
+      top: tierCenter - 150,
+      child: IgnorePointer(
+        // Joins the frames already on the stack.
+        child: TweenAnimationBuilder<double>(
+          tween: Tween(begin: 0, end: 1),
+          duration: const Duration(milliseconds: 400),
+          builder: (context, value, child) =>
+              Opacity(opacity: value * presence, child: child),
+          child: Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: p.surface,
+              border: Border.all(color: p.border, width: 2),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text('2 SLOTS', style: mono(30, color: p.textSecondary)),
+                slot('N · raster', ExampleTheme.roseQuartz),
+                slot('N+1 · UI', p.accent),
+                const SizedBox(height: 14),
+                Text(
+                  'Both full: N+2 waits',
+                  style: archivo(30, weight: 600, color: heat),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// A profiling tool's screenshot or looping clip, in the stage slide's left
+/// column; a new one crossfades in.
+class _ToolShot extends StatelessWidget {
+  const _ToolShot({required this.image});
+
+  final String image;
+
+  @override
+  Widget build(BuildContext context) {
+    final p = Palette.of(context);
+    return AnimatedSwitcher(
+      duration: const Duration(milliseconds: 400),
+      child: Center(
+        key: ValueKey(image),
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            color: p.surface,
+            border: Border.all(color: p.border, width: 2),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: image.endsWith('.mp4')
+                ? FittedBox(
+                    child: Video(
+                      assetKey: image,
+                      assumedSize: const Size(860, 734),
+                    ),
+                  )
+                : Image.asset(image, fit: BoxFit.contain),
+          ),
+        ),
+      ),
+    );
+  }
+}

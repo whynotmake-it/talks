@@ -144,7 +144,7 @@ class _MagnifierDemoState extends State<MagnifierDemo> {
                         ),
                         shadows: [
                           BoxShadow(
-                            color: Colors.blueGrey.withOpacity(0.1),
+                            color: Colors.blueGrey.withValues(alpha: 0.1),
                             blurRadius: 8,
                             offset: const Offset(0, 4),
                           ),

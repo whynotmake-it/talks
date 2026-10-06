@@ -41,9 +41,9 @@ class GaussianSplattingOverviewSlide extends FlutterDeckSlideWidget {
                   child: Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: colorScheme.surface.withOpacity(0.9),
+                      color: colorScheme.surface.withValues(alpha: 0.9),
                       borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: colorScheme.outline, width: 1),
+                      border: Border.all(color: colorScheme.outline),
                     ),
                     child: Column(
                       mainAxisSize: MainAxisSize.min,

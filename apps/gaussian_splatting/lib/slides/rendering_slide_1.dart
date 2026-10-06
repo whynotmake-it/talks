@@ -14,14 +14,12 @@ class RenderingSlide1 extends FlutterDeckSlideWidget {
 
   @override
   Widget build(BuildContext context) {
-
     return ContentSlideTemplate(
       title: const Text(
         'Render Journey',
         textAlign: TextAlign.left,
       ),
       mainContent: CodeHighlight(
-
         code: '''
 
   // Returns: 

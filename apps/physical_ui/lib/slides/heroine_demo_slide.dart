@@ -103,10 +103,7 @@ class HeroineDeviceDemo extends StatelessWidget {
 final springNotifier = ValueNotifier<Motion>(CupertinoMotion.smooth());
 final flightShuttleNotifier = ValueNotifier<HeroineShuttleBuilder?>(
   const FadeShuttleBuilder().chain(
-    const FlipShuttleBuilder(
-      axis: Axis.vertical,
-      halfFlips: 1,
-    ),
+    const FlipShuttleBuilder(),
   ),
 );
 final detailsPageAspectRatio = ValueNotifier<double>(1);
@@ -192,7 +189,7 @@ class ImageGridExample extends StatelessWidget {
             ).barBackgroundColor.withValues(alpha: .5 * easedValue),
             BlendMode.srcOver,
           ),
-          child: child!,
+          child: child,
         );
       },
       child: CupertinoPageScaffold(
@@ -317,6 +314,7 @@ class Cover extends StatelessWidget {
           child: child,
         ),
       ),
+      onPressed: onPressed,
       child: isFlipped
           ? Align(
               alignment: Alignment.bottomLeft,
@@ -331,7 +329,6 @@ class Cover extends StatelessWidget {
               ),
             )
           : const SizedBox.shrink(),
-      onPressed: onPressed,
     );
   }
 }
@@ -371,7 +368,7 @@ class DetailsPage extends StatelessWidget {
               final opacity = 1 - progress;
               return SliverOpacity(
                 opacity: opacity,
-                sliver: child!,
+                sliver: child,
               );
             },
             child: const CupertinoSliverNavigationBar(
@@ -417,7 +414,7 @@ class DetailsPage extends StatelessWidget {
               final opacity = 1 - progress;
               return SliverOpacity(
                 opacity: opacity,
-                sliver: child!,
+                sliver: child,
               );
             },
             child: SliverToBoxAdapter(

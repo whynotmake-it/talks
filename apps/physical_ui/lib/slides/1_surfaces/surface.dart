@@ -258,7 +258,6 @@ class Surface extends StatelessWidget {
                       ],
                       motion: CupertinoMotion.snappy(
                         duration: Duration(seconds: 2),
-                        snapToEnd: true,
                       ).trimmed(fromEnd: .5),
                       loop: LoopMode.pingPong,
                     ),

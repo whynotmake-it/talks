@@ -3,7 +3,8 @@
 import 'package:flutter/material.dart';
 import 'package:three_js/three_js.dart' as three;
 
-class Blob { // r,g,b 0..1
+class Blob {
+  // r,g,b 0..1
   Blob({
     required this.center,
     required this.sigma,

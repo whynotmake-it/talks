@@ -259,7 +259,6 @@ class CodeSlide extends FlutterDeckSlideWidget {
          configuration: const FlutterDeckSlideConfiguration(
            title: 'Spring Simulation Code',
            route: '/spring-simulation-code',
-           steps: 1,
            speakerNotes: jesperSlideNotesHeader,
          ),
        );

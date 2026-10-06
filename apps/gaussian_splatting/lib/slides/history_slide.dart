@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:flutter_gaussian_splatter/widgets/gaussian_splatter_widget.dart';
 import 'package:rivership/rivership.dart';
@@ -214,20 +213,24 @@ class HistorySlide extends FlutterDeckSlideWidget {
                                 'assets/nerf.png',
                                 fit: BoxFit.contain,
                               ),
-                              builder: (context, value, child) => SizedBox.expand(
-                                child: ColoredBox(
-                                  color: Theme.of(
-                                    context,
-                                  ).cardColor.withValues(alpha: value - 0.1),
-                                  child: Transform.scale(
-                                    scale: 0.7 + (0.3 * value),
-                                    child: Opacity(
-                                      opacity: value.clamp(0, 1),
-                                      child: child,
+                              builder: (context, value, child) =>
+                                  SizedBox.expand(
+                                    child: ColoredBox(
+                                      color:
+                                          Theme.of(
+                                            context,
+                                          ).cardColor.withValues(
+                                            alpha: value - 0.1,
+                                          ),
+                                      child: Transform.scale(
+                                        scale: 0.7 + (0.3 * value),
+                                        child: Opacity(
+                                          opacity: value.clamp(0, 1),
+                                          child: child,
+                                        ),
+                                      ),
                                     ),
                                   ),
-                                ),
-                              ),
                             ),
                           ),
                         ),

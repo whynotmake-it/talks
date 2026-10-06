@@ -90,7 +90,7 @@ class _VibratingDeviceWithVideo extends HookWidget {
           final deviceRect = _getDeviceRect(deviceKey.value);
           if (deviceRect != null) {
             final effectCount = Random().nextInt(4) + 2; // 2-5 effects
-            for (int i = 0; i < effectCount; i++) {
+            for (var i = 0; i < effectCount; i++) {
               effects.add(_VibrationEffect.aroundDevice(deviceRect));
             }
           }
@@ -143,8 +143,7 @@ class _VibratingDeviceWithVideo extends HookWidget {
 
   Rect? _getDeviceRect(GlobalKey? key) {
     if (key?.currentContext == null) return null;
-    final RenderBox? renderBox =
-        key!.currentContext!.findRenderObject() as RenderBox?;
+    final renderBox = key!.currentContext!.findRenderObject() as RenderBox?;
     if (renderBox == null) return null;
 
     final size = renderBox.size;
@@ -154,11 +153,6 @@ class _VibratingDeviceWithVideo extends HookWidget {
 }
 
 class _VibrationEffect {
-  final Offset position;
-  final double rotation;
-  final double scale;
-  final Color color;
-
   const _VibrationEffect({
     required this.position,
     required this.rotation,
@@ -228,13 +222,17 @@ class _VibrationEffect {
       rotation: random.nextDouble() * 2 * pi,
       scale: 0.6 + random.nextDouble() * 0.4, // 0.6 to 1.0
       color: [
-        Colors.yellow.withOpacity(0.9),
-        Colors.orange.withOpacity(0.9),
-        Colors.red.withOpacity(0.8),
-        Colors.white.withOpacity(0.7),
+        Colors.yellow.withValues(alpha: 0.9),
+        Colors.orange.withValues(alpha: 0.9),
+        Colors.red.withValues(alpha: 0.8),
+        Colors.white.withValues(alpha: 0.7),
       ][random.nextInt(4)],
     );
   }
+  final Offset position;
+  final double rotation;
+  final double scale;
+  final Color color;
 }
 
 class _VibrationEffectWidget extends StatelessWidget {
@@ -258,9 +256,8 @@ class _VibrationEffectWidget extends StatelessWidget {
 }
 
 class _VibrationLinePainter extends CustomPainter {
-  final Color color;
-
   const _VibrationLinePainter({required this.color});
+  final Color color;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -284,7 +281,7 @@ class _VibrationLinePainter extends CustomPainter {
 
     // Draw radiating lines for more comic effect
     final radiatingPaint = Paint()
-      ..color = color.withOpacity(0.7)
+      ..color = color.withValues(alpha: 0.7)
       ..strokeWidth = 1.5
       ..style = PaintingStyle.stroke
       ..strokeCap = StrokeCap.round;
@@ -313,7 +310,7 @@ class _VibrationLinePainter extends CustomPainter {
 
     // Small dots for extra comic effect
     final dotPaint = Paint()
-      ..color = color.withOpacity(0.8)
+      ..color = color.withValues(alpha: 0.8)
       ..style = PaintingStyle.fill;
 
     canvas.drawCircle(Offset(center.dx - 14, center.dy - 2), 1, dotPaint);
