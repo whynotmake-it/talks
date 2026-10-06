@@ -52,8 +52,8 @@ jobs:
           generate_badges: pr
       
   
-  impeller_model:
-    name: Test impeller_model
+  impeeler:
+    name: Test impeeler
     timeout-minutes: 10
     runs-on: ubuntu-latest
     permissions:
@@ -66,37 +66,37 @@ jobs:
         uses: subosito/flutter-action@v2
         with:
           # The model depends on private engine semantics — pin to the
-          # verified version (see packages/impeller_model/FEASIBILITY.md).
+          # verified version (see packages/impeeler/FEASIBILITY.md).
           flutter-version: '3.47.1'
           channel: 'stable'
           cache: true
 
       - name: 🧪 Test
         run: flutter test
-        working-directory: packages/impeller_model
+        working-directory: packages/impeeler
 
       # SwiftShader Vulkan on CI — the flakiest leg; if it ever
       # flakes, suspect this step first.
       - name: 🧪 Test under Impeller
         run: flutter test --enable-impeller
-        working-directory: packages/impeller_model
+        working-directory: packages/impeeler
 
       - name: 🔍 Analyze
         run: flutter analyze
-        working-directory: packages/impeller_model
+        working-directory: packages/impeeler
 
       - name: 📜 Engine quotes match the pinned SDK
         run: dart run tool/engine_refs.dart --flutter-root "$FLUTTER_ROOT"
-        working-directory: packages/impeller_model
+        working-directory: packages/impeeler
 
       - name: 🧪 Example
         run: flutter pub get && flutter analyze && flutter test
-        working-directory: packages/impeller_model/example
+        working-directory: packages/impeeler/example
 
       # Checks every prediction against the committed device traces.
       - name: 🧪 Predictions match the traces
         run: flutter pub get && flutter analyze && flutter test
-        working-directory: packages/impeller_model/validation
+        working-directory: packages/impeeler/validation
 
   check_generation:
     name: Check Code Generation
