@@ -97,9 +97,9 @@ class SkillsSlide extends FlutterDeckSlideWidget {
         ),
       );
 
-  /// The impeller_model skills in this repo.
+  /// The impeeler skills in this repo.
   static const _skillsUrl =
-      'https://github.com/whynotmake-it/talks/tree/main/packages/impeller_model/skills';
+      'https://github.com/whynotmake-it/talks/tree/main/packages/impeeler/skills';
 
   static const _skills = [
     ('Why is this screen expensive?', 'GPU cost'),
@@ -155,7 +155,7 @@ class SkillsSlide extends FlutterDeckSlideWidget {
                             ),
                           const Spacer(),
                           Text(
-                            'Works on any app: add impeller_model, write a '
+                            'Works on any app: add impeeler, write a '
                             'widget test, ask your agent.',
                             style: p.body,
                           ),
