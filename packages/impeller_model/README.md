@@ -57,11 +57,13 @@ testWidgets('name dialog', (tester) async {
 device, watches frame demand for a second, and writes
 `test/.impeller_model/<test name>.{json,html,png}`. The HTML file shows:
 
-- render passes and memory traffic per device,
-- which widget causes them, with a fix for each cause,
-- the frames the screen draws while idle, and what requested them,
-- warnings when part of the estimate is a guess,
-- every pass in order with its size and cause, collapsed per device.
+- a screenshot of the screen,
+- render passes and memory traffic per device, with a device picker,
+- which widget causes them, with a fix,
+- every pass of the selected device in order, with its size and cause,
+- the frames drawn while idle as a strip (changed vs. unchanged), and what
+  requested them,
+- warnings when part of the estimate is a guess.
 
 The labels to expect in a GPU capture are in the JSON.
 
