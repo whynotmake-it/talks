@@ -56,7 +56,8 @@ class NerfLimitsSlide extends FlutterDeckSlideWidget {
                     ),
                     const SizedBox(height: 40),
                     _BulletPoint(
-                      text: 'Volume rendering which both need to be done for too many samples along each ray',
+                      text:
+                          'Volume rendering which both need to be done for too many samples along each ray',
                       theme: theme,
                       colorScheme: colorScheme,
                     ),

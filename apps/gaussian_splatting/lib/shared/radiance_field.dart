@@ -65,7 +65,7 @@ class _RadianceFieldScreenState extends State<RadianceFieldScreen> {
   static const double voxelSize = 1;
   static const double fieldHalf = (nx * voxelSize) / 2.0; // half-extent
   static const double rayStep = 1; // march step in world units
-  static const double densityScale = 2.0; // scales sigma
+  static const double densityScale = 2; // scales sigma
   static const double exposure = 2.5; // exposure multiplier for brightness
   static const double earlyStopT = 0; // early termination if T < this
 
@@ -236,10 +236,10 @@ class _RadianceFieldScreenState extends State<RadianceFieldScreen> {
     } else {
       // Use theme colors as intelligent defaults
       color = isDark
-          ? theme.colorScheme.onSurface.withOpacity(0.8)
-          : theme.colorScheme.onSurface.withOpacity(0.6);
+          ? theme.colorScheme.onSurface.withValues(alpha: 0.8)
+          : theme.colorScheme.onSurface.withValues(alpha: 0.6);
     }
-    return color.value;
+    return color.toARGB32();
   }
 
   Future<void> _setup() async {
@@ -329,7 +329,7 @@ class _RadianceFieldScreenState extends State<RadianceFieldScreen> {
       Blob(
         center: three.Vector3(-3.5, -1.5, -2),
         sigma: 1.1,
-        density: 3.0,
+        density: 3,
         color: const [1.2, 0.2, 0.2],
       ),
       Blob(
@@ -507,12 +507,12 @@ class _RadianceFieldScreenState extends State<RadianceFieldScreen> {
           final exposedR = (res.r * exposure).clamp(0.0, 1.0);
           final exposedG = (res.g * exposure).clamp(0.0, 1.0);
           final exposedB = (res.b * exposure).clamp(0.0, 1.0);
-          
+
           // Gamma correction (1/2.2)
           final gammaR = math.pow(exposedR, 1.0 / 2.2);
           final gammaG = math.pow(exposedG, 1.0 / 2.2);
           final gammaB = math.pow(exposedB, 1.0 / 2.2);
-          
+
           c = Color.fromARGB(
             0xFF,
             (gammaR * 255).toInt(),
@@ -910,8 +910,7 @@ class _RadianceFieldScreenState extends State<RadianceFieldScreen> {
 
         // Color with proper alpha transparency
         final color = sample.color;
-        final alpha =
-            sample.alpha * 0.9; // Higher alpha for better visibility
+        final alpha = sample.alpha * 0.9; // Higher alpha for better visibility
         colors[pointIndex * 4 + 0] = color.red / 255.0; // R
         colors[pointIndex * 4 + 1] = color.green / 255.0; // G
         colors[pointIndex * 4 + 2] = color.blue / 255.0; // B

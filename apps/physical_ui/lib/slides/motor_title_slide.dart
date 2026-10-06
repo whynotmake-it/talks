@@ -2,8 +2,6 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:motor/motor.dart';
 import 'package:wnma_talk/big_quote_template.dart';
-import 'package:wnma_talk/bullet_point.dart';
-import 'package:wnma_talk/content_slide_template.dart';
 import 'package:wnma_talk/slide_number.dart';
 import 'package:wnma_talk/wnma_talk.dart';
 
@@ -13,8 +11,6 @@ class MotorTitleSlide extends FlutterDeckSlideWidget {
         configuration: FlutterDeckSlideConfiguration(
           route: '/motor_title',
           title: 'Motor',
-
-          steps: 1,
           speakerNotes: timSlideNotesHeader,
         ),
       );

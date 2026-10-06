@@ -11,7 +11,7 @@ class MotorCardStackSlide extends FlutterDeckSlideWidget {
         configuration: const FlutterDeckSlideConfiguration(
           title: 'Motor Card Stack',
           route: '/motor-card-stack',
-          speakerNotes: timSlideNotesHeader
+          speakerNotes: timSlideNotesHeader,
         ),
       );
 

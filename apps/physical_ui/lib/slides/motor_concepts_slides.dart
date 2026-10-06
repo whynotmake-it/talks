@@ -6,7 +6,6 @@ import 'package:physical_ui/slides/dimensionality_slides.dart';
 // motor import not required directly for these code snippets at compile time
 import 'package:wnma_talk/code_highlight.dart';
 import 'package:wnma_talk/content_slide_template.dart';
-import 'package:wnma_talk/single_content_slide_template.dart';
 import 'package:wnma_talk/slide_number.dart';
 import 'package:wnma_talk/wnma_talk.dart';
 
@@ -19,12 +18,12 @@ final motorConceptSlides = <FlutterDeckSlideWidget>[
 ];
 
 class _MotionSlide extends FlutterDeckSlideWidget {
-  _MotionSlide()
+  const _MotionSlide()
     : super(
         configuration: const FlutterDeckSlideConfiguration(
           route: '/motor-motion',
           title: 'Motion',
-          speakerNotes: timSlideNotesHeader
+          speakerNotes: timSlideNotesHeader,
         ),
       );
 
@@ -137,7 +136,7 @@ Widget build(BuildContext context) {
 }
 
 class _MotionConverterSlide extends FlutterDeckSlideWidget {
-  _MotionConverterSlide()
+  const _MotionConverterSlide()
     : super(
         configuration: const FlutterDeckSlideConfiguration(
           route: '/motor-motion-converter',
@@ -188,7 +187,7 @@ final surfaceStateConverter = MotionConverter<SurfaceState>.custom(
 }
 
 class _MotionBuilderSlide extends FlutterDeckSlideWidget {
-  _MotionBuilderSlide()
+  const _MotionBuilderSlide()
     : super(
         configuration: const FlutterDeckSlideConfiguration(
           route: '/motor-motion-builder',

@@ -132,8 +132,9 @@ class _AquaDesktopState extends State<_AquaDesktop>
       _fingerOffsetInNote =
           d.localPosition; // where on the note the finger grabbed
       // bring to front
-      _notes..removeWhere((x) => x.id == n.id)
-      ..add(n);
+      _notes
+        ..removeWhere((x) => x.id == n.id)
+        ..add(n);
     });
   }
 

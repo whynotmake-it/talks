@@ -134,10 +134,10 @@ class _TextWidget extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: color.withOpacity(0.3), width: 1),
+        border: Border.all(color: color.withValues(alpha: 0.3)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.5),
+            color: Colors.black.withValues(alpha: 0.5),
             blurRadius: 20,
             spreadRadius: 2,
           ),
@@ -194,7 +194,7 @@ class _DraggableGlassBoxState extends State<_DraggableGlassBox> {
 }
 
 class _GlassBox extends StatelessWidget {
-  const _GlassBox({this.opacity = 1.0});
+  const _GlassBox() : opacity = 1.0;
 
   final double opacity;
 
@@ -206,12 +206,12 @@ class _GlassBox extends StatelessWidget {
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: Colors.white.withOpacity(0.2),
+          color: Colors.white.withValues(alpha: 0.2),
           width: 1.5,
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.3),
+            color: Colors.black.withValues(alpha: 0.3),
             blurRadius: 30,
             spreadRadius: 5,
           ),
@@ -223,7 +223,7 @@ class _GlassBox extends StatelessWidget {
           filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
           child: Container(
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.05 * opacity),
+              color: Colors.white.withValues(alpha: 0.05 * opacity),
               borderRadius: BorderRadius.circular(20),
             ),
             child: Center(
@@ -232,14 +232,14 @@ class _GlassBox extends StatelessWidget {
                 children: [
                   Icon(
                     Icons.blur_on,
-                    color: Colors.white.withOpacity(0.6 * opacity),
+                    color: Colors.white.withValues(alpha: 0.6 * opacity),
                     size: 32,
                   ),
                   const SizedBox(height: 8),
                   Text(
                     'GLASS',
                     style: TextStyle(
-                      color: Colors.white.withOpacity(0.8 * opacity),
+                      color: Colors.white.withValues(alpha: 0.8 * opacity),
                       fontSize: 16,
                       fontWeight: FontWeight.w300,
                       letterSpacing: 2,

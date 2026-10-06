@@ -32,6 +32,8 @@ dependencies:
   value_notifier_tools: ^0.1.2
   wnma_talk: any
 
+  flutter_shaders: any
+  scribble: any
 dev_dependencies:
   flutter_test:
     sdk: flutter

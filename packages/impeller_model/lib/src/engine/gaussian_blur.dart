@@ -86,6 +86,44 @@ double calculateBlurScale(double scaledSigma) {
 /// ```
 int scaleBlurRadius(double radius, double scalar) => (radius * scalar).round();
 
+/// The downsample factor Impeller picks for a blur of [sigmaX] logical
+/// pixels ([sigmaY] defaults to [sigmaX]) on content transformed only by
+/// [devicePixelRatio] — i.e. an unscaled `ImageFilter.blur` or
+/// `BackdropFilter` at the root transform.
+///
+/// The engine scales each axis' sigma by `ScaleSigma`, then by the
+/// transform basis (here just the dpr), clamps to [kMaxSigma], runs
+/// `CalculateScale` per axis, and takes the smaller factor:
+///
+/// ```engine impeller/entity/contents/filters/gaussian_blur_filter_contents.cc
+///   Vector2 scaled_sigma =
+///       (effect_transform.Basis() * Matrix::MakeScale(source_space_scalar) *  //
+///        Vector2(GaussianBlurFilterContents::ScaleSigma(sigma.x),
+///                GaussianBlurFilterContents::ScaleSigma(sigma.y)))
+///           .Abs();
+///   scaled_sigma = Clamp(scaled_sigma, 0, kMaxSigma);
+/// ```
+/// ```engine impeller/entity/contents/filters/gaussian_blur_filter_contents.cc
+///   Scalar desired_scalar =
+///       std::min(GaussianBlurFilterContents::CalculateScale(scaled_sigma.x),
+///                GaussianBlurFilterContents::CalculateScale(scaled_sigma.y));
+/// ```
+double blurDownsampleFactor({
+  required double sigmaX,
+  required double devicePixelRatio,
+  double? sigmaY,
+}) {
+  final sx = math.min(
+    scaleSigma(sigmaX) * devicePixelRatio,
+    kMaxSigma,
+  );
+  final sy = math.min(
+    scaleSigma(sigmaY ?? sigmaX) * devicePixelRatio,
+    kMaxSigma,
+  );
+  return math.min(calculateBlurScale(sx), calculateBlurScale(sy));
+}
+
 /// The kind of standalone render pass a filter spawns.
 enum FilterPassKind {
   blurDownsample('downsample'),

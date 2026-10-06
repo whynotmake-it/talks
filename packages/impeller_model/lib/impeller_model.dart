@@ -28,6 +28,7 @@ export 'src/capture/tickers.dart' show TickerInfo, findTickers;
 export 'src/engine/canvas.dart' show ModelPass, PassRole, PassTimeline;
 export 'src/engine/capabilities.dart'
     show CapabilityProfile, GpuBackend, PixelFormat;
+export 'src/engine/gaussian_blur.dart' show blurDownsampleFactor;
 export 'src/engine/labels.dart' show EngineLabels;
 export 'src/engine/revision.dart'
     show pinnedEngineRevision, pinnedFlutterVersion;

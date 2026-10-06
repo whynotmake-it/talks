@@ -16,8 +16,6 @@ class RenderingSlide6 extends FlutterDeckSlideWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = FlutterDeckTheme.of(context);
-
     return ContentSlideTemplate(
       title: const Text(
         'Render Journey',

@@ -52,7 +52,7 @@ class _AudioCategoryContent extends HookWidget {
     Future<void> playSound(String soundPath) async {
       try {
         if (currentlyPlaying.value == soundPath &&
-            playerState.value?.playing == true) {
+            (playerState.value?.playing ?? false)) {
           // Stop if already playing
           await audioPlayer.stop();
           currentlyPlaying.value = null;
@@ -94,7 +94,7 @@ class _AudioCategoryContent extends HookWidget {
                         isPlaying:
                             currentlyPlaying.value ==
                                 'assets/windows_start.mp3' &&
-                            playerState.value?.playing == true,
+                            (playerState.value?.playing ?? false),
                         onTap: () => playSound('assets/windows_start.mp3'),
                       ),
                       _AudioItem(
@@ -103,7 +103,7 @@ class _AudioCategoryContent extends HookWidget {
                         isPlaying:
                             currentlyPlaying.value ==
                                 'assets/windows_off.mp3' &&
-                            playerState.value?.playing == true,
+                            (playerState.value?.playing ?? false),
                         onTap: () => playSound('assets/windows_off.mp3'),
                       ),
                     ],
@@ -122,7 +122,7 @@ class _AudioCategoryContent extends HookWidget {
                         isPlaying:
                             currentlyPlaying.value ==
                                 'assets/iphone_ringtone.mp3' &&
-                            playerState.value?.playing == true,
+                            (playerState.value?.playing ?? false),
                         onTap: () => playSound('assets/iphone_ringtone.mp3'),
                       ),
                     ],
@@ -140,7 +140,7 @@ class _AudioCategoryContent extends HookWidget {
                         path: 'assets/error.mp3',
                         isPlaying:
                             currentlyPlaying.value == 'assets/error.mp3' &&
-                            playerState.value?.playing == true,
+                            (playerState.value?.playing ?? false),
                         onTap: () => playSound('assets/error.mp3'),
                       ),
                       _AudioItem(
@@ -149,7 +149,7 @@ class _AudioCategoryContent extends HookWidget {
                         isPlaying:
                             currentlyPlaying.value ==
                                 'assets/iphone_keyboard.mp3' &&
-                            playerState.value?.playing == true,
+                            (playerState.value?.playing ?? false),
                         onTap: () => playSound('assets/iphone_keyboard.mp3'),
                       ),
                     ],

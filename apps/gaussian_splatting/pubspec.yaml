@@ -28,6 +28,7 @@ dependencies:
   wnma_talk:
     path: ../../packages/wnma_talk
 
+  flutter_deck: any
 dev_dependencies:
   flutter_test:
     sdk: flutter
