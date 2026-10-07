@@ -14,7 +14,7 @@ import 'package:flutter/material.dart';
 ///   layers across FFI and each picture snaps into place; the raster thread
 ///   takes the Scene.
 /// - [EngineStage.displayList]: the raster thread walks the tree and writes
-///   one DisplayList; read in order, it describes the screen; the backdrop
+///   a DisplayList; read in order, it describes the screen; the backdrop
 ///   blur is one line in it.
 /// - [EngineStage.passes]: Impeller reads that list into render passes, and
 ///   the backdrop blur ends the first one. The slide shows the finished plan
@@ -435,7 +435,7 @@ Widget _handle(int number, Palette p) => Container(
   ),
 );
 
-/// The layer tree, then one Scene.
+/// The layer tree, then a Scene.
 class _SceneStage extends StatelessWidget {
   const _SceneStage({required this.beat, required this.t});
 
@@ -651,7 +651,7 @@ class _SceneStage extends StatelessWidget {
       );
     }
 
-    // Beat 3: one Scene, handed to the raster thread.
+    // Beat 3: Scene, handed to the raster thread.
     if (handoff > 0) {
       const frame = Rect.fromLTRB(_cppX - 20, _rowTop - 20, 1380, 808);
       children
@@ -861,7 +861,7 @@ List<Widget> _cppTree(
 /// Where slide 9 sketches the screen the list describes.
 const _miniScreen = Rect.fromLTWH(160, 120, 330, 616);
 
-/// Slide 9: one DisplayList.
+/// Slide 9: DisplayList.
 class _ListStage extends StatelessWidget {
   const _ListStage({required this.beat, required this.t});
 
@@ -944,7 +944,7 @@ class _ListStage extends StatelessWidget {
     final children = <Widget>[
       _at(0, 20, _header('THE SCENE · RASTER THREAD', p), opacity: 1 - screen),
       _at(0, 20, _header('WHAT THE LIST DESCRIBES', p), opacity: screen),
-      _at(_listX, 20, _header('ONE DISPLAYLIST', p)),
+      _at(_listX, 20, _header('DisplayList', p)),
       ..._cppTree(
         p,
         opacity: 1 - _seg(screen, 0, .5),
@@ -1070,7 +1070,7 @@ class _PassesStage extends StatelessWidget {
 
     final children = <Widget>[
       _at(0, 20, _header('IMPELLER · RASTER THREAD', p)),
-      _at(_listX, 20, _header('ONE DISPLAYLIST', p)),
+      _at(_listX, 20, _header('DisplayList', p)),
       for (final (index, op) in _ops.indexed)
         _at(
           _listX,

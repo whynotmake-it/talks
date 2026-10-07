@@ -24,7 +24,7 @@ dart run tool/validate.dart macos          # macOS: Metal System Trace per scene
 dart run tool/validate_android.dart        # attached Android device
 ```
 
-Both tools accept `--scene <name>` (trace one scene, keep the other
+Both tools accept `--scene <name>` (trace a scene, keep the other
 results) and `--no-build` (reuse the last build). They write
 `results/<target>.md` and `.json`.
 

@@ -66,7 +66,7 @@ const flowNotes = {
     takeaway:
         'A layer tree with four pictures. The pictures went to C++ while '
         'painting; the SceneBuilder copies the layers at the end of the '
-        'frame. Together: one Scene.',
+        'frame. Together: a Scene.',
     transition: 'The raster thread takes the Scene. What does it do with it?',
   ),
   '/stage-5': FlowNote(

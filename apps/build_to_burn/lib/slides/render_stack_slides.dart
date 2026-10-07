@@ -78,7 +78,7 @@ final stage3Slide = _stackSlide(
   speakerNotes: jesperSlideNotesHeader,
 );
 
-// The layer tree, then one Scene.
+// The layer tree, then a Scene.
 final stage4Slide = _stackSlide(
   '/stage-4',
   layerHeading(4),
