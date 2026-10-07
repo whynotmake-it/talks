@@ -15,7 +15,7 @@ dependencies:
     sdk: flutter
   flutter_deck:
     git:
-      url: git@github.com:timcreatedit/flutter_deck.git
+      url: https://github.com/timcreatedit/flutter_deck.git
       ref: feat/navigator-observers
       path: packages/flutter_deck
   flutter_highlight: ^0.7.0

@@ -1,9 +1,11 @@
 ---
 name: impeeler-gpu-cost
 description: >-
-  Estimate and reduce the Impeller GPU cost of a Flutter screen from a widget
-  test with impeeler: render passes, offscreen textures and memory
-  traffic per device class. Use when a screen uses BackdropFilter, blur,
+  Start here for Flutter GPU cost. Estimate and reduce the Impeller GPU cost
+  of a Flutter screen from a widget test with impeeler: render passes,
+  offscreen textures and memory traffic per device class, and hand off to
+  impeeler-frame-demand (how often it renders) and impeeler-gpu-profiling
+  (device measurements). Use when a screen uses BackdropFilter, blur,
   frosted glass, Opacity, saveLayer, ShaderMask, ImageFiltered, ColorFiltered,
   advanced blend modes or Cupertino dialogs and sheets; when asked why a
   static screen is expensive, drains battery or runs hot; or when adding a
@@ -20,6 +22,12 @@ structure was checked against real GPU traces on macOS Metal and a Pixel 10
 (see the package's `FEASIBILITY.md`), but bytes are nominal and GPU time is
 not modeled. The ground truth is a device capture: the
 `impeeler-gpu-profiling` skill.
+
+This is the entry skill; it routes to the others:
+
+- Cost per frame: this skill.
+- How often frames happen (tickers, carets, timers): `impeeler-frame-demand`.
+- GPU time, energy or a capture on hardware: `impeeler-gpu-profiling`.
 
 A frame that idles at 60 or 120 Hz pays its cost on every vsync. When the
 question is *how often* a screen renders, use `impeeler-frame-demand`;

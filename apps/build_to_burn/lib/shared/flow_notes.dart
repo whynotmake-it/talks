@@ -124,19 +124,50 @@ const flowNotes = {
         '"is it cheap?". You need both.',
     transition: 'So how do you measure the price? The GPU tools.',
   ),
-  '/takeaways': FlowNote(
-    question: 'So what do I take home on Monday?',
+  '/what-to-do': FlowNote(
+    question: 'So what can we do about it?',
+    takeaway: 'Fewer frames, cheaper blurs, fewer layers.',
+    transition: 'Start with the frames.',
+  ),
+  '/frame-demand-fixes': FlowNote(
+    question: 'How do I pay for fewer frames?',
     takeaway:
-        'Cost is frames times price per frame. Let screens settle, know your '
-        'expensive effects, and check energy, not only DevTools.',
-    transition: "You don't have to dig through this by hand.",
+        'Run decorative animations on a timer with fixed_ticker, stop '
+        'hidden ones with TickerMode, let the caret blink.',
+    transition: 'Now the price of each frame. Blur first.',
+  ),
+  '/takeaways': FlowNote(
+    question: 'How do I make the blur cheaper?',
+    takeaway:
+        'Bigger sigma downsamples more, matching filters share passes, '
+        'animate sigma to exactly 0.',
+    transition: 'Blur is not the only layer.',
+  ),
+  '/layer-costs': FlowNote(
+    question: 'How do I avoid paying for a layer?',
+    takeaway:
+        'Alpha in the paint; color or gradient overlays instead of Opacity '
+        'and ShaderMask on solid backgrounds; keep layers tight.',
+    transition: 'All of these recipes come from a package we wrote.',
+  ),
+  '/impeeler': FlowNote(
+    question: 'What is impeeler?',
+    takeaway:
+        'Fast agentic iteration: passes per widget and idle frame demand '
+        'from a widget test, no device. An estimate, not a profiler.',
+    transition: 'You do not run this by hand. Your agent does.',
   ),
   '/skills': FlowNote(
     question: 'How do I find this in my own app?',
     takeaway:
-        'Three agent skills, one per question: GPU cost, frame demand, GPU '
-        'profiling. Works on any app, starting from a widget test.',
+        'Skills for cost, frame demand and profiling. Works on any app, '
+        'starting from a widget test.',
     transition: 'Thank you.',
+  ),
+  '/reading-materials': FlowNote(
+    question: 'Where do I find everything from the talk?',
+    takeaway: 'Every link from the talk at madethese.works/gpu.',
+    transition: 'The end.',
   ),
 };
 

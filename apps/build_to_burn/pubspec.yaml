@@ -15,6 +15,11 @@ dependencies:
       url: https://github.com/whynotmake-it/rivership.git
       ref: aba0c4ca0cff05fe444892bf5fe79a4b921e63ce
       path: packages/example_design
+  fixed_ticker:
+    git:
+      url: https://github.com/whynotmake-it/rivership.git
+      ref: aba0c4ca0cff05fe444892bf5fe79a4b921e63ce
+      path: packages/fixed_ticker
   flutter:
     sdk: flutter
   flutter_highlight: ^0.7.0
@@ -44,6 +49,8 @@ flutter:
     - assets/images/flutter_docs_trees.png
     # Our own captures of the demo, one per profiling tool.
     - assets/images/tools/
+    # Screen the saved impeeler report was generated from.
+    - assets/images/impeeler_report.png
 
   fonts:
     - family: Archivo

@@ -19,15 +19,48 @@ It is a thin peel of the Impeller engine — a model of one Flutter release
 you *whether a change adds or removes passes*; measure GPU time and energy on
 a device.
 
-## Use
+## Agent skills
 
-```yaml
-dev_dependencies:
-  impeeler:
-    path: packages/impeeler   # not published
+The pub package ships three skills for coding agents under `skills/`.
+Start with `impeeler-gpu-cost`, which hands off to the other two:
+
+| Skill | Use it to |
+| --- | --- |
+| [`impeeler-gpu-cost`](skills/impeeler-gpu-cost/SKILL.md) | Start here: estimate a screen's passes in a widget test, reduce costly widgets, and hand off to the other two. |
+| [`impeeler-frame-demand`](skills/impeeler-frame-demand/SKILL.md) | Find what keeps an idle screen rendering; slow decorative animations with `fixed_ticker`. |
+| [`impeeler-gpu-profiling`](skills/impeeler-gpu-profiling/SKILL.md) | Measure on a device: Xcode/Metal captures, Metal System Trace, energy; AGI, RenderDoc, Perfetto on Android. |
+
+Install the package from pub.dev — it bundles the skills — then add them
+with the `skills` CLI:
+
+```sh
+flutter pub add --dev impeeler:0.1.0-dev.1
+npx skills add "${PUB_CACHE:-$HOME/.pub-cache}/hosted/pub.dev/impeeler-0.1.0-dev.1/skills"
 ```
 
-Install the binding in `test/flutter_test_config.dart`:
+The first command installs the package, including its bundled `skills/`
+directory. The second (the `skills` CLI for Node.js, run via npx) prompts
+for the skills and coding agents to install and installs them into the
+current project; add `--global` for a user-wide installation. The pub-cache
+path above is for macOS/Linux — on Windows, a custom pub host, or a
+different version, point the CLI at the `skills/` directory inside the
+resolved package path instead.
+
+From a source checkout, run the CLI on the local directory:
+
+```sh
+npx skills add ./packages/impeeler/skills
+```
+
+Or install them manually: copy the three complete skill directories —
+including their `references/` folders — from `skills/` into `.agents/skills/`
+or your agent's skill location. Copying only each `SKILL.md` is not enough.
+
+## Use
+
+Add the package as a dev dependency (see
+[Agent skills](#agent-skills) for the install command), then install the
+binding in `test/flutter_test_config.dart`:
 
 ```dart
 import 'dart:async';
@@ -115,20 +148,16 @@ is the report it writes. Add `.impeeler/` to `.gitignore`.
 [`FEASIBILITY.md`](FEASIBILITY.md) lists what was validated, how, and where
 the model can be wrong.
 
-## Agent skills
-
-`skills/` ships three skills for coding agents (install with your agent's
-skill tooling, or copy them into `.agents/skills/`):
-
-| Skill | Use it to |
-| --- | --- |
-| [`impeeler-gpu-cost`](skills/impeeler-gpu-cost/SKILL.md) | Estimate a screen's passes in a widget test, read the report, and reduce costly widgets. |
-| [`impeeler-frame-demand`](skills/impeeler-frame-demand/SKILL.md) | Find what keeps an idle screen rendering; slow decorative animations with `fixed_ticker`. |
-| [`impeeler-gpu-profiling`](skills/impeeler-gpu-profiling/SKILL.md) | Measure on a device: Xcode/Metal captures, Metal System Trace, energy; AGI, RenderDoc, Perfetto on Android. |
-
 ## Maintaining
 
 Every engine decision the model mirrors is quoted from the pinned engine
 source next to its port, and `dart run tool/engine_refs.dart` verifies the
 quotes. Updating to a new Flutter release:
 [`MAINTAINING.md`](MAINTAINING.md).
+
+## License
+
+Original Impeeler code is MIT-licensed (see [LICENSE](LICENSE)).
+Portions that quote or adapt Flutter engine and framework source remain
+under the BSD 3-Clause license; the upstream copyright notices are
+included in [LICENSE](LICENSE).

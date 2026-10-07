@@ -65,10 +65,10 @@ placed (a text field, a progress indicator).
 
 Decide per source:
 
-- **Not visible** (behind an opaque route, in an inactive tab, scrolled away,
-  under `Offstage`): stop it. Routes covered by an opaque route are muted by
-  the framework; widgets you hide yourself are not. Wrap them in
-  `TickerMode(enabled: false)`, or stop the controller.
+- **Not visible**: stop it with `TickerMode(enabled: false)` or by stopping
+  the controller. The framework only mutes routes under an **opaque** route.
+  It does not mute routes under a bottom sheet, dialog or popup, children of
+  `IndexedStack` or `Offstage`, or kept-alive pages scrolled out of view.
 - **Decorative and endless** (pulse, shimmer, breathing glow, slow
   gradient): run it at a fixed lower rate with
   [`fixed_ticker`](https://pub.dev/packages/fixed_ticker): replace

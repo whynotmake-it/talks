@@ -621,7 +621,7 @@ class _LeaderPainter extends CustomPainter {
       Paint()
         ..color = color
         ..style = PaintingStyle.stroke
-        ..strokeWidth = 1.5,
+        ..strokeWidth = 2.5,
     );
   }
 

@@ -641,12 +641,12 @@ const profilingScript = [
   RenderStackStep(
     RenderStackView(
       spotlight: ToolSpotlight(
-        tool: 'Energy Impact',
-        tiers: {7: .5, 8: .5},
-        shows: 'what it all costs',
-        image: 'assets/images/tools/energy_impact.png',
+        tool: 'Metal frame capture',
+        tiers: {6: .5, 7: .5},
+        shows: 'every pass of one frame',
+        image: 'assets/images/tools/metal_frame_capture.png',
       ),
     ),
-    caption: 'Energy Impact',
+    caption: 'Metal frame capture',
   ),
 ];

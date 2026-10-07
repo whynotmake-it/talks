@@ -18,9 +18,15 @@ starts offscreen and is copied to the screen at the end.
   `ClipRect`/`ClipRRect` of the area that shows it. The blur input is cut to
   the clip (`coverage_hint`), so a dialog-sized clip blurs a dialog-sized
   region instead of the screen.
+- **Bigger sigma, cheaper blur.** Impeller blurs a downsampled copy: scale 1
+  up to sigma 4 (physical pixels), then the nearest 1/2ⁿ of 4 / sigma, down
+  to 1/16 (`GaussianBlurFilterContents::CalculateScale` in
+  `impeller/entity/contents/filters/gaussian_blur_filter_contents.cc`). A
+  larger sigma reads and writes a smaller texture. It changes the look:
+  propose it, don't apply it silently.
 - **Group backdrops that share a filter.** Several `BackdropFilter`s with the
-  same filter under one `BackdropGroup`, each built with
-  `BackdropFilter.grouped`, run the filter once for the group; members draw
+  same `ImageFilter.blur` (same sigmas) under one `BackdropGroup`, each built
+  with `BackdropFilter.grouped`, run the filter once for the group; members draw
   the shared snapshot without a pass of their own
   (`backdrop_data->all_filters_equal` in `canvas.cc`). Measured on macOS
   Metal: two backdrops cost 5 + 6 passes, the same two grouped cost 2 + 3.
@@ -48,7 +54,12 @@ children's paints: the "opacity peephole"
   filter or mask blur. A fading icon or text run costs nothing; a fading card
   with a shadow under its content needs a layer.
 - **Put alpha in the paint** when you own the drawing: a color with alpha,
-  `Image(opacity:)`, or `Text` with a translucent color.
+  `Image(opacity:)`, or `Text` with a translucent color. Over overlapping
+  shapes the overlaps show through; check the look.
+- **Fade with an overlay on a solid background.** If the background behind
+  the widget is one known color, draw that color at `1 - opacity` on top
+  instead of wrapping in `Opacity`: same look, no layer. Breaks over images,
+  gradients or moving content.
 - **Fades cost only mid-animation.** `Opacity(opacity: 0)` paints nothing,
   and an `OpacityLayer` at full opacity adds no layer
   (`flow/layers/layer_state_stack.cc` applies opacity only below 1). A fade
@@ -61,6 +72,9 @@ children's paints: the "opacity peephole"
   `Clip.hardEdge` unless the edge bleeding is visible.
 - **`ShaderMask` is always a layer**, sized to the masked child. Keep the
   child small.
+- **Fade list edges with a gradient, not `ShaderMask`.** On a solid
+  background, a gradient from the background color to transparent over each
+  edge looks the same and needs no layer. Same solid-background limit.
 - **Custom painters:** give `canvas.saveLayer` tight bounds, or avoid it.
   Unbounded content (a paint that covers everything) makes the layer full
   screen and blocks the opacity peephole.

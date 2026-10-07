@@ -11,6 +11,7 @@ class _LabelList extends StatelessWidget {
     required this.rows,
     required this.frames,
     required this.opacity,
+    required this.planeShift,
   });
 
   final List<StackTier> tiers;
@@ -21,6 +22,10 @@ class _LabelList extends StatelessWidget {
   final _Rows rows;
   final double frames;
   final double opacity;
+
+  /// How far right the planes sit (see [_planeShift]), so the leaders still
+  /// start at their right vertex.
+  final double planeShift;
 
   @override
   Widget build(BuildContext context) {
@@ -79,9 +84,12 @@ class _LabelList extends StatelessWidget {
       CustomPaint(
         size: RenderStack.designSize,
         painter: _LeaderPainter(
-          from: Offset(_centerX + _halfWidth, layout.center(index)),
+          from: Offset(
+            _centerX + _halfWidth + planeShift,
+            layout.center(index),
+          ),
           to: Offset(_rowsLeft - 18, y),
-          color: p.borderStrong.withValues(alpha: .6 * v.presence),
+          color: p.textTertiary.withValues(alpha: v.presence),
         ),
       ),
       Positioned(
