@@ -1,0 +1,91 @@
+name: Deploy talks to GitHub Pages
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+env:
+  # Apps under apps/ to build and host at /<repo>/<app>/, space-separated.
+  # Add a talk here once it builds cleanly for web.
+  TALKS: build_to_burn
+
+jobs:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: 📚 Checkout
+        uses: actions/checkout@v5
+
+      - name: 🐦 Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version-file: .fvmrc
+          cache: true
+
+      - name: ✂️ Limit pub workspace to deployable apps
+        run: |
+          # The whole repo shares one pub resolution at the root. Drop the
+          # apps we don't deploy so their dependencies (e.g. physical_ui's
+          # private git dependency) can't break or slow down resolution.
+          for dir in apps/*/; do
+            app=$(basename "$dir")
+            case " $TALKS " in
+              *" $app "*) ;;
+              *) sed -i "/^  - apps\/$app$/d" pubspec.yaml ;;
+            esac
+          done
+
+      - name: 📦 Resolve dependencies
+        run: flutter pub get
+
+      - name: 🏗️ Build WASM
+        run: |
+          set -e
+          mkdir -p _site
+          for app in $TALKS; do
+            (cd "apps/$app" && flutter build web --release --wasm \
+              --base-href "/${GITHUB_REPOSITORY#*/}/$app/")
+            mv "apps/$app/build/web" "_site/$app"
+          done
+
+      - name: 🗂️ Generate index
+        run: |
+          {
+            echo '<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>talks &middot; whynotmake.it</title>'
+            echo '<style>body{font-family:system-ui,sans-serif;max-width:32rem;margin:4rem auto;padding:0 1rem;line-height:1.6}</style>'
+            echo '<h1>Talks</h1><ul>'
+            for app in $TALKS; do echo "<li><a href=\"./$app/\">$app</a></li>"; done
+            echo '</ul>'
+          } > _site/index.html
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+        if: github.ref == 'refs/heads/main'
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v4
+        if: github.ref == 'refs/heads/main'
+        with:
+          path: './_site'
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+        if: github.ref == 'refs/heads/main'
