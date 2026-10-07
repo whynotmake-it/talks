@@ -1,6 +1,6 @@
 name: impeeler
 description: "Estimates the Impeller GPU passes, memory traffic and idle frame requests of a Flutter screen from a widget test."
-version: 0.1.0-dev.1
+version: 0.1.0-dev.2
 homepage: https://whynotmake.it
 repository: https://github.com/whynotmake-it/talks/tree/main/packages/impeeler
 

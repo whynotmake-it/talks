@@ -1,3 +1,10 @@
+## 0.1.0-dev.2
+
+- Correct bundled-skill installation instructions to use
+  `dart run skills@ get -p impeeler`, following Dart's package-skills guidance.
+- Remove the unnecessary Node.js/npm requirement and hard-coded pub-cache
+  paths from the README.
+
 ## 0.1.0-dev.1
 
 - Add homepage and repository links to package metadata.

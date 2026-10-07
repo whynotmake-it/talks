@@ -30,31 +30,27 @@ Start with `impeeler-gpu-cost`, which hands off to the other two:
 | [`impeeler-frame-demand`](skills/impeeler-frame-demand/SKILL.md) | Find what keeps an idle screen rendering; slow decorative animations with `fixed_ticker`. |
 | [`impeeler-gpu-profiling`](skills/impeeler-gpu-profiling/SKILL.md) | Measure on a device: Xcode/Metal captures, Metal System Trace, energy; AGI, RenderDoc, Perfetto on Android. |
 
-Install the package from pub.dev — it bundles the skills — then add them
-with the `skills` CLI:
+Install the package as a dev dependency, then install its bundled skills
+with Dart's [`package:skills` tooling](https://dart.dev/ai/package-skills):
 
 ```sh
-flutter pub add --dev impeeler:0.1.0-dev.1
-npx skills add "${PUB_CACHE:-$HOME/.pub-cache}/hosted/pub.dev/impeeler-0.1.0-dev.1/skills"
+flutter pub add dev:impeeler@0.1.0-dev.2
+dart run skills@ get -p impeeler
 ```
 
-The first command installs the package, including its bundled `skills/`
-directory. The second (the `skills` CLI for Node.js, run via npx) prompts
-for the skills and coding agents to install and installs them into the
-current project; add `--global` for a user-wide installation. The pub-cache
-path above is for macOS/Linux — on Windows, a custom pub host, or a
-different version, point the CLI at the `skills/` directory inside the
-resolved package path instead.
+Run these commands from your Flutter project's directory. The skills command
+reads the resolved dependency, prompts you to select skills, and installs them
+into the appropriate directory for your coding agent. No Node.js or manual
+pub-cache paths are needed.
 
-From a source checkout, run the CLI on the local directory:
+To install all three skills without the skill-selection prompt:
 
 ```sh
-npx skills add ./packages/impeeler/skills
+dart run skills@ get -p impeeler --all
 ```
 
-Or install them manually: copy the three complete skill directories —
-including their `references/` folders — from `skills/` into `.agents/skills/`
-or your agent's skill location. Copying only each `SKILL.md` is not enough.
+Run the same command after upgrading Impeeler to update the installed skills.
+This also works when Impeeler is a local path dependency.
 
 ## Use
 
