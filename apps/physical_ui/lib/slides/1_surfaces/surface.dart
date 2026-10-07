@@ -4,7 +4,6 @@ import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
 import 'package:halofoil/halofoil.dart';
 import 'package:liquid_glass_renderer/liquid_glass_renderer.dart';
-import 'package:physical_ui/slides/1_surfaces/erasable_liquid_metal_logo.dart';
 import 'package:rivership/rivership.dart';
 
 class Surface extends StatelessWidget {
@@ -59,9 +58,6 @@ class Surface extends StatelessWidget {
                   SpecialEffects.halofoil => _buildHalofoil(lightDirection),
                   SpecialEffects.liquidGlass => _buildLiquidGlass(
                     lightDirection,
-                  ),
-                  SpecialEffects.liquidMetal => LiquidMetalLogo(
-                    state: state,
                   ),
                 },
               ),
@@ -325,7 +321,6 @@ class Surface extends StatelessWidget {
 enum SpecialEffects {
   none,
   halofoil,
-  liquidMetal,
   liquidGlass,
 }
 
