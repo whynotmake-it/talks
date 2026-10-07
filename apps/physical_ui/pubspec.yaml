@@ -14,6 +14,7 @@ dependencies:
     sdk: flutter
   flutter_animate: ^4.5.2
   flutter_hooks: ^0.21.2
+  flutter_shaders: any
   halofoil: ^0.0.1
   heroine: ^0.7.2
   hooks_riverpod: ^3.0.0
@@ -24,16 +25,11 @@ dependencies:
       path: packages/liquid_glass_renderer
       ref: 0f0fcfd9f2fce5bc7eab44b0e42e2d67de7b74f6
 
-  paper_liquid_metal_logo:
-    git: git@github.com:whynotmake-it/glibber.git
   motor: ^1.0.0-dev.10
   rivership: ^0.4.0
   stupid_simple_sheet: ^0.3.0+1
   value_notifier_tools: ^0.1.2
   wnma_talk: any
-
-  flutter_shaders: any
-  scribble: any
 dev_dependencies:
   flutter_test:
     sdk: flutter

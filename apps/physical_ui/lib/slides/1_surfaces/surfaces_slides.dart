@@ -183,7 +183,7 @@ class SpecialEffectsSlide extends FlutterDeckSlideWidget {
     : super(
         configuration: FlutterDeckSlideConfiguration(
           route: '/surfaces/special_effects',
-          steps: 4,
+          steps: 3,
           speakerNotes: timSlideNotesHeader,
         ),
       );
@@ -227,14 +227,9 @@ class SpecialEffectsSlide extends FlutterDeckSlideWidget {
               3: SurfaceState(
                 radius: 48,
                 rotateLight: true,
-                effect: SpecialEffects.liquidMetal,
-              ),
-              4: SurfaceState(
-                radius: 48,
-                rotateLight: true,
                 effect: SpecialEffects.liquidGlass,
               ),
-              5: SurfaceState(
+              4: SurfaceState(
                 radius: 48,
                 noiseOpacity: 1,
                 color: theme.colorScheme.secondary,
